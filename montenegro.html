@@ -33,6 +33,36 @@
     let selectedModal = null;
     let checklist = JSON.parse(localStorage.getItem('montenegroChecklist') || '{}');
     let packingList = JSON.parse(localStorage.getItem('montenegroPackingList') || '{}');
+    let tripPhotos = JSON.parse(localStorage.getItem('montenegroPhotos') || '{}');
+
+    // Photo gallery functions
+    function addPhoto(dayNum) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            if (!tripPhotos[dayNum]) tripPhotos[dayNum] = [];
+            tripPhotos[dayNum].push({ src: e.target.result, date: new Date().toISOString() });
+            localStorage.setItem('montenegroPhotos', JSON.stringify(tripPhotos));
+            render();
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+      input.click();
+    }
+
+    function deletePhoto(dayNum, idx) {
+      if (confirm('Foto verwijderen?')) {
+        tripPhotos[dayNum].splice(idx, 1);
+        localStorage.setItem('montenegroPhotos', JSON.stringify(tripPhotos));
+        render();
+      }
+    }
 
     // Auto-generated packing list for Montenegro
     const packingCategories = {
@@ -412,7 +442,8 @@
         { id: 'map', label: '🗺️ Kaart' },
         { id: 'budget', label: '💰 Budget' },
         { id: 'checklist', label: `✅ (${checkedCount}/${totalChecks})` },
-        { id: 'packing', label: '🎒 Inpakken' }
+        { id: 'packing', label: '🎒 Inpakken' },
+        { id: 'photos', label: '📸 Fotos' }
       ].forEach(t => {
         html += `<button onclick="setTab('${t.id}')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap shadow ${activeTab === t.id ? 'bg-amber-600 text-white' : 'bg-white text-gray-700 hover:bg-amber-50'}">${t.label}</button>`;
       });
@@ -702,6 +733,52 @@
                 <li>• Wandelschoenen voor Kotor fortress (1350 treden!)</li>
               </ul>
             </div>
+          </div>
+        `;
+      }
+
+      // PHOTOS TAB
+      if (activeTab === 'photos') {
+        const totalPhotos = Object.values(tripPhotos).flat().length;
+        html += `
+          <div class="space-y-4">
+            <div class="bg-gradient-to-r from-amber-500 to-orange-600 rounded-2xl p-5 text-white">
+              <h2 class="text-xl font-bold mb-2">📸 Foto Galerij</h2>
+              <p class="text-white/80 text-sm">Voeg foto's toe per dag om je Montenegro avontuur vast te leggen!</p>
+              <div class="mt-2 text-lg font-bold">${totalPhotos} foto's opgeslagen</div>
+            </div>
+            
+            ${days.map(d => `
+              <div class="bg-white rounded-2xl p-5 shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center gap-3">
+                    <span class="text-3xl">${d.icon}</span>
+                    <div>
+                      <h3 class="font-bold text-gray-800">Dag ${d.day}: ${d.title}</h3>
+                      <p class="text-sm text-gray-500">${d.date}</p>
+                    </div>
+                  </div>
+                  <button onclick="addPhoto(${d.day})" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium transition">
+                    + Foto
+                  </button>
+                </div>
+                ${tripPhotos[d.day] && tripPhotos[d.day].length > 0 ? `
+                  <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    ${tripPhotos[d.day].map((photo, idx) => `
+                      <div class="relative group">
+                        <img src="${photo.src}" alt="Dag ${d.day} foto" class="w-full h-32 object-cover rounded-xl">
+                        <button onclick="deletePhoto(${d.day}, ${idx})" class="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition text-sm">×</button>
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : `
+                  <div class="bg-gray-50 rounded-xl p-6 text-center text-gray-400">
+                    <div class="text-3xl mb-2">📷</div>
+                    <p>Nog geen foto's voor deze dag</p>
+                  </div>
+                `}
+              </div>
+            `).join('')}
           </div>
         `;
       }
