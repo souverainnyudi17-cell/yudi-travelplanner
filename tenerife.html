@@ -60,6 +60,36 @@
     let selectedModal = null;
     let checklist = JSON.parse(localStorage.getItem('tenerifeChecklist2') || '{}');
     let packingList = JSON.parse(localStorage.getItem('tenerifePackingList') || '{}');
+    let tripPhotos = JSON.parse(localStorage.getItem('tenerifePhotos') || '{}');
+
+    // Photo gallery functions
+    function addPhoto(dayNum) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            if (!tripPhotos[dayNum]) tripPhotos[dayNum] = [];
+            tripPhotos[dayNum].push({ src: e.target.result, caption: '', date: new Date().toISOString() });
+            localStorage.setItem('tenerifePhotos', JSON.stringify(tripPhotos));
+            render();
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+      input.click();
+    }
+
+    function deletePhoto(dayNum, idx) {
+      if (confirm('Foto verwijderen?')) {
+        tripPhotos[dayNum].splice(idx, 1);
+        localStorage.setItem('tenerifePhotos', JSON.stringify(tripPhotos));
+        render();
+      }
+    }
 
     // Auto-generated packing list based on activities
     const packingCategories = {
@@ -437,6 +467,18 @@
       ]}
     ];
 
+    // Smart Packing Lists - based on activities
+    const smartPackingLists = {
+      teide: { title: '🌋 El Teide', items: ['Winterjas', 'Handschoenen', 'Muts', 'Wandelschoenen', 'Zonnebril', 'SPF50', 'Water 2L', 'Lunch/snacks'] },
+      cueva: { title: '🦇 Cueva del Viento', items: ['Comfortabele schoenen', 'Lichte jas (15°C in grot)', 'Camera'] },
+      walvissen: { title: '🐋 Walvissen Tour', items: ['Reiziektepillen!', 'Zonnebrand', 'Camera met zoom', 'Pet / zonnehoed', 'Jas (wind op zee)'] },
+      watersport: { title: '🚀 Watersport Dag', items: ['Zwemkleding', 'Handdoek', 'Zonnebrand waterproof', 'Waterproof phone case', 'Wisselkleding'] },
+      strand: { title: '🏖️ Strand', items: ['Zwemkleding', 'Handdoek', 'Zonnebrand SPF50', 'Zonnebril', 'Boek/kindle', 'Snorkelset (optioneel)'] },
+      algemeen: { title: '👕 Algemene Kleding', items: ['T-shirts (6x)', 'Shorts (3x)', 'Lange broek (2x)', 'Ondergoed (9x)', 'Sokken (9x)', 'Pyjama', 'Nette outfit'] },
+      tech: { title: '📱 Elektronica', items: ['Telefoon + oplader', 'Powerbank', 'Camera + oplader', 'Koptelefoon', 'EU stekker'] },
+      toilettas: { title: '🧴 Toilettas', items: ['Tandenborstel & tandpasta', 'Deodorant', 'Shampoo / douchegel', 'Medicijnen', 'Aftersun', 'Lippenbalsem SPF'] }
+    };
+
     // Helper functions
     function getCardClass(type) {
       const classes = {
@@ -587,6 +629,7 @@
           <button onclick="setTab('budget')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'budget' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">💰 Budget</button>
           <button onclick="setTab('checklist')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'checklist' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">✅ Checklist (${checkedCount}/${totalChecks})</button>
           <button onclick="setTab('packing')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'packing' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">🎒 Inpaklijst</button>
+          <button onclick="setTab('photos')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'photos' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">📸 Foto's</button>
         </div>
       `;
 
@@ -1006,6 +1049,57 @@
                 <li>• Reiziektepillen voor ferry én walvissen tour</li>
                 <li>• Zonnebrand SPF50 - zon is sterk op Canarische Eilanden</li>
               </ul>
+            </div>
+          </div>
+        `;
+      }
+
+      // PHOTOS TAB
+      if (activeTab === 'photos') {
+        const totalPhotos = Object.values(tripPhotos).flat().length;
+        html += `
+          <div class="space-y-4">
+            <div class="bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl p-5 text-white">
+              <h2 class="text-xl font-bold mb-2">📸 Foto Galerij</h2>
+              <p class="text-white/80 text-sm">Voeg foto's toe per dag om je reis vast te leggen!</p>
+              <div class="mt-2 text-lg font-bold">${totalPhotos} foto's opgeslagen</div>
+            </div>
+            
+            ${days.map(d => `
+              <div class="bg-white rounded-2xl p-5 shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center gap-3">
+                    <span class="text-3xl">${d.icon}</span>
+                    <div>
+                      <h3 class="font-bold text-gray-800">Dag ${d.day}: ${d.title}</h3>
+                      <p class="text-sm text-gray-500">${d.date}</p>
+                    </div>
+                  </div>
+                  <button onclick="addPhoto(${d.day})" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition">
+                    + Foto
+                  </button>
+                </div>
+                ${tripPhotos[d.day] && tripPhotos[d.day].length > 0 ? `
+                  <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    ${tripPhotos[d.day].map((photo, idx) => `
+                      <div class="relative group">
+                        <img src="${photo.src}" alt="Dag ${d.day} foto" class="w-full h-32 object-cover rounded-xl">
+                        <button onclick="deletePhoto(${d.day}, ${idx})" class="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition text-sm">×</button>
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : `
+                  <div class="bg-gray-50 rounded-xl p-6 text-center text-gray-400">
+                    <div class="text-3xl mb-2">📷</div>
+                    <p>Nog geen foto's voor deze dag</p>
+                    <p class="text-xs mt-1">Klik "Foto toevoegen" om te beginnen</p>
+                  </div>
+                `}
+              </div>
+            `).join('')}
+            
+            <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-sm text-blue-800">
+              <strong>💡 Tip:</strong> Foto's worden lokaal opgeslagen in je browser. Ze verdwijnen niet als je de pagina ververst!
             </div>
           </div>
         `;
