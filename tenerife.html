@@ -392,6 +392,28 @@
       render();
     }
 
+    // EXPENSES TRACKER
+    let expenses = JSON.parse(localStorage.getItem('tenerifeExpenses') || '[]');
+    
+    function addExpense() {
+      const desc = document.getElementById('expenseDesc').value;
+      const amount = parseFloat(document.getElementById('expenseAmount').value);
+      const category = document.getElementById('expenseCategory').value;
+      if (desc && amount > 0) {
+        expenses.push({ id: Date.now(), desc, amount, category, date: new Date().toLocaleDateString('nl-NL') });
+        localStorage.setItem('tenerifeExpenses', JSON.stringify(expenses));
+        document.getElementById('expenseDesc').value = '';
+        document.getElementById('expenseAmount').value = '';
+        render();
+      }
+    }
+    
+    function deleteExpense(id) {
+      expenses = expenses.filter(e => e.id !== id);
+      localStorage.setItem('tenerifeExpenses', JSON.stringify(expenses));
+      render();
+    }
+
     function setDay(d) { activeDay = d; render(); }
     function setTab(t) { activeTab = t; render(); }
     function openModal(act) { selectedModal = act; render(); }
@@ -599,8 +621,64 @@
 
       // BUDGET TAB
       if (activeTab === 'budget') {
+        const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+        const categoryTotals = expenses.reduce((acc, e) => {
+          acc[e.category] = (acc[e.category] || 0) + e.amount;
+          return acc;
+        }, {});
+        
         html += `
           <div class="space-y-4">
+            <!-- EXPENSES TRACKER -->
+            <div class="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl p-5 text-white shadow-lg">
+              <h3 class="font-bold text-lg mb-3 flex items-center gap-2">💸 Uitgaven Tracker</h3>
+              <div class="grid grid-cols-3 gap-2 mb-4">
+                <input type="text" id="expenseDesc" placeholder="Omschrijving" class="col-span-2 px-3 py-2 rounded-lg text-gray-800 text-sm" />
+                <input type="number" id="expenseAmount" placeholder="€" step="0.01" class="px-3 py-2 rounded-lg text-gray-800 text-sm" />
+              </div>
+              <div class="flex gap-2">
+                <select id="expenseCategory" class="flex-1 px-3 py-2 rounded-lg text-gray-800 text-sm">
+                  <option value="🍽️ Eten">🍽️ Eten</option>
+                  <option value="🚗 Vervoer">🚗 Vervoer</option>
+                  <option value="🎫 Activiteit">🎫 Activiteit</option>
+                  <option value="🛒 Shopping">🛒 Shopping</option>
+                  <option value="🏨 Verblijf">🏨 Verblijf</option>
+                  <option value="💰 Overig">💰 Overig</option>
+                </select>
+                <button onclick="addExpense()" class="bg-white text-purple-600 px-4 py-2 rounded-lg font-bold hover:bg-purple-100 transition">+ Toevoegen</button>
+              </div>
+              ${expenses.length > 0 ? `
+                <div class="mt-4 pt-4 border-t border-white/30">
+                  <div class="flex justify-between items-center">
+                    <span class="text-white/80">Totaal uitgegeven:</span>
+                    <span class="text-2xl font-bold">€${totalExpenses.toFixed(2)}</span>
+                  </div>
+                  <div class="text-sm text-white/70 mt-1">Budget remaining: €${(totalBudget - bookedTotal - totalExpenses).toFixed(2)}</div>
+                </div>
+              ` : ''}
+            </div>
+            
+            ${expenses.length > 0 ? `
+              <div class="bg-white rounded-2xl p-5 shadow-lg">
+                <h3 class="font-bold text-lg mb-3">📝 Mijn Uitgaven</h3>
+                <div class="space-y-2 max-h-48 overflow-y-auto">
+                  ${expenses.slice().reverse().map(e => `
+                    <div class="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <span class="text-sm">${e.category}</span>
+                        <span class="font-medium ml-2">${e.desc}</span>
+                        <span class="text-xs text-gray-400 ml-2">${e.date}</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="font-bold text-purple-600">€${e.amount.toFixed(2)}</span>
+                        <button onclick="deleteExpense(${e.id})" class="text-red-400 hover:text-red-600 text-lg">×</button>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+
             <div class="bg-white rounded-2xl p-5 shadow-lg">
               <h3 class="font-bold text-lg mb-4 flex items-center gap-2">✅ Geboekt</h3>
               ${budget.booked.map(i => `
