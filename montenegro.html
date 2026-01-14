@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🏔️ Montenegro Adventure 2026</title>
+  <meta name="theme-color" content="#f59e0b">
+  <link rel="manifest" href="/manifest.json">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; background: linear-gradient(180deg, #fef3c7 0%, #fed7aa 50%, #fde68a 100%); min-height: 100vh; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .card-transport { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+    .card-warning { background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%); }
+    .card-food { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); }
+    .card-accommodation { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+    .card-highlight { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
+    .card-beach { background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%); }
+    .card-activity { background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%); }
+  </style>
+</head>
+<body>
+  <div id="app" class="max-w-2xl mx-auto p-4 pb-8"></div>
+  <script>
+    let activeDay = 1, activeTab = 'planning', selectedModal = null;
+    let checklist = JSON.parse(localStorage.getItem('montenegroChecklist') || '{}');
+
+    const trip = { title: '🏔️ Montenegro Adventure', subtitle: 'Bergen, Canyon & Kust', dates: '16-24 mei 2026', duration: '9 dagen', persons: 2 };
+
+    const accommodations = {
+      kotor: { name: 'Appartement Kotor Old Town', location: 'Kotor / Dobrota', dates: '16-19 mei', nights: 3, price: 195 },
+      durmitor: { name: 'Mountain Lodge Žabljak', location: 'Žabljak, Durmitor', dates: '19-21 mei', nights: 2, price: 100 },
+      budva: { name: 'Beach Apartment Budva', location: 'Budva Riviera', dates: '21-24 mei', nights: 3, price: 210 }
+    };
+
+    const days = [
+      { day: 1, date: 'Za 16 mei', title: 'Aankomst Kotor', icon: '✈️', island: 'Kotor', highlight: 'Old Town verkennen', accom: 'kotor' },
+      { day: 2, date: 'Zo 17 mei', title: 'Bay of Kotor', icon: '⛵', island: 'Kotor', highlight: 'Boottrip + Perast', accom: 'kotor' },
+      { day: 3, date: 'Ma 18 mei', title: 'Lovćen & Cetinje', icon: '🏔️', island: 'Kotor', highlight: 'Bergpanorama', accom: 'kotor' },
+      { day: 4, date: 'Di 19 mei', title: 'Naar Durmitor', icon: '🚗', island: 'Bergen', highlight: 'Ostrog + Black Lake', accom: 'durmitor', featured: true },
+      { day: 5, date: 'Wo 20 mei', title: 'Tara Rafting!', icon: '🚣', island: 'Durmitor', highlight: 'Diepste canyon Europa!', accom: 'durmitor', featured: true },
+      { day: 6, date: 'Do 21 mei', title: 'Naar Budva', icon: '🏖️', island: 'Kust', highlight: 'Sveti Stefan', accom: 'budva' },
+      { day: 7, date: 'Vr 22 mei', title: 'Watersport!', icon: '🚀', island: 'Budva', highlight: 'Jetski + Parasailing + Beach', accom: 'budva', featured: true },
+      { day: 8, date: 'Za 23 mei', title: 'Skadar Lake', icon: '🦅', island: 'Budva', highlight: 'Vogelparadijs + Wijn', accom: 'budva' },
+      { day: 9, date: 'Zo 24 mei', title: 'Vertrek', icon: '🏠', island: 'Terug', highlight: 'Afscheid Montenegro', accom: null }
+    ];
+
+    const activities = {
+      1: [
+        { time: '11:00', title: 'Vertrek Amsterdam', subtitle: 'Vlucht via overstap', icon: '🛫', type: 'transport' },
+        { time: '14:30', title: 'Landing Tivat', subtitle: 'Kleine luchthaven', icon: '🛬', type: 'transport' },
+        { time: '15:00', title: 'Auto ophalen', subtitle: 'Huurauto ~€25-35/dag', icon: '🚗', type: 'transport' },
+        { time: '15:45', title: 'Check-in Kotor', subtitle: 'Appartement Old Town', icon: '🏠', type: 'accommodation' },
+        { time: '17:00', title: '⭐ Kotor Old Town', subtitle: 'UNESCO Werelderfgoed', icon: '🏰', type: 'highlight' },
+        { time: '19:00', title: 'Fortress Climb', subtitle: '1350 treden!', icon: '🥾', type: 'activity' },
+        { time: '21:00', title: 'Diner', subtitle: 'Old Town - Ćevapi', icon: '🍽️', type: 'food' }
+      ],
+      2: [
+        { time: '09:30', title: '⭐ Bay of Kotor Boottocht', subtitle: 'Hele baai per boot', icon: '⛵', type: 'highlight' },
+        { time: '10:30', title: 'Our Lady of the Rocks', subtitle: 'Kunstmatig eiland', icon: '⛪', type: 'activity' },
+        { time: '11:30', title: 'Perast', subtitle: 'Barok dorpje', icon: '🏘️', type: 'activity' },
+        { time: '13:00', title: 'Lunch Perast', subtitle: 'Verse vis', icon: '🍽️', type: 'food' },
+        { time: '15:00', title: 'Blue Cave', subtitle: 'Zwemmen in blauwe grot', icon: '🏊', type: 'highlight' },
+        { time: '20:00', title: 'Diner', subtitle: 'Seafood', icon: '🍽️', type: 'food' }
+      ],
+      3: [
+        { time: '08:30', title: 'Vertrek Lovćen', subtitle: '25 haarspeldbochten!', icon: '🚗', type: 'transport' },
+        { time: '10:00', title: '⭐ Njegoš Mausoleum', subtitle: '461 treden naar top!', icon: '🏔️', type: 'highlight' },
+        { time: '12:00', title: 'Lovćen NP', subtitle: 'Panorama', icon: '👀', type: 'activity' },
+        { time: '13:30', title: 'Lunch Njeguši', subtitle: 'Pršut & kaas!', icon: '🍽️', type: 'food' },
+        { time: '15:00', title: 'Cetinje', subtitle: 'Oude hoofdstad', icon: '🏛️', type: 'activity' },
+        { time: '20:00', title: 'Diner', subtitle: 'Laatste avond Kotor', icon: '🍽️', type: 'food' }
+      ],
+      4: [
+        { time: '08:00', title: 'Check-out Kotor', subtitle: 'Naar de bergen!', icon: '📦', type: 'accommodation' },
+        { time: '10:30', title: '⭐ Ostrog Monastery', subtitle: 'In rotswand gebouwd!', icon: '⛪', type: 'highlight' },
+        { time: '12:30', title: 'Lunch onderweg', subtitle: 'Kačamak, Ćevapi', icon: '🍽️', type: 'food' },
+        { time: '16:30', title: 'Check-in Žabljak', subtitle: 'Mountain Lodge', icon: '🏠', type: 'accommodation' },
+        { time: '17:30', title: '⭐ Black Lake', subtitle: 'Wandeling rond meer', icon: '🏞️', type: 'highlight' },
+        { time: '20:00', title: 'Diner', subtitle: 'Bergdiner - Lamsvlees', icon: '🍽️', type: 'food' }
+      ],
+      5: [
+        { time: '06:00', title: '⚠️ VROEG opstaan!', subtitle: 'Rafting pickup', icon: '⏰', type: 'warning' },
+        { time: '08:30', title: 'Ontbijt kamp', subtitle: 'Traditioneel', icon: '🍳', type: 'food' },
+        { time: '10:00', title: '⭐ TARA RIVER RAFTING!', subtitle: '2e diepste canyon! 18km', icon: '🚣', type: 'highlight' },
+        { time: '14:00', title: 'Lunch rivier', subtitle: 'BBQ inbegrepen', icon: '🍽️', type: 'food' },
+        { time: '15:30', title: 'Tara Bridge', subtitle: '172m hoog!', icon: '🌉', type: 'activity' },
+        { time: '20:00', title: 'Afscheidsdiner', subtitle: 'Bergen + Rakija', icon: '🍽️', type: 'food' }
+      ],
+      6: [
+        { time: '09:00', title: 'Check-out Žabljak', subtitle: 'Naar kust!', icon: '📦', type: 'accommodation' },
+        { time: '13:00', title: 'Aankomst Budva', subtitle: 'Beach Apartment', icon: '🏠', type: 'accommodation' },
+        { time: '15:30', title: 'Budva Old Town', subtitle: '2500 jaar oud', icon: '🏰', type: 'activity' },
+        { time: '17:30', title: '⭐ Sveti Stefan', subtitle: 'Iconisch eiland', icon: '🏝️', type: 'highlight' },
+        { time: '19:30', title: 'Diner', subtitle: 'Terras', icon: '🍽️', type: 'food' }
+      ],
+      7: [
+        { time: '09:30', title: '⭐ Jetski!', subtitle: 'Langs de kust racen!', icon: '🚀', type: 'highlight' },
+        { time: '10:30', title: '⭐ Parasailing!', subtitle: 'Vliegen boven Budva!', icon: '🪂', type: 'highlight' },
+        { time: '11:30', title: '⭐ Mogren Beach', subtitle: 'Mooiste strand relaxen', icon: '🏖️', type: 'beach' },
+        { time: '13:00', title: 'Lunch strand', subtitle: 'Beachbar', icon: '🍽️', type: 'food' },
+        { time: '14:30', title: 'Banana Boat', subtitle: 'Klassieke strandpret!', icon: '🍌', type: 'activity' },
+        { time: '15:30', title: 'Wakeboard / SUP', subtitle: 'Jaz Beach', icon: '🏄', type: 'activity' },
+        { time: '18:30', title: 'Jaz Beach sunset', subtitle: 'Cocktails', icon: '🌅', type: 'beach' },
+        { time: '20:30', title: 'Diner', subtitle: 'Seafood feast', icon: '🍽️', type: 'food' }
+      ],
+      8: [
+        { time: '10:00', title: '⭐ Skadar Lake', subtitle: 'Grootste meer Balkan', icon: '🦅', type: 'highlight' },
+        { time: '10:30', title: 'Boottrip Skadar', subtitle: 'Waterlelievelden', icon: '⛵', type: 'activity' },
+        { time: '13:30', title: 'Lunch + Wijn', subtitle: 'Vranac wijnproeverij', icon: '🍷', type: 'food' },
+        { time: '21:00', title: '⭐ Afscheidsdiner', subtitle: 'Beste restaurant!', icon: '🍽️', type: 'highlight' }
+      ],
+      9: [
+        { time: '08:00', title: 'Laatste ontbijt', subtitle: 'Aan zee', icon: '🍳', type: 'food' },
+        { time: '10:00', title: 'Check-out', subtitle: 'Apartment', icon: '📦', type: 'accommodation' },
+        { time: '10:30', title: 'Auto inleveren', subtitle: 'Tivat - Volle tank!', icon: '🚗', type: 'transport' },
+        { time: '15:00', title: '✈️ Vlucht huis', subtitle: 'Tivat → Amsterdam', icon: '🛫', type: 'highlight' },
+        { time: '20:30', title: '🏠 Thuis!', subtitle: 'Welkom terug', icon: '🏠', type: 'transport' }
+      ]
+    };
+
+    const budget = [
+      { item: '✈️ Vluchten (2 pers)', budget: 730, comfort: 850 },
+      { item: '🏠 Kotor (3 nachten)', budget: 195, comfort: 250 },
+      { item: '🏠 Durmitor (2 nachten)', budget: 100, comfort: 140 },
+      { item: '🏠 Budva (3 nachten)', budget: 210, comfort: 280 },
+      { item: '🚗 Huurauto (8 dagen)', budget: 200, comfort: 280 },
+      { item: '⛽ Benzine (~600km)', budget: 60, comfort: 80 },
+      { item: '🚣 Tara Rafting (2p)', budget: 140, comfort: 170 },
+      { item: '⛵ Kotor boottocht (2p)', budget: 60, comfort: 80 },
+      { item: '🚀 Jetski (2p)', budget: 60, comfort: 100 },
+      { item: '🪂 Parasailing (duo)', budget: 80, comfort: 80 },
+      { item: '🍌 Banana + Wakeboard', budget: 60, comfort: 80 },
+      { item: '⛵ Skadar boottrip (2p)', budget: 40, comfort: 50 },
+      { item: '🎫 Entreegelden', budget: 30, comfort: 40 },
+      { item: '🍽️ Eten (9 dagen)', budget: 350, comfort: 500 },
+      { item: '🏥 Reisverzekering', budget: 40, comfort: 60 },
+      { item: '💰 Buffer', budget: 85, comfort: 120 }
+    ];
+
+    const checklistSections = [
+      { title: '🔴 NU BOEKEN', items: [
+        { key: 'flights', label: 'Vluchten Amsterdam ↔ Tivat' },
+        { key: 'kotor', label: 'Accommodatie Kotor' },
+        { key: 'durmitor', label: 'Accommodatie Žabljak' },
+        { key: 'budva', label: 'Accommodatie Budva' },
+        { key: 'rafting', label: '🚣 TARA RAFTING!' }
+      ]},
+      { title: '🟠 APRIL', items: [
+        { key: 'car', label: 'Huurauto' },
+        { key: 'boattour', label: 'Bay of Kotor boottocht' }
+      ]},
+      { title: '📦 INPAKKEN', items: [
+        { key: 'passport', label: 'Paspoort / ID' },
+        { key: 'license', label: 'Rijbewijs' },
+        { key: 'hiking', label: 'Wandelschoenen!' },
+        { key: 'swimwear', label: 'Zwemkleding (2x)' },
+        { key: 'rain', label: 'Regenjas (bergen!)' }
+      ]}
+    ];
+
+    function getCardClass(type) {
+      const c = { transport:'card-transport', warning:'card-warning', food:'card-food', accommodation:'card-accommodation', highlight:'card-highlight', beach:'card-beach', activity:'card-activity' };
+      return c[type] || 'bg-white';
+    }
+
+    function toggleCheck(key) { checklist[key] = !checklist[key]; localStorage.setItem('montenegroChecklist', JSON.stringify(checklist)); render(); }
+    function setDay(d) { activeDay = d; render(); }
+    function setTab(t) { activeTab = t; render(); }
+
+    function render() {
+      const day = days[activeDay - 1];
+      const acts = activities[activeDay] || [];
+      const accom = day.accom ? accommodations[day.accom] : null;
+      const totalBudget = budget.reduce((s,i) => s + i.budget, 0);
+      const totalComfort = budget.reduce((s,i) => s + i.comfort, 0);
+      const checkedCount = Object.values(checklist).filter(Boolean).length;
+      const totalChecks = checklistSections.reduce((s, sec) => s + sec.items.length, 0);
+
+      let html = `
+        <div class="bg-white rounded-3xl p-5 shadow-lg mb-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-2xl font-bold text-gray-800">${trip.title}</h1>
+              <p class="text-amber-600 font-medium">${trip.subtitle}</p>
+              <p class="text-gray-500 text-sm mt-1">${trip.dates} • ${trip.persons} personen</p>
+            </div>
+            <a href="/" class="text-gray-400 hover:text-gray-600">✕</a>
+          </div>
+        </div>
+
+        <div class="flex gap-2 mb-4 overflow-x-auto hide-scrollbar">
+          <button onclick="setTab('planning')" class="px-4 py-2 rounded-xl font-medium ${activeTab === 'planning' ? 'bg-amber-500 text-white' : 'bg-white text-gray-700'} shadow">📅 Dagplanning</button>
+          <button onclick="setTab('budget')" class="px-4 py-2 rounded-xl font-medium ${activeTab === 'budget' ? 'bg-amber-500 text-white' : 'bg-white text-gray-700'} shadow">💰 Budget</button>
+          <button onclick="setTab('checklist')" class="px-4 py-2 rounded-xl font-medium ${activeTab === 'checklist' ? 'bg-amber-500 text-white' : 'bg-white text-gray-700'} shadow">✅ Checklist (${checkedCount}/${totalChecks})</button>
+        </div>
+      `;
+
+      if (activeTab === 'planning') {
+        html += `
+          <div class="flex gap-2 overflow-x-auto pb-3 hide-scrollbar">
+            ${days.map(d => `<button onclick="setDay(${d.day})" class="flex items-center gap-2 px-4 py-2 rounded-xl font-medium whitespace-nowrap shadow ${activeDay === d.day ? 'bg-amber-500 text-white' : 'bg-white text-gray-700'}">${d.icon} Dag ${d.day}</button>`).join('')}
+          </div>
+          <div class="bg-white rounded-2xl p-5 shadow-lg mb-4">
+            <div class="flex items-start gap-4">
+              <span class="text-5xl">${day.icon}</span>
+              <div class="flex-1">
+                <h2 class="text-2xl font-bold text-gray-800">Dag ${day.day}: ${day.title}</h2>
+                <p class="text-gray-500">${day.date} • ${day.island}</p>
+                <p class="text-amber-600 font-semibold mt-1">${day.highlight}</p>
+              </div>
+            </div>
+            ${accom ? `<div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4"><div class="text-amber-700 font-semibold text-sm mb-1">🏠 ACCOMMODATIE</div><div class="font-bold text-gray-800">${accom.name}</div><div class="text-amber-600 text-sm">${accom.location}</div></div>` : ''}
+          </div>
+          <div class="bg-white rounded-2xl p-4 shadow-lg">
+            <div class="space-y-3">
+              ${acts.map(a => `<div class="rounded-xl p-4 ${getCardClass(a.type)}"><div class="flex items-center gap-4"><div class="font-mono font-bold text-gray-700 w-14 text-center text-lg">${a.time}</div><div class="text-3xl">${a.icon}</div><div class="flex-1"><div class="font-bold text-gray-800 text-lg">${a.title}</div><div class="text-gray-600 text-sm">${a.subtitle}</div></div><div class="text-gray-400">→</div></div></div>`).join('')}
+            </div>
+          </div>
+          ${activeDay === 5 ? `<div class="mt-4 bg-blue-100 rounded-2xl p-5"><h4 class="font-bold text-blue-800 mb-2">🚣 RAFTING - WAT MEENEMEN</h4><div class="flex flex-wrap gap-2">${['👙 Zwemkleding', '👟 Sportschoenen', '☀️ Zonnebrand', '📷 Waterproof camera'].map(i => `<span class="bg-white text-blue-800 px-3 py-1 rounded-full text-sm">${i}</span>`).join('')}</div><p class="mt-2 text-blue-700 text-sm">⚠️ Water is KOUD (12°C) maar wetsuit wordt verstrekt!</p></div>` : ''}
+          ${activeDay === 7 ? `<div class="mt-4 bg-amber-100 rounded-2xl p-5"><h4 class="font-bold text-amber-800 mb-2">🚀 WATERSPORT PRIJZEN</h4><div class="grid grid-cols-2 gap-2 text-sm"><div class="bg-white p-3 rounded-xl"><strong>🚀 Jetski</strong><br/>€30-60 p.p.</div><div class="bg-white p-3 rounded-xl"><strong>🪂 Parasailing</strong><br/>€50/€80 duo</div></div></div>` : ''}
+        `;
+      }
+
+      if (activeTab === 'budget') {
+        html += `
+          <div class="bg-white rounded-2xl p-5 shadow-lg">
+            <table class="w-full text-sm"><thead><tr class="border-b-2"><th class="text-left py-2">Item</th><th class="text-right py-2">Budget</th><th class="text-right py-2">Comfort</th></tr></thead>
+            <tbody>${budget.map(i => `<tr class="border-b border-gray-100"><td class="py-2">${i.item}</td><td class="text-right text-gray-600">€${i.budget}</td><td class="text-right">€${i.comfort}</td></tr>`).join('')}
+            <tr class="font-bold"><td class="py-2">TOTAAL</td><td class="text-right text-amber-600">€${totalBudget}</td><td class="text-right text-orange-600">€${totalComfort}</td></tr></tbody></table>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mt-4">
+            <div class="bg-amber-500 rounded-2xl p-5 text-white text-center"><div class="text-sm opacity-80">Budget</div><div class="text-3xl font-bold">€${totalBudget}</div><div class="text-sm opacity-80">€${Math.round(totalBudget/2)} p.p.</div></div>
+            <div class="bg-orange-500 rounded-2xl p-5 text-white text-center"><div class="text-sm opacity-80">Comfort</div><div class="text-3xl font-bold">€${totalComfort}</div><div class="text-sm opacity-80">€${Math.round(totalComfort/2)} p.p.</div></div>
+          </div>
+        `;
+      }
+
+      if (activeTab === 'checklist') {
+        html += `<div class="space-y-4">${checklistSections.map(sec => `<div class="bg-white rounded-2xl p-5 shadow-lg"><h3 class="font-bold mb-3">${sec.title}</h3><div class="space-y-2">${sec.items.map(i => `<label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer"><input type="checkbox" ${checklist[i.key] ? 'checked' : ''} onchange="toggleCheck('${i.key}')" class="w-5 h-5 rounded text-amber-600"><span class="${checklist[i.key] ? 'line-through text-gray-400' : 'text-gray-700'}">${i.label}</span></label>`).join('')}</div></div>`).join('')}
+        <div class="bg-amber-500 rounded-2xl p-5 text-white"><h3 class="font-bold mb-2">📊 Voortgang</h3><div class="bg-white/20 rounded-full h-4 mb-2"><div class="bg-white rounded-full h-4" style="width: ${Math.max((checkedCount/totalChecks)*100, 5)}%"></div></div><div class="text-center">${checkedCount} van ${totalChecks}</div></div></div>`;
+      }
+
+      html += `<div class="text-center mt-6 text-gray-600 text-sm"><p>🏔️ Montenegro Adventure 2026</p><a href="/" class="text-amber-600 hover:underline">← Terug naar overzicht</a></div>`;
+      document.getElementById('app').innerHTML = html;
+    }
+    render();
+  </script>
+</body>
+</html>
