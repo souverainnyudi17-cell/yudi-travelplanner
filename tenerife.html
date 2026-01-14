@@ -59,6 +59,38 @@
     let activeTab = 'planning';
     let selectedModal = null;
     let checklist = JSON.parse(localStorage.getItem('tenerifeChecklist2') || '{}');
+    let weatherData = null;
+    let weatherLoading = false;
+
+    // Weather coordinates for destinations
+    const weatherLocations = {
+      tenerife: { lat: 28.47, lon: -16.25, name: 'Tenerife' },
+      grancanaria: { lat: 28.12, lon: -15.44, name: 'Gran Canaria' }
+    };
+
+    // Fetch current weather
+    async function fetchWeather() {
+      if (weatherLoading || weatherData) return;
+      weatherLoading = true;
+      try {
+        const loc = weatherLocations.tenerife;
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto&forecast_days=3`);
+        weatherData = await res.json();
+        render();
+      } catch (e) { console.log('Weather fetch failed:', e); }
+      weatherLoading = false;
+    }
+
+    // Weather code to emoji
+    function getWeatherEmoji(code) {
+      if (code <= 3) return '☀️';
+      if (code <= 48) return '☁️';
+      if (code <= 67) return '🌧️';
+      if (code <= 77) return '🌨️';
+      if (code <= 82) return '🌧️';
+      if (code >= 95) return '⛈️';
+      return '🌤️';
+    }
 
     // TRIP INFO
     const trip = {
@@ -515,6 +547,16 @@
               <div class="inline-flex items-center gap-2 bg-gray-500 text-white px-4 py-1.5 rounded-full text-sm font-bold">
                 ✅ Reis voltooid
               </div>
+            `}
+            ${weatherData ? `
+              <div class="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-3 py-1.5 rounded-full text-sm font-medium shadow">
+                ${getWeatherEmoji(weatherData.current.weather_code)} ${Math.round(weatherData.current.temperature_2m)}°C
+                <span class="text-white/70 text-xs">nu in Tenerife</span>
+              </div>
+            ` : `
+              <button onclick="fetchWeather()" class="inline-flex items-center gap-1 bg-cyan-100 text-cyan-700 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-cyan-200 transition">
+                🌤️ Weer laden
+              </button>
             `}
           </div>
         </div>
