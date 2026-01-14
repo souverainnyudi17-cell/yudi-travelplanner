@@ -316,12 +316,11 @@
 
     // BUDGET
     const budget = {
-      booked: [
-        { item: '✈️ Vluchten (2 pers retour)', price: 854, status: '✅ GEBOEKT' },
-        { item: '🏠 Tenerife 4 nachten', price: 309.80, status: '✅ GEBOEKT' },
-        { item: '🏠 Gran Canaria 4 nachten', price: 323.36, status: '✅ GEBOEKT' }
-      ],
+      booked: [],
       estimated: [
+        { item: '✈️ Vluchten (2 pers retour)', budget: 854, comfort: 950 },
+        { item: '🏠 Tenerife 4 nachten', budget: 310, comfort: 400 },
+        { item: '🏠 Gran Canaria 4 nachten', budget: 323, comfort: 420 },
         { item: '🚗 Huurauto Tenerife (4d)', budget: 140, comfort: 180 },
         { item: '🚗 Huurauto Gran Canaria (4d)', budget: 148, comfort: 185 },
         { item: '⛽ Benzine (~500km)', budget: 50, comfort: 70 },
@@ -343,6 +342,9 @@
     // CHECKLIST
     const checklistSections = [
       { title: '🔴 NU BOEKEN', items: [
+        { key: 'flights', label: '✈️ Vluchten Amsterdam ↔ Tenerife/Gran Canaria' },
+        { key: 'accomTF', label: '🏠 Accommodatie Tenerife (4 nachten)' },
+        { key: 'accomGC', label: '🏠 Accommodatie Gran Canaria (4 nachten)' },
         { key: 'insurance', label: 'Reisverzekering (extreme sporten!)' },
         { key: 'teidePermit', label: 'Teide TOP vergunning (2+ mnd vooraf!)' },
         { key: 'cueva', label: 'Cueva del Viento reserveren' }
@@ -708,20 +710,17 @@
               </div>
             ` : ''}
 
-            <div class="bg-white rounded-2xl p-5 shadow-lg">
-              <h3 class="font-bold text-lg mb-4 flex items-center gap-2">✅ Geboekt</h3>
-              ${budget.booked.map(i => `
-                <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span>${i.item}</span>
-                  <div class="text-right">
-                    <span class="font-bold text-green-600">€${i.price.toFixed(2)}</span>
-                    <span class="text-xs text-green-500 ml-2">${i.status}</span>
-                  </div>
-                </div>
-              `).join('')}
-              <div class="mt-3 pt-3 border-t-2 border-green-200 flex justify-between font-bold">
-                <span>Subtotaal</span>
-                <span class="text-green-600">€${bookedTotal.toFixed(2)}</span>
+            <!-- Alert: Nog niets geboekt -->
+            <div class="bg-gradient-to-r from-orange-100 to-amber-100 border-2 border-orange-300 rounded-2xl p-5 shadow-lg">
+              <div class="flex items-center gap-3 mb-2">
+                <span class="text-3xl">⚠️</span>
+                <h3 class="font-bold text-lg text-orange-800">Nog niets geboekt!</h3>
+              </div>
+              <p class="text-orange-700">Boek snel je vluchten en accommodatie - prijzen stijgen naarmate de datum dichterbij komt!</p>
+              <div class="mt-3 flex flex-wrap gap-2">
+                <span class="bg-orange-200 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">✈️ Vluchten</span>
+                <span class="bg-orange-200 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">🏠 Tenerife verblijf</span>
+                <span class="bg-orange-200 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">🏠 Gran Canaria verblijf</span>
               </div>
             </div>
 
