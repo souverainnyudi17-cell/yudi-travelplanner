@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🎄 London Christmas 2025 - YUDI Travelplanner</title>
+  <title>🎄 London Christmas 2025 - YUDI</title>
   <meta name="theme-color" content="#dc2626">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icon-192.png">
@@ -13,61 +13,58 @@
     body { font-family: 'Inter', sans-serif; }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    .card-transport { background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 4px solid #f59e0b; }
-    .card-warning { background: linear-gradient(135deg, #fecaca, #fca5a5); border-left: 4px solid #ef4444; }
-    .card-food { background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-left: 4px solid #10b981; }
-    .card-accommodation { background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 4px solid #eab308; }
-    .card-highlight { background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-left: 4px solid #3b82f6; }
-    .card-activity { background: linear-gradient(135deg, #e9d5ff, #d8b4fe); border-left: 4px solid #8b5cf6; }
-    .snow {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Ccircle fill='%23fff' cx='512' cy='512' r='3'/%3E%3Ccircle fill='%23fff' cx='102' cy='102' r='2'/%3E%3Ccircle fill='%23fff' cx='204' cy='820' r='2'/%3E%3Ccircle fill='%23fff' cx='310' cy='400' r='2'/%3E%3Ccircle fill='%23fff' cx='650' cy='150' r='3'/%3E%3Ccircle fill='%23fff' cx='800' cy='600' r='2'/%3E%3C/svg%3E");
-      background-size: 1024px 1024px;
-      animation: snow 20s linear infinite;
-      opacity: 0.4;
-    }
-    @keyframes snow { from { background-position: 0 0; } to { background-position: 0 1024px; } }
+    .snow { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0.3; z-index: 1; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Ccircle fill='%23fff' cx='100' cy='100' r='2'/%3E%3Ccircle fill='%23fff' cx='300' cy='150' r='3'/%3E%3Ccircle fill='%23fff' cx='450' cy='80' r='2'/%3E%3C/svg%3E"); background-size: 512px 512px; animation: snow 15s linear infinite; }
+    @keyframes snow { from { background-position: 0 0; } to { background-position: 0 512px; } }
+    .content { position: relative; z-index: 2; }
+    /* Dark mode */
+    body.dark { background: linear-gradient(135deg, #1f2937, #111827, #1f2937) !important; }
+    body.dark .bg-white { background: #1f2937 !important; }
+    body.dark .text-gray-800 { color: #f3f4f6 !important; }
+    body.dark .text-gray-700 { color: #e5e7eb !important; }
+    body.dark .text-gray-600 { color: #d1d5db !important; }
+    body.dark .text-gray-500 { color: #9ca3af !important; }
+    body.dark .bg-gray-50 { background: #374151 !important; }
+    body.dark .bg-gray-100 { background: #374151 !important; }
+    body.dark .border-gray-100 { border-color: #4b5563 !important; }
+    body.dark .border-gray-200 { border-color: #4b5563 !important; }
   </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-slate-900 via-red-900 to-green-900">
+<body class="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-slate-900">
   <div class="snow"></div>
-  <div id="app" class="p-4 max-w-4xl mx-auto relative z-10"></div>
+  <div class="content">
+    <div id="app" class="p-4 max-w-4xl mx-auto"></div>
+  </div>
 
   <script>
     // STATE
     let activeDay = 1;
     let activeTab = 'planning';
     let selectedModal = null;
+    let darkMode = localStorage.getItem('londonDarkMode') === 'true';
     let checklist = JSON.parse(localStorage.getItem('londonChecklist') || '{}');
     let expenses = JSON.parse(localStorage.getItem('londonExpenses') || '[]');
+    let dayNotes = JSON.parse(localStorage.getItem('londonDayNotes') || '{}');
 
-    // TRIP INFO
+    if (darkMode) document.body.classList.add('dark');
+
     const trip = {
       title: '🎄 London Christmas',
       subtitle: 'Winter Wonderland',
-      dates: '27-30 november 2025',
-      persons: 2,
-      duration: '4 dagen'
+      dates: '27-30 nov 2025',
+      duration: '4 dagen',
+      persons: 2
     };
 
-    // DAYS
-    const days = [
-      { day: 1, date: 'Do 27 nov', title: 'Aankomst & South Bank', icon: '✈️', highlight: 'London Eye + Kerst sfeer' },
-      { day: 2, date: 'Vr 28 nov', title: 'Winter Wonderland', icon: '🎡', highlight: 'Hyde Park magisch!', featured: true },
-      { day: 3, date: 'Za 29 nov', title: 'Kerst Shopping', icon: '🎁', highlight: 'Oxford Street lichtjes', featured: true },
-      { day: 4, date: 'Zo 30 nov', title: 'Vertrek', icon: '🏠', highlight: 'Laatste kerstsfeer' }
-    ];
-
-    // ACCOMMODATIONS
-    const accommodation = {
-      name: 'Hotel Central London',
-      location: 'Covent Garden / South Bank',
-      nights: 3,
-      price: 450,
-      booked: false
+    const accommodations = {
+      london: {
+        name: 'Hotel Central London',
+        area: 'Covent Garden / South Bank',
+        nights: 3,
+        price: '€400-500',
+        lat: 51.512, lng: -0.123
+      }
     };
 
-    // LOCATIONS
     const locations = {
       stansted: { lat: 51.885, lng: 0.235 },
       covent_garden: { lat: 51.512, lng: -0.123 },
@@ -80,254 +77,317 @@
       carnaby: { lat: 51.513, lng: -0.139 },
       somerset_house: { lat: 51.511, lng: -0.117 },
       trafalgar: { lat: 51.508, lng: -0.128 },
-      leicester: { lat: 51.511, lng: -0.128 }
+      leicester: { lat: 51.511, lng: -0.128 },
+      natural_history: { lat: 51.496, lng: -0.176 }
     };
 
-    // ACTIVITIES
+    function calcDist(loc1, loc2) {
+      if (!locations[loc1] || !locations[loc2]) return null;
+      const R = 6371;
+      const l1 = locations[loc1], l2 = locations[loc2];
+      const dLat = (l2.lat - l1.lat) * Math.PI / 180;
+      const dLon = (l2.lng - l1.lng) * Math.PI / 180;
+      const a = Math.sin(dLat/2)**2 + Math.cos(l1.lat * Math.PI/180) * Math.cos(l2.lat * Math.PI/180) * Math.sin(dLon/2)**2;
+      return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+    }
+
+    function estTime(km) {
+      if (!km) return '';
+      const min = Math.round(km / 30 * 60);
+      return min < 60 ? `~${min} min` : `~${Math.floor(min/60)}u ${min%60}min`;
+    }
+
+    function getMapsUrl(loc) {
+      if (!locations[loc]) return null;
+      return `https://www.google.com/maps/search/?api=1&query=${locations[loc].lat},${locations[loc].lng}`;
+    }
+
+    const days = [
+      { day: 1, date: 'Do 27 nov', title: 'Aankomst & South Bank', icon: '✈️', area: 'South Bank', highlight: 'London Eye + Kerst sfeer', accom: 'london' },
+      { day: 2, date: 'Vr 28 nov', title: 'Winter Wonderland', icon: '🎡', area: 'Hyde Park', highlight: 'Magisch kerstpark!', featured: true, accom: 'london' },
+      { day: 3, date: 'Za 29 nov', title: 'Shopping & Shows', icon: '🎁', area: 'West End', highlight: 'Oxford Street lichtjes', featured: true, accom: 'london' },
+      { day: 4, date: 'Zo 30 nov', title: 'Vertrek', icon: '🏠', area: 'Centrum', highlight: 'Laatste kerstsfeer', accom: null }
+    ];
+
     const activities = {
       1: [
-        { time: '07:00', icon: '✈️', title: 'Vlucht Amsterdam → London', subtitle: 'Stansted ~1 uur', type: 'transport', loc: 'stansted', info: { price: '€50-100 p.p. retour', tips: ['Check-in 2 uur vooraf', 'Handbagage = goedkoper'] } },
-        { time: '10:00', icon: '🚃', title: 'Stansted Express', subtitle: 'Naar Liverpool Street', type: 'transport', loc: 'stansted', info: { price: '£19-23 p.p.', duration: '47 min', tips: ['Boek online = goedkoper'] } },
-        { time: '11:30', icon: '🏨', title: 'Check-in hotel', subtitle: 'Bagage droppen', type: 'accommodation', loc: 'covent_garden', info: { tips: ['Vroeg inchecken vaak mogelijk'] } },
-        { time: '12:30', icon: '🍽️', title: 'Lunch Borough Market', subtitle: 'Beste foodmarkt!', type: 'food', loc: 'borough_market', info: { price: '€10-20 p.p.', highlights: ['Raclette', 'Scotch eggs', 'Mulled wine'], mustSee: true } },
-        { time: '14:30', icon: '⭐', title: 'South Bank Kerstwandeling', subtitle: 'Langs de Theems!', type: 'highlight', loc: 'southbank', info: { desc: 'Sfeervolle wandeling met kerstmarkt kraampjes', duration: '2-3 uur', mustSee: true } },
-        { time: '17:00', icon: '🎡', title: 'London Eye', subtitle: 'Zonsondergang views!', type: 'highlight', loc: 'london_eye', info: { price: '£30-36 p.p.', duration: '30 min', tips: ['Boek online = skip the line'], mustSee: true } },
-        { time: '18:30', icon: '🎄', title: 'Southbank Christmas Market', subtitle: 'Glühwein & kraampjes', type: 'activity', loc: 'southbank', info: { highlights: ['Mulled wine', 'German sausages', 'Churros'] } },
-        { time: '20:00', icon: '🍽️', title: 'Diner', subtitle: 'Kerst pub dinner', type: 'food', loc: 'southbank', info: { price: '€20-35 p.p.', recommendations: ['The Anchor Bankside', 'Founders Arms'] } }
+        { time: '07:00', icon: '✈️', title: 'Vlucht Amsterdam → London', subtitle: 'Stansted', type: 'transport', loc: 'stansted', info: { desc: 'Vlucht naar London Stansted Airport', price: '€50-100 p.p. retour', duration: '~1 uur', tips: ['Check-in 2 uur van tevoren', 'Handbagage = goedkoper'] } },
+        { time: '10:00', icon: '🚃', title: 'Stansted Express', subtitle: 'Naar Liverpool Street', type: 'transport', loc: 'stansted', info: { desc: 'Snelle trein naar centrum Londen', price: '£19-23 p.p.', duration: '47 min', tips: ['Boek online = goedkoper', 'Oyster card kopen op station'] } },
+        { time: '11:30', icon: '🏠', title: 'Check-in hotel', subtitle: 'Bagage droppen', type: 'accommodation', loc: 'covent_garden', info: { desc: 'Inchecken hotel centrum Londen', price: '€400-500 totaal (3 nachten)', tips: ['Vroeg inchecken vaak mogelijk', 'Bagage opslaan als kamer niet klaar'] } },
+        { time: '12:30', icon: '⭐', title: 'Borough Market', subtitle: 'Beste foodmarkt!', type: 'highlight', loc: 'borough_market', info: { desc: 'Historische overdekte markt met heerlijk streetfood!', highlights: ['Raclette', 'Scotch eggs', 'Mince pies'], price: '€10-20 p.p.', tips: ['Druk in weekend', 'Cash handig'], mustTry: ['Mulled wine 🍷', 'Fresh oysters'], mustSee: true } },
+        { time: '14:30', icon: '🚶', title: 'South Bank wandeling', subtitle: 'Langs de Theems', type: 'highlight', loc: 'southbank', info: { desc: 'Sfeervolle wandeling langs de Theems met kerstmarkt kraampjes!', highlights: ['Tate Modern (gratis!)', 'Millennium Bridge', 'Kerstkraampjes'], duration: '2-3 uur', tips: ['Straatmuzikanten geven fooien'], mustSee: true } },
+        { time: '17:00', icon: '🎡', title: 'London Eye', subtitle: 'Zonsondergang views!', type: 'highlight', loc: 'london_eye', info: { desc: 'Spectaculair uitzicht over Londen bij zonsondergang!', price: '£30-36 p.p.', duration: '30 min', tips: ['Boek online = skip the line', 'Zonsondergang ~16:00 in november'], mustSee: true } },
+        { time: '18:30', icon: '🎄', title: 'Southbank Christmas Market', subtitle: 'Glühwein & kraampjes', type: 'activity', loc: 'southbank', info: { desc: 'Gezellige kerstmarkt met houten chalets', mustTry: ['Mulled wine', 'German sausages', 'Churros'], tips: ['Sfeervoller na donker', 'Gratis toegang'] } },
+        { time: '20:00', icon: '🍽️', title: 'Diner', subtitle: 'Kerst pub dinner', type: 'food', loc: 'southbank', info: { desc: 'Traditionele Engelse pub met kerstsfeer', price: '€20-35 p.p.', mustTry: ['Fish & Chips', 'Sticky Toffee Pudding'], recommendations: ['The Anchor Bankside', 'Founders Arms'] } }
       ],
       2: [
-        { time: '09:30', icon: '🍳', title: 'Ontbijt', subtitle: 'Full English!', type: 'food', loc: 'covent_garden', info: { price: '€12-18 p.p.', highlights: ['Full English Breakfast', 'Eggs Benedict'] } },
-        { time: '11:00', icon: '⭐', title: 'WINTER WONDERLAND', subtitle: 'Magisch kerstpark!', type: 'highlight', loc: 'winter_wonderland', info: { desc: "Europa's grootste gratis kerstevenement!", price: 'Gratis entree, attracties €3-10', duration: '4-6 uur', highlights: ['Attracties & reuzenrad', 'Grootste ijsbaan UK', 'Bavarian Village', 'Kerstkraampjes'], tips: ['GRATIS ENTREE', 'Boek ijsbaan vooraf!'], warning: 'Boek ijsbaan + attracties VOORAF online!', mustSee: true } },
-        { time: '12:30', icon: '🍺', title: 'Lunch Bavarian Village', subtitle: 'Bratwurst & Glühwein!', type: 'food', loc: 'winter_wonderland', info: { price: '€15-25 p.p.', highlights: ['Bratwurst', 'Schweinshaxe', 'Glühwein'] } },
-        { time: '14:00', icon: '⛸️', title: 'Ice Skating', subtitle: 'Grootste ijsbaan UK!', type: 'highlight', loc: 'winter_wonderland', info: { price: '£15-20 p.p.', duration: '1 uur sessie', tips: ['VOORAF BOEKEN VERPLICHT', 'Handschoenen meenemen'], mustSee: true } },
-        { time: '15:30', icon: '🎢', title: 'Attracties', subtitle: 'Reuzenrad & meer!', type: 'activity', loc: 'winter_wonderland', info: { price: '€5-12 per attractie', highlights: ['Giant Wheel', 'Ice Mountain', 'Magical Ice Kingdom'] } },
-        { time: '19:00', icon: '🌃', title: 'Wonderland by night', subtitle: 'Lichtjes & sfeer', type: 'activity', loc: 'winter_wonderland', info: { tips: ['Mooist na donker!', 'Fotos bij reuzenrad'] } },
-        { time: '20:30', icon: '🍽️', title: 'Diner West End', subtitle: 'Pre-theatre menu', type: 'food', loc: 'covent_garden', info: { price: '€25-40 p.p.', recommendations: ['Dishoom', 'Flat Iron', 'Hoppers'] } }
+        { time: '09:30', icon: '🍳', title: 'Ontbijt', subtitle: 'Full English!', type: 'food', loc: 'covent_garden', info: { desc: 'Traditioneel Engels ontbijt', price: '€12-18 p.p.', mustTry: ['Full English Breakfast', 'Eggs Benedict'], recommendations: ['The Breakfast Club', "Bill's"] } },
+        { time: '11:00', icon: '⭐', title: 'WINTER WONDERLAND', subtitle: 'Magisch kerstpark!', type: 'highlight', loc: 'winter_wonderland', info: { desc: "Europa's grootste gratis kerstevenement in Hyde Park!", highlights: ['🎢 Attracties & reuzenrad', '⛸️ Grootste ijsbaan UK', '🍺 Bavarian Village', '🎪 Circus shows'], price: 'GRATIS entree, attracties €3-10', duration: '4-6 uur', tips: ['Boek ijsbaan vooraf!', 'Druk in weekenden', 'Ga doordeweeks = rustiger'], mustSee: true, warning: '⚠️ Boek ijsbaan + attracties VOORAF online!' } },
+        { time: '12:30', icon: '🍺', title: 'Lunch Bavarian Village', subtitle: 'Bratwurst & Glühwein!', type: 'food', loc: 'winter_wonderland', info: { desc: 'Authentiek Duits kerstdorp met live muziek!', price: '€15-25 p.p.', mustTry: ['Bratwurst', 'Schweinshaxe', 'Glühwein', 'Kaiserschmarrn'] } },
+        { time: '14:00', icon: '⛸️', title: 'Ice Skating', subtitle: 'Grootste ijsbaan UK!', type: 'highlight', loc: 'winter_wonderland', info: { desc: 'Schaatsen op de gigantische ijsbaan!', price: '£15-20 p.p.', duration: '1 uur sessie', tips: ['VOORAF BOOKEN VERPLICHT', 'Handschoenen meenemen', 'Schaatsen inbegrepen'], mustSee: true, warning: 'VOORAF BOEKEN!' } },
+        { time: '15:30', icon: '🎢', title: 'Attracties', subtitle: 'Reuzenrad & meer!', type: 'activity', loc: 'winter_wonderland', info: { desc: 'Diverse attracties in Winter Wonderland', highlights: ['Giant Wheel (reuzenrad)', 'Ice Mountain', 'Magical Ice Kingdom'], price: '€5-12 per attractie', tips: ['Koop tokens ter plekke', 'Reuzenrad = beste uitzicht'] } },
+        { time: '19:00', icon: '🌃', title: 'Wonderland by night', subtitle: 'Lichtjes & sfeer', type: 'activity', loc: 'winter_wonderland', info: { desc: 'Winter Wonderland is het mooist na donker!', tips: ['Maak fotos bij het reuzenrad', 'Laatste ronde Glühwein'] } },
+        { time: '20:30', icon: '🍽️', title: 'Diner West End', subtitle: 'Pre-theatre menu', type: 'food', loc: 'covent_garden', info: { desc: 'Diner in het bruisende West End', price: '€25-40 p.p.', recommendations: ['Dishoom (Indian)', 'Flat Iron (steak)', 'Hoppers'] } }
       ],
       3: [
-        { time: '10:00', icon: '🏬', title: 'Harrods Christmas', subtitle: 'Iconische kerstdecoratie!', type: 'highlight', loc: 'harrods', info: { desc: 'Beroemdste warenhuis in kerstglorie!', duration: '1.5-2 uur', highlights: ['Christmas Windows', 'Food Halls', 'Christmas World 5e etage'], mustSee: true } },
-        { time: '12:30', icon: '🍽️', title: 'Lunch South Kensington', subtitle: 'Gezellige pubs', type: 'food', loc: 'harrods', info: { price: '€15-25 p.p.' } },
-        { time: '14:30', icon: '⭐', title: 'Oxford Street Lights', subtitle: '1 km kerstverlichting!', type: 'highlight', loc: 'oxford_street', info: { desc: 'Beroemdste kerstverlichting - 1 miljoen lampjes!', duration: '1-2 uur', tips: ['Mooist na 16:00', 'Selfridges windows zijn iconisch'], mustSee: true } },
-        { time: '16:00', icon: '🎀', title: 'Carnaby Street', subtitle: 'Unieke decoraties!', type: 'highlight', loc: 'carnaby', info: { desc: 'Elk jaar ander thema - Instagram-worthy!', mustSee: true } },
-        { time: '17:00', icon: '🎄', title: 'Covent Garden Christmas', subtitle: 'Gigantische kerstboom!', type: 'highlight', loc: 'covent_garden', info: { highlights: ['Enorme kerstboom', 'Mistletoe installatie', 'Straatartiesten'], mustSee: true } },
-        { time: '18:30', icon: '⛸️', title: 'Somerset House', subtitle: 'Meest romantische ijsbaan!', type: 'activity', loc: 'somerset_house', info: { price: '£12-22 p.p.', duration: '1 uur', tips: ['BOEK VOORAF!', 'Skate Lates: DJ nights'], mustSee: true } },
-        { time: '20:30', icon: '🎭', title: 'West End Show', subtitle: 'Musical magic!', type: 'highlight', loc: 'leicester', info: { price: '£30-150 p.p.', duration: '2.5-3 uur', recommendations: ['The Lion King', 'Wicked', 'Hamilton', 'Les Misérables'], tips: ['Boek VOORAF', 'TKTS booth voor deals'], mustSee: true } }
+        { time: '10:00', icon: '🏬', title: 'Harrods Christmas', subtitle: 'Iconische decoratie!', type: 'highlight', loc: 'harrods', info: { desc: 'Het beroemdste warenhuis ter wereld in kerstglorie!', highlights: ['Christmas Windows', 'Food Halls', 'Christmas World (5e etage)'], duration: '1.5-2 uur', tips: ['Gratis entree', 'Food Halls zijn een must!'], mustSee: true } },
+        { time: '12:00', icon: '🏛️', title: 'Natural History Museum', subtitle: 'Ijsbaan + kerstboom!', type: 'highlight', loc: 'natural_history', info: { desc: 'Schaatsen voor het prachtige museum!', highlights: ['Ice Rink', 'Gigantische kerstboom', 'Dinosaurus!'], price: 'Museum GRATIS, ijsbaan £16-20', tips: ['Boek ijsbaan vooraf', 'Museum gratis!'], mustSee: true } },
+        { time: '14:00', icon: '🍽️', title: 'Lunch', subtitle: 'South Kensington', type: 'food', loc: 'natural_history', info: { desc: 'Lunch in chique South Kensington', price: '€15-25 p.p.', recommendations: ['The Anglesea Arms', "Muriel's Kitchen"] } },
+        { time: '15:30', icon: '✨', title: 'Oxford Street Lights', subtitle: '1 km kerstverlichting!', type: 'highlight', loc: 'oxford_street', info: { desc: 'De beroemdste kerstverlichting van Londen!', highlights: ['1 miljoen+ lampjes', 'Selfridges windows'], duration: '1-2 uur', tips: ['Mooist na 16:00 (donker)', 'Selfridges windows zijn iconisch'], mustSee: true } },
+        { time: '16:30', icon: '🎀', title: 'Carnaby Street', subtitle: 'Unieke decoraties!', type: 'highlight', loc: 'carnaby', info: { desc: 'Elk jaar een ander spectaculair thema!', tips: ['Vlakbij Oxford Street', 'Liberty warenhuis vlakbij'], mustSee: true } },
+        { time: '17:30', icon: '🎄', title: 'Covent Garden Christmas', subtitle: 'Gigantische kerstboom!', type: 'highlight', loc: 'covent_garden', info: { desc: 'Betoverende kerstsfeer met reusachtige kerstboom!', highlights: ['Enorme kerstboom', 'Mistletoe installatie', 'Straatartiesten'], duration: '1-2 uur', tips: ['Gratis entree', 'Street performers zijn geweldig'], mustSee: true } },
+        { time: '19:00', icon: '⛸️', title: 'Somerset House', subtitle: 'Romantische ijsbaan!', type: 'activity', loc: 'somerset_house', info: { desc: 'Schaatsen in betoverende 18e-eeuwse binnenplaats!', price: '£12-22 p.p.', duration: '1 uur sessie', tips: ['Skate Lates: DJ nights (do-za)', "Fortnum's Lodge voor champagne"], warning: 'BOEK VOORAF - zeer populair!' } },
+        { time: '20:30', icon: '🎭', title: 'West End Show', subtitle: 'Musical magic!', type: 'highlight', loc: 'leicester', info: { desc: 'Geen Londen trip compleet zonder een West End show!', recommendations: ['The Lion King', 'Wicked', 'Hamilton', 'Les Misérables'], price: '£30-150 p.p.', duration: '2.5-3 uur', tips: ['Boek VOORAF', 'TKTS booth voor last-minute deals'], mustSee: true } }
       ],
       4: [
-        { time: '09:00', icon: '🍳', title: 'Laatste ontbijt', subtitle: 'Uitchecken', type: 'food', loc: 'covent_garden', info: { tips: ['Bagage bij hotel als vlucht later is'] } },
-        { time: '10:30', icon: '🎄', title: 'Trafalgar Square', subtitle: 'Noorse kerstboom', type: 'activity', loc: 'trafalgar', info: { desc: 'Elk jaar geschonken door Noorwegen sinds 1947', duration: '30 min' } },
-        { time: '11:30', icon: '🎁', title: 'Leicester Square Market', subtitle: 'Laatste souvenirs', type: 'activity', loc: 'leicester', info: { tips: ["M&M's World vlakbij", 'Chinatown op loopafstand'] } },
-        { time: '13:00', icon: '🚃', title: 'Naar vliegveld', subtitle: 'Stansted Express', type: 'transport', loc: 'stansted', info: { price: '£19-23 p.p.', tips: ['2.5 uur voor vlucht'] } },
-        { time: '17:00', icon: '✈️', title: 'Vlucht → Amsterdam', subtitle: 'Tot ziens London!', type: 'transport', loc: 'stansted', info: { tips: ['Tax free shopping', 'Cadbury chocolade!'] } }
+        { time: '09:00', icon: '🍳', title: 'Ontbijt & uitchecken', subtitle: 'Laatste Full English!', type: 'food', loc: 'covent_garden', info: { desc: 'Laatste ontbijt en uitchecken', tips: ['Bagage bij hotel laten als vlucht later is'] } },
+        { time: '10:30', icon: '🎄', title: 'Trafalgar Square', subtitle: 'Noorse kerstboom', type: 'activity', loc: 'trafalgar', info: { desc: 'De beroemde Noorse kerstboom - geschonken sinds 1947!', highlights: ['National Gallery (gratis)', 'Historische kerstboom'], tips: ['Goede laatste stop'], duration: '30 min' } },
+        { time: '11:30', icon: '🛍️', title: 'Leicester Square Market', subtitle: 'Laatste souvenirs', type: 'activity', loc: 'leicester', info: { desc: 'Kleine kerstmarkt voor last-minute cadeautjes', tips: ["M&M's World vlakbij", 'Chinatown op loopafstand'] } },
+        { time: '13:00', icon: '🚃', title: 'Naar vliegveld', subtitle: 'Stansted Express', type: 'transport', loc: 'stansted', info: { desc: 'Terug naar Stansted Airport', price: '£19-23 p.p.', tips: ['2.5 uur voor vlucht vertrekken'] } },
+        { time: '17:00', icon: '✈️', title: 'Vlucht → Amsterdam', subtitle: 'Tot ziens London!', type: 'transport', loc: 'stansted', info: { desc: 'Vlucht terug naar Nederland', tips: ['Tax free shopping op vliegveld'] } }
       ]
     };
 
-    // BUDGET
     const budget = {
-      booked: [],
       estimated: [
         { item: '✈️ Vluchten (2p retour)', budget: 150, comfort: 250 },
         { item: '🏨 Hotel 3 nachten', budget: 400, comfort: 600 },
-        { item: '🚃 Stansted Express (2p retour)', budget: 76, comfort: 76 },
-        { item: '🚇 Oyster card transport', budget: 50, comfort: 50 },
+        { item: '🚃 Stansted Express (2p)', budget: 76, comfort: 76 },
+        { item: '🚇 Oyster card', budget: 50, comfort: 50 },
         { item: '🎡 London Eye (2p)', budget: 60, comfort: 72 },
         { item: '⛸️ Ice skating 2x (2p)', budget: 60, comfort: 80 },
-        { item: '🎢 Winter Wonderland attracties', budget: 40, comfort: 60 },
+        { item: '🎢 Winter Wonderland', budget: 40, comfort: 60 },
         { item: '🎭 West End Show (2p)', budget: 80, comfort: 200 },
-        { item: '🍽️ Eten & drinken (4 dagen)', budget: 200, comfort: 350 },
-        { item: '🎁 Shopping & souvenirs', budget: 50, comfort: 150 },
+        { item: '🍽️ Eten (4 dagen)', budget: 200, comfort: 350 },
+        { item: '🎁 Shopping', budget: 50, comfort: 150 },
         { item: '💰 Buffer', budget: 34, comfort: 62 }
       ]
     };
 
-    // CHECKLIST
     const checklistSections = [
       { title: '🔴 NU BOEKEN (Nov = druk!)', items: [
-        { key: 'flights', label: 'Vluchten Amsterdam ↔ London' },
-        { key: 'hotel', label: 'Hotel (centrum!)' },
-        { key: 'winterWonderland', label: 'Winter Wonderland ijsbaan' },
-        { key: 'somersetHouse', label: 'Somerset House ijsbaan' },
-        { key: 'westEnd', label: 'West End Show tickets' }
+        { key: 'flights', label: '✈️ Vluchten Amsterdam ↔ London' },
+        { key: 'hotel', label: '🏨 Hotel (centrum!)' },
+        { key: 'winterWonderland', label: '⛸️ Winter Wonderland ijsbaan' },
+        { key: 'somersetHouse', label: '⛸️ Somerset House ijsbaan' },
+        { key: 'westEnd', label: '🎭 West End Show tickets' }
       ]},
       { title: '🟠 WEEK VAN TEVOREN', items: [
-        { key: 'stanstedExpress', label: 'Stansted Express tickets' },
-        { key: 'londonEye', label: 'London Eye tickets' },
-        { key: 'oysterCard', label: 'Oyster card online' }
+        { key: 'stanstedExpress', label: '🚃 Stansted Express tickets' },
+        { key: 'londonEye', label: '🎡 London Eye tickets' },
+        { key: 'oyster', label: '💳 Oyster card' }
       ]},
       { title: '🧳 INPAKKEN', items: [
         { key: 'passport', label: 'Paspoort' },
         { key: 'warmClothes', label: 'Warme jas & sjaal' },
         { key: 'gloves', label: 'Handschoenen (schaatsen!)' },
-        { key: 'comfyShoes', label: 'Comfortabele schoenen' },
         { key: 'umbrella', label: 'Paraplu (Londen = regen!)' },
         { key: 'adapter', label: 'UK stekker adapter' }
       ]}
     ];
 
     // Initialize checklist
-    checklistSections.forEach(sec => sec.items.forEach(item => {
-      if (checklist[item.key] === undefined) checklist[item.key] = false;
-    }));
+    checklistSections.forEach(sec => sec.items.forEach(i => { if (checklist[i.key] === undefined) checklist[i.key] = false; }));
 
-    // HELPER FUNCTIONS
-    function getCardClass(type) {
+    function getTypeClass(type) {
       const classes = {
-        transport: 'card-transport', warning: 'card-warning', food: 'card-food',
-        accommodation: 'card-accommodation', highlight: 'card-highlight', activity: 'card-activity'
+        transport: 'bg-gradient-to-r from-amber-100 to-yellow-100 border-l-4 border-amber-500',
+        accommodation: 'bg-gradient-to-r from-amber-100 to-yellow-100 border-l-4 border-yellow-500',
+        highlight: 'bg-gradient-to-r from-red-100 to-pink-100 border-l-4 border-red-500',
+        food: 'bg-gradient-to-r from-green-100 to-emerald-100 border-l-4 border-green-500',
+        activity: 'bg-gradient-to-r from-purple-100 to-violet-100 border-l-4 border-purple-500',
+        warning: 'bg-gradient-to-r from-red-200 to-rose-200 border-l-4 border-red-600'
       };
-      return classes[type] || 'bg-white';
-    }
-
-    function getMapsUrl(locKey) {
-      if (!locations[locKey]) return null;
-      const loc = locations[locKey];
-      return `https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lng}`;
-    }
-
-    function toggleCheck(key) {
-      checklist[key] = !checklist[key];
-      localStorage.setItem('londonChecklist', JSON.stringify(checklist));
-      render();
-    }
-
-    function addExpense() {
-      const desc = document.getElementById('expenseDesc').value;
-      const amount = parseFloat(document.getElementById('expenseAmount').value);
-      const category = document.getElementById('expenseCategory').value;
-      if (desc && amount > 0) {
-        expenses.push({ id: Date.now(), desc, amount, category, date: new Date().toLocaleDateString('nl-NL') });
-        localStorage.setItem('londonExpenses', JSON.stringify(expenses));
-        document.getElementById('expenseDesc').value = '';
-        document.getElementById('expenseAmount').value = '';
-        render();
-      }
-    }
-
-    function deleteExpense(id) {
-      expenses = expenses.filter(e => e.id !== id);
-      localStorage.setItem('londonExpenses', JSON.stringify(expenses));
-      render();
+      return classes[type] || 'bg-gray-100 border-l-4 border-gray-400';
     }
 
     function setDay(d) { activeDay = d; render(); }
     function setTab(t) { activeTab = t; render(); }
     function openModal(act) { selectedModal = act; render(); }
     function closeModal() { selectedModal = null; render(); }
+    function toggleCheck(key) { checklist[key] = !checklist[key]; localStorage.setItem('londonChecklist', JSON.stringify(checklist)); render(); }
+    function toggleDarkMode() { darkMode = !darkMode; localStorage.setItem('londonDarkMode', darkMode.toString()); document.body.classList.toggle('dark', darkMode); render(); }
+
+    function addExpense() {
+      const desc = document.getElementById('expenseDesc')?.value;
+      const amount = parseFloat(document.getElementById('expenseAmount')?.value);
+      const cat = document.getElementById('expenseCategory')?.value || '💰 Overig';
+      if (desc && amount > 0) {
+        expenses.push({ id: Date.now(), desc, amount, category: cat });
+        localStorage.setItem('londonExpenses', JSON.stringify(expenses));
+        render();
+      }
+    }
+    function deleteExpense(id) { expenses = expenses.filter(e => e.id !== id); localStorage.setItem('londonExpenses', JSON.stringify(expenses)); render(); }
+
+    function saveNote() {
+      const note = document.getElementById('dayNoteInput')?.value;
+      if (note && note.trim()) {
+        if (!dayNotes[activeDay]) dayNotes[activeDay] = [];
+        dayNotes[activeDay].push({ id: Date.now(), text: note, ts: new Date().toLocaleString('nl-NL') });
+        localStorage.setItem('londonDayNotes', JSON.stringify(dayNotes));
+        render();
+      }
+    }
+    function deleteNote(id) { dayNotes[activeDay] = (dayNotes[activeDay] || []).filter(n => n.id !== id); localStorage.setItem('londonDayNotes', JSON.stringify(dayNotes)); render(); }
+
+    function shareTrip() {
+      if (navigator.share) navigator.share({ title: trip.title, url: window.location.href });
+      else { navigator.clipboard.writeText(window.location.href); alert('Link gekopieerd!'); }
+    }
+
+    function exportTrip() {
+      let txt = `${trip.title}\n${trip.dates}\n\n`;
+      days.forEach(d => {
+        txt += `=== DAG ${d.day}: ${d.title} ===\n`;
+        (activities[d.day] || []).forEach(a => { txt += `${a.time} - ${a.title}\n`; });
+        txt += '\n';
+      });
+      const blob = new Blob([txt], { type: 'text/plain' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'london-christmas.txt'; a.click();
+    }
 
     // MAIN RENDER
     function render() {
       const day = days[activeDay - 1];
       const acts = activities[activeDay] || [];
+      const accom = day.accom ? accommodations[day.accom] : null;
 
       const estBudget = budget.estimated.reduce((s, i) => s + i.budget, 0);
       const estComfort = budget.estimated.reduce((s, i) => s + i.comfort, 0);
       const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
-
       const checkedCount = Object.values(checklist).filter(Boolean).length;
       const totalChecks = checklistSections.reduce((s, sec) => s + sec.items.length, 0);
 
-      // Countdown
-      const tripDate = new Date('2025-11-27T00:00:00');
-      const now = new Date();
-      const diff = tripDate - now;
-      const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
-      const weeksLeft = Math.floor(daysLeft / 7);
-      const remainingDays = daysLeft % 7;
+      const tripDate = new Date('2025-11-27');
+      const daysLeft = Math.ceil((tripDate - new Date()) / (1000*60*60*24));
 
-      let html = `
-        <!-- HEADER -->
-        <div class="bg-white/95 backdrop-blur rounded-3xl p-5 shadow-lg mb-4">
+      let html = '';
+
+      // HEADER
+      html += `
+        <div class="bg-white rounded-3xl p-5 shadow-lg mb-4">
           <div class="flex items-center justify-between">
             <div>
               <h1 class="text-2xl font-bold text-gray-800">${trip.title}</h1>
               <p class="text-red-600 font-medium">${trip.subtitle}</p>
-              <p class="text-gray-500 text-sm mt-1">${trip.dates} • ${trip.persons} personen • ${trip.duration}</p>
+              <p class="text-gray-500 text-sm mt-1">${trip.dates} • ${trip.persons} pers • ${trip.duration}</p>
             </div>
-            <a href="/" class="text-gray-400 hover:text-gray-600">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </a>
+            <a href="/" class="text-gray-400 hover:text-gray-600 text-2xl">×</a>
           </div>
           <div class="flex flex-wrap gap-2 mt-3">
-            ${daysLeft > 0 ? `
-              <div class="inline-flex items-center gap-2 bg-gradient-to-r from-red-500 to-green-600 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
-                🎄 Nog ${weeksLeft > 0 ? weeksLeft + ' weken' + (remainingDays > 0 ? ' en ' + remainingDays + ' dagen' : '') : daysLeft + ' dagen'}!
-              </div>
-            ` : ''}
+            ${daysLeft > 0 ? `<span class="bg-gradient-to-r from-red-600 to-green-600 text-white px-4 py-1.5 rounded-full text-sm font-bold animate-pulse">🎄 Nog ${daysLeft} dagen!</span>` : ''}
+            <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">❄️ Winter Wonderland</span>
+            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">🎭 West End</span>
           </div>
-        </div>
-
-        <!-- TABS -->
-        <div class="flex gap-2 mb-4 overflow-x-auto hide-scrollbar">
-          <button onclick="setTab('planning')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'planning' ? 'bg-red-600 text-white' : 'bg-white/90 text-gray-700'} shadow">📅 Dagplanning</button>
-          <button onclick="setTab('budget')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'budget' ? 'bg-red-600 text-white' : 'bg-white/90 text-gray-700'} shadow">💰 Budget</button>
-          <button onclick="setTab('checklist')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'checklist' ? 'bg-red-600 text-white' : 'bg-white/90 text-gray-700'} shadow">✅ Checklist (${checkedCount}/${totalChecks})</button>
         </div>
       `;
 
+      // TABS
+      html += `<div class="flex gap-2 mb-4 overflow-x-auto hide-scrollbar">`;
+      [
+        { id: 'planning', label: '📅 Planning' },
+        { id: 'map', label: '🗺️ Kaart' },
+        { id: 'budget', label: '💰 Budget' },
+        { id: 'checklist', label: `✅ (${checkedCount}/${totalChecks})` }
+      ].forEach(t => {
+        html += `<button onclick="setTab('${t.id}')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap shadow ${activeTab === t.id ? 'bg-red-600 text-white' : 'bg-white text-gray-700 hover:bg-red-50'}">${t.label}</button>`;
+      });
+      html += `</div>`;
+
       // PLANNING TAB
       if (activeTab === 'planning') {
-        html += `
-          <!-- Day Selector -->
-          <div class="flex gap-2 mb-4 overflow-x-auto hide-scrollbar pb-2">
-            ${days.map(d => `
-              <button onclick="setDay(${d.day})" class="flex-shrink-0 px-4 py-2 rounded-xl font-medium ${activeDay === d.day ? 'bg-gradient-to-r from-red-600 to-green-600 text-white shadow-lg' : 'bg-white/90 text-gray-700'} transition-all">
-                <span class="mr-2">${d.icon}</span>Dag ${d.day}
-              </button>
-            `).join('')}
-          </div>
+        html += `<div class="flex gap-2 overflow-x-auto pb-3 hide-scrollbar">`;
+        days.forEach(d => {
+          html += `<button onclick="setDay(${d.day})" class="flex items-center gap-2 px-4 py-2 rounded-xl font-medium whitespace-nowrap shadow ${activeDay === d.day ? 'bg-red-600 text-white' : 'bg-white text-gray-700'}">${d.icon} Dag ${d.day}</button>`;
+        });
+        html += `</div>`;
 
-          <!-- Day Header -->
-          <div class="bg-white/95 backdrop-blur rounded-2xl p-5 shadow-lg mb-4">
-            <div class="flex items-start gap-4">
+        html += `
+          <div class="bg-white rounded-2xl p-5 shadow-lg mb-4">
+            <div class="flex items-center gap-4">
               <span class="text-5xl">${day.icon}</span>
               <div class="flex-1">
                 <h2 class="text-2xl font-bold text-gray-800">Dag ${day.day}: ${day.title}</h2>
-                <p class="text-gray-500">${day.date}</p>
-                <p class="text-red-600 font-semibold mt-1">${day.highlight}</p>
-              </div>
-              <!-- Weather -->
-              <div class="text-center bg-gradient-to-br from-sky-100 to-blue-100 rounded-xl px-3 py-2">
-                <div class="text-2xl">❄️</div>
-                <div class="text-lg font-bold text-gray-800">7°C</div>
-                <div class="text-xs text-gray-500">nov avg</div>
+                <p class="text-gray-500">${day.date} • ${day.area}</p>
+                <p class="text-red-600 font-semibold">${day.highlight}</p>
               </div>
             </div>
-            <div class="mt-4 grid grid-cols-4 gap-2 text-center text-sm">
-              <div class="bg-orange-50 rounded-lg p-2"><div class="text-orange-500">🌡️</div><div class="font-bold">10°C</div></div>
-              <div class="bg-blue-50 rounded-lg p-2"><div class="text-blue-500">🌡️</div><div class="font-bold">4°C</div></div>
-              <div class="bg-gray-50 rounded-lg p-2"><div class="text-gray-500">🌧️</div><div class="font-bold">60%</div></div>
-              <div class="bg-yellow-50 rounded-lg p-2"><div class="text-yellow-600">☀️</div><div class="font-bold">8u</div></div>
-            </div>
+            ${accom ? `<div class="mt-3 bg-red-50 rounded-xl p-3"><span class="text-xs text-red-600 font-bold">🏨 ACCOMMODATIE</span><div class="font-bold text-red-800">${accom.name}</div></div>` : ''}
           </div>
+        `;
 
-          <!-- Activities -->
-          <div class="bg-white/95 backdrop-blur rounded-2xl p-5 shadow-lg">
-            <div class="space-y-3">
-              ${acts.map(act => `
-                <div onclick='openModal(${JSON.stringify(act).replace(/'/g, "\\'")})' class="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:shadow-lg transition-all ${getCardClass(act.type)}">
-                  <div class="font-mono text-sm font-bold w-14 text-center">${act.time}</div>
-                  <div class="text-2xl">${act.icon}</div>
-                  <div class="flex-1 min-w-0">
-                    <div class="font-semibold truncate">${act.title}</div>
-                    <div class="text-sm opacity-80 truncate">${act.subtitle}</div>
-                  </div>
-                  <div class="text-gray-400">→</div>
+        html += `<div class="bg-white rounded-2xl p-4 shadow-lg mb-4"><div class="space-y-2">`;
+        acts.forEach((act, idx) => {
+          const prevLoc = idx > 0 ? acts[idx-1].loc : (accom ? 'covent_garden' : null);
+          const dist = prevLoc && act.loc ? calcDist(prevLoc, act.loc) : null;
+          html += `
+            <div onclick='openModal(${JSON.stringify(act).replace(/'/g, "\\'")})' class="rounded-xl p-3 cursor-pointer hover:shadow-md transition ${getTypeClass(act.type)}">
+              <div class="flex items-center gap-3">
+                <div class="font-mono font-bold text-gray-700 w-12 text-center">${act.time}</div>
+                <div class="text-2xl">${act.icon}</div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-bold text-gray-800">${act.title}</div>
+                  <div class="text-gray-600 text-sm truncate">${act.subtitle}</div>
                 </div>
+                ${dist ? `<div class="text-xs bg-white/60 px-2 py-1 rounded-full hidden md:block">${dist}km</div>` : ''}
+                <div class="text-gray-400">→</div>
+              </div>
+            </div>
+          `;
+        });
+        html += `</div></div>`;
+
+        // Day Notes
+        html += `
+          <div class="bg-gradient-to-r from-red-100 to-green-100 rounded-2xl p-4 shadow">
+            <h4 class="font-bold text-red-800 mb-3">📝 Notities - Dag ${activeDay}</h4>
+            <div class="flex gap-2 mb-3">
+              <input type="text" id="dayNoteInput" placeholder="Schrijf notitie..." class="flex-1 px-4 py-2 rounded-xl border text-sm">
+              <button onclick="saveNote()" class="bg-red-600 text-white px-4 py-2 rounded-xl font-medium">+</button>
+            </div>
+            ${(dayNotes[activeDay] || []).length > 0 ? `<div class="space-y-2">${(dayNotes[activeDay] || []).map(n => `
+              <div class="bg-white rounded-lg p-3 flex justify-between">
+                <div><p class="text-gray-800">${n.text}</p><p class="text-xs text-gray-400">${n.ts}</p></div>
+                <button onclick="deleteNote(${n.id})" class="text-red-400 hover:text-red-600">×</button>
+              </div>
+            `).join('')}</div>` : ''}
+          </div>
+        `;
+      }
+
+      // MAP TAB
+      if (activeTab === 'map') {
+        const dayLocs = acts.filter(a => a.loc && locations[a.loc]).map(a => ({ ...a, ...locations[a.loc] }));
+        
+        html += `<div class="flex gap-2 overflow-x-auto pb-3 hide-scrollbar mb-4">`;
+        days.forEach(d => {
+          html += `<button onclick="setDay(${d.day}); setTab('map');" class="flex items-center gap-2 px-4 py-2 rounded-xl font-medium whitespace-nowrap shadow ${activeDay === d.day ? 'bg-red-600 text-white' : 'bg-white text-gray-700'}">${d.icon} Dag ${d.day}</button>`;
+        });
+        html += `</div>`;
+
+        html += `
+          <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="p-4 bg-gradient-to-r from-red-600 to-green-600 text-white">
+              <h3 class="font-bold text-lg">🗺️ Dag ${activeDay}: ${day.title}</h3>
+              <p class="text-white/80 text-sm">${dayLocs.length} locaties</p>
+            </div>
+            <div class="p-4 space-y-2">
+              ${dayLocs.map((loc, i) => `
+                <a href="${getMapsUrl(loc.loc)}" target="_blank" class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-red-50 transition">
+                  <div class="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-sm">${i+1}</div>
+                  <span class="text-2xl">${loc.icon}</span>
+                  <div class="flex-1"><div class="font-medium text-gray-800">${loc.title}</div><div class="text-sm text-gray-500">${loc.time}</div></div>
+                  <span class="text-red-500">📍</span>
+                </a>
               `).join('')}
             </div>
-          </div>
-
-          ${activeDay === 2 ? `
-            <div class="mt-4 bg-gradient-to-r from-red-100 to-green-100 border border-red-300 rounded-2xl p-5">
-              <h4 class="font-bold text-red-800 mb-3">🎡 WINTER WONDERLAND TIPS</h4>
-              <div class="grid grid-cols-2 gap-2 text-sm">
-                <div class="bg-white/70 rounded-lg p-2">⛸️ Boek ijsbaan VOORAF</div>
-                <div class="bg-white/70 rounded-lg p-2">🎢 Attracties = tokens</div>
-                <div class="bg-white/70 rounded-lg p-2">🍺 Bavarian Village = gezellig</div>
-                <div class="bg-white/70 rounded-lg p-2">📸 Reuzenrad = beste fotos</div>
+            ${dayLocs.length > 1 ? `
+              <div class="p-4 bg-red-50 border-t">
+                <a href="https://www.google.com/maps/dir/${dayLocs.map(l => `${l.lat},${l.lng}`).join('/')}" target="_blank" class="block w-full bg-red-600 text-white text-center py-3 rounded-xl font-bold">🗺️ Open volledige route</a>
               </div>
-            </div>
-          ` : ''}
+            ` : ''}
+          </div>
         `;
       }
 
@@ -335,39 +395,31 @@
       if (activeTab === 'budget') {
         html += `
           <div class="space-y-4">
-            <!-- Expenses Tracker -->
-            <div class="bg-gradient-to-r from-red-500 to-green-600 rounded-2xl p-5 text-white shadow-lg">
+            <div class="bg-gradient-to-r from-red-600 to-green-600 rounded-2xl p-5 text-white shadow-lg">
               <h3 class="font-bold text-lg mb-3">💸 Uitgaven Tracker</h3>
-              <div class="grid grid-cols-3 gap-2 mb-4">
-                <input type="text" id="expenseDesc" placeholder="Omschrijving" class="col-span-2 px-3 py-2 rounded-lg text-gray-800 text-sm" />
-                <input type="number" id="expenseAmount" placeholder="£" step="0.01" class="px-3 py-2 rounded-lg text-gray-800 text-sm" />
+              <div class="grid grid-cols-3 gap-2 mb-3">
+                <input type="text" id="expenseDesc" placeholder="Omschrijving" class="col-span-2 px-3 py-2 rounded-lg text-gray-800 text-sm">
+                <input type="number" id="expenseAmount" placeholder="€" step="0.01" class="px-3 py-2 rounded-lg text-gray-800 text-sm">
               </div>
               <div class="flex gap-2">
                 <select id="expenseCategory" class="flex-1 px-3 py-2 rounded-lg text-gray-800 text-sm">
-                  <option value="🍽️ Eten">🍽️ Eten</option>
-                  <option value="🚃 Vervoer">🚃 Vervoer</option>
-                  <option value="🎫 Activiteit">🎫 Activiteit</option>
-                  <option value="🛒 Shopping">🛒 Shopping</option>
+                  <option>🍽️ Eten</option><option>🚗 Vervoer</option><option>🎫 Activiteit</option><option>🎁 Shopping</option><option>💰 Overig</option>
                 </select>
-                <button onclick="addExpense()" class="bg-white text-red-600 px-4 py-2 rounded-lg font-bold">+ Toevoegen</button>
+                <button onclick="addExpense()" class="bg-white text-red-600 px-4 py-2 rounded-lg font-bold">+</button>
               </div>
-              ${expenses.length > 0 ? `
-                <div class="mt-4 pt-4 border-t border-white/30">
-                  <div class="flex justify-between"><span>Totaal:</span><span class="text-2xl font-bold">£${totalExpenses.toFixed(2)}</span></div>
-                </div>
-              ` : ''}
+              ${expenses.length > 0 ? `<div class="mt-4 pt-4 border-t border-white/30 flex justify-between"><span>Totaal uitgegeven:</span><span class="text-2xl font-bold">€${totalExpenses.toFixed(2)}</span></div>` : ''}
             </div>
 
             ${expenses.length > 0 ? `
-              <div class="bg-white/95 rounded-2xl p-5 shadow-lg">
-                <h3 class="font-bold mb-3">📝 Mijn Uitgaven</h3>
+              <div class="bg-white rounded-2xl p-4 shadow-lg">
+                <h3 class="font-bold text-gray-800 mb-3">📝 Uitgaven</h3>
                 <div class="space-y-2 max-h-48 overflow-y-auto">
                   ${expenses.slice().reverse().map(e => `
                     <div class="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
-                      <div><span class="text-sm">${e.category}</span> <span class="font-medium">${e.desc}</span></div>
+                      <div><span class="text-sm text-gray-500">${e.category}</span> <span class="font-medium text-gray-800">${e.desc}</span></div>
                       <div class="flex items-center gap-2">
-                        <span class="font-bold text-red-600">£${e.amount.toFixed(2)}</span>
-                        <button onclick="deleteExpense(${e.id})" class="text-red-400 hover:text-red-600">×</button>
+                        <span class="font-bold text-red-600">€${e.amount.toFixed(2)}</span>
+                        <button onclick="deleteExpense(${e.id})" class="text-gray-400 hover:text-red-500">×</button>
                       </div>
                     </div>
                   `).join('')}
@@ -375,29 +427,29 @@
               </div>
             ` : ''}
 
-            <div class="bg-white/95 rounded-2xl p-5 shadow-lg">
-              <h3 class="font-bold mb-4">💰 Geschatte Kosten</h3>
-              <div class="space-y-2">
+            <div class="bg-white rounded-2xl p-4 shadow-lg">
+              <h3 class="font-bold text-gray-800 mb-3">📊 Geschatte Kosten</h3>
+              <div class="space-y-1 max-h-64 overflow-y-auto">
                 ${budget.estimated.map(i => `
                   <div class="flex justify-between py-2 border-b border-gray-100">
-                    <span>${i.item}</span>
-                    <span class="font-mono">€${i.budget} | €${i.comfort}</span>
+                    <span class="text-sm text-gray-700">${i.item}</span>
+                    <span class="font-mono text-sm text-gray-600">€${i.budget} | €${i.comfort}</span>
                   </div>
                 `).join('')}
               </div>
-              <div class="mt-4 pt-4 border-t-2 flex justify-between font-bold text-lg">
-                <span>TOTAAL</span>
-                <span>€${estBudget} | €${estComfort}</span>
+              <div class="mt-3 pt-3 border-t-2 border-red-200 flex justify-between font-bold">
+                <span class="text-gray-800">TOTAAL</span>
+                <span class="text-gray-800">€${estBudget} | €${estComfort}</span>
               </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
-              <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-5 text-white text-center">
+              <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-4 text-white text-center">
                 <div class="text-sm opacity-80">💚 Budget</div>
                 <div class="text-3xl font-bold">€${estBudget}</div>
                 <div class="text-sm opacity-80">€${Math.round(estBudget/2)} p.p.</div>
               </div>
-              <div class="bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl p-5 text-white text-center">
+              <div class="bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-4 text-white text-center">
                 <div class="text-sm opacity-80">✨ Comfort</div>
                 <div class="text-3xl font-bold">€${estComfort}</div>
                 <div class="text-sm opacity-80">€${Math.round(estComfort/2)} p.p.</div>
@@ -409,41 +461,44 @@
 
       // CHECKLIST TAB
       if (activeTab === 'checklist') {
-        html += `
-          <div class="space-y-4">
-            ${checklistSections.map(sec => `
-              <div class="bg-white/95 rounded-2xl p-5 shadow-lg">
-                <h3 class="font-bold mb-3">${sec.title}</h3>
-                <div class="space-y-2">
-                  ${sec.items.map(item => `
-                    <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
-                      <input type="checkbox" ${checklist[item.key] ? 'checked' : ''} onchange="toggleCheck('${item.key}')" class="w-5 h-5 rounded">
-                      <span class="${checklist[item.key] ? 'line-through text-gray-400' : ''}">${item.label}</span>
-                    </label>
-                  `).join('')}
-                </div>
+        html += `<div class="space-y-4">`;
+        checklistSections.forEach(sec => {
+          const secChecked = sec.items.filter(i => checklist[i.key]).length;
+          html += `
+            <div class="bg-white rounded-2xl p-4 shadow-lg">
+              <h3 class="font-bold text-gray-800 mb-3 flex items-center gap-2">${sec.title} <span class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">${secChecked}/${sec.items.length}</span></h3>
+              <div class="space-y-2">
+                ${sec.items.map(i => `
+                  <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                    <input type="checkbox" ${checklist[i.key] ? 'checked' : ''} onchange="toggleCheck('${i.key}')" class="w-5 h-5 rounded text-red-600">
+                    <span class="${checklist[i.key] ? 'line-through text-gray-400' : 'text-gray-700'}">${i.label}</span>
+                  </label>
+                `).join('')}
               </div>
-            `).join('')}
-
-            <div class="bg-gradient-to-r from-red-600 to-green-600 rounded-2xl p-5 text-white">
-              <h3 class="font-bold mb-3">📊 Voortgang</h3>
-              <div class="bg-white/20 rounded-full h-4 mb-2">
-                <div class="bg-white rounded-full h-4" style="width: ${Math.max((checkedCount/totalChecks)*100, 5)}%"></div>
-              </div>
-              <div class="text-center">${checkedCount} van ${totalChecks} items</div>
             </div>
+          `;
+        });
+        html += `
+          <div class="bg-gradient-to-r from-red-600 to-green-600 rounded-2xl p-5 text-white">
+            <h3 class="font-bold mb-3">📊 Voortgang</h3>
+            <div class="bg-white/20 rounded-full h-4 mb-2">
+              <div class="bg-white rounded-full h-4 transition-all" style="width: ${Math.max((checkedCount/totalChecks)*100, 5)}%"></div>
+            </div>
+            <div class="text-center">${checkedCount} / ${totalChecks} items</div>
           </div>
-        `;
+        </div>`;
       }
 
       // MODAL
       if (selectedModal) {
         const m = selectedModal;
         const info = m.info || {};
+        const dist = m.loc && accom ? calcDist('covent_garden', m.loc) : null;
+
         html += `
           <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50" onclick="closeModal()">
             <div class="bg-white rounded-3xl max-w-lg w-full max-h-[85vh] overflow-y-auto shadow-2xl" onclick="event.stopPropagation()">
-              <div class="p-5 ${getCardClass(m.type)} rounded-t-3xl">
+              <div class="p-5 ${getTypeClass(m.type)} rounded-t-3xl">
                 <div class="flex justify-between items-start">
                   <div class="flex items-center gap-3">
                     <span class="text-4xl">${m.icon}</span>
@@ -456,13 +511,24 @@
                 </div>
               </div>
               <div class="p-5 space-y-4">
+                ${dist ? `
+                  <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4">
+                    <h4 class="font-bold text-blue-800 mb-2">📍 Afstanden</h4>
+                    <div class="bg-white p-3 rounded-xl shadow-sm">
+                      <div class="text-gray-500 text-xs">Vanaf accommodatie</div>
+                      <div class="font-bold text-blue-700 text-lg">${dist} km</div>
+                      <div class="text-xs text-gray-500">${estTime(dist)}</div>
+                    </div>
+                  </div>
+                ` : ''}
                 ${info.desc ? `<div><h4 class="font-bold text-gray-700 mb-1">📖 Beschrijving</h4><p class="text-gray-600">${info.desc}</p></div>` : ''}
                 ${info.highlights ? `<div><h4 class="font-bold text-gray-700 mb-2">✨ Highlights</h4><div class="flex flex-wrap gap-2">${info.highlights.map(h => `<span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">${h}</span>`).join('')}</div></div>` : ''}
                 ${info.price ? `<div class="bg-green-50 p-4 rounded-xl"><h4 class="font-bold text-green-800 mb-1">💰 Kosten</h4><p class="text-green-700 font-semibold text-lg">${info.price}</p></div>` : ''}
                 ${info.duration ? `<div class="flex items-center gap-2 bg-gray-50 p-3 rounded-xl"><span>⏱️</span><strong>Duur:</strong> ${info.duration}</div>` : ''}
                 ${info.tips ? `<div><h4 class="font-bold text-gray-700 mb-2">💡 Tips</h4><ul class="space-y-1">${info.tips.map(t => `<li class="text-sm bg-blue-50 text-blue-800 p-2 rounded-lg">• ${t}</li>`).join('')}</ul></div>` : ''}
-                ${info.warning ? `<div class="bg-red-50 border border-red-200 p-4 rounded-xl"><h4 class="font-bold text-red-800 mb-1">⚠️ Let op!</h4><p class="text-red-700">${info.warning}</p></div>` : ''}
+                ${info.mustTry ? `<div><h4 class="font-bold text-gray-700 mb-2">🍴 Must Try</h4><div class="flex flex-wrap gap-2">${info.mustTry.map(t => `<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm">${t}</span>`).join('')}</div></div>` : ''}
                 ${info.recommendations ? `<div><h4 class="font-bold text-gray-700 mb-2">🎭 Aanbevelingen</h4><div class="flex flex-wrap gap-2">${info.recommendations.map(r => `<span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm">${r}</span>`).join('')}</div></div>` : ''}
+                ${info.warning ? `<div class="bg-red-50 border border-red-200 p-4 rounded-xl"><h4 class="font-bold text-red-800 mb-1">⚠️ Let op!</h4><p class="text-red-700">${info.warning}</p></div>` : ''}
                 ${info.mustSee ? `<div class="bg-gradient-to-r from-red-100 to-green-100 p-4 rounded-xl text-center"><span class="text-2xl">⭐</span><span class="font-bold text-gray-800 ml-2">MUST SEE / DO!</span></div>` : ''}
                 ${m.loc && getMapsUrl(m.loc) ? `<a href="${getMapsUrl(m.loc)}" target="_blank" class="block w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-center py-3 px-4 rounded-xl font-semibold">📍 Open in Google Maps</a>` : ''}
               </div>
@@ -471,25 +537,18 @@
         `;
       }
 
+      // FOOTER
       html += `
-        <div class="text-center mt-6 text-white/80 text-sm">
-          <p>🎄 London Christmas 2025 🎄</p>
-          <a href="/" class="text-white hover:underline">← Terug naar overzicht</a>
+        <div class="mt-6 space-y-3 text-center">
+          <div class="flex flex-wrap justify-center gap-2">
+            <button onclick="shareTrip()" class="bg-gradient-to-r from-red-500 to-green-500 text-white px-4 py-2 rounded-xl font-bold shadow">🔗 Deel</button>
+            <button onclick="exportTrip()" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-xl font-bold shadow">📄 Export</button>
+            <button onclick="toggleDarkMode()" class="bg-gradient-to-r from-gray-600 to-gray-800 text-white px-4 py-2 rounded-xl font-bold shadow">${darkMode ? '☀️ Light' : '🌙 Dark'}</button>
+          </div>
+          <p class="text-white/80 text-sm">🎄 London Christmas 2025 🎄</p>
+          <a href="/" class="text-white hover:underline text-sm">← Terug naar overzicht</a>
         </div>
       `;
-
-      document.getElementById('app').innerHTML = html;
-    }
-
-    render();
-  </script>
-</body>
-</html>
- onclick="toggleDarkMode()" class="bg-gradient-to-r from-gray-600 to-gray-800 text-white px-4 py-2 rounded-xl font-bold shadow">' + (darkMode ? '☀️ Light' : '🌙 Dark') + '</button>';
-      html += '</div>';
-      html += '<p class="text-white/70 text-sm">' + trip.title + ' • ' + trip.dates + '</p>';
-      html += '<a href="/" class="text-red-300 hover:underline text-sm">← Terug naar overzicht</a>';
-      html += '</div>';
 
       document.getElementById('app').innerHTML = html;
     }
