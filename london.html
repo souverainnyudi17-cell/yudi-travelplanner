@@ -46,6 +46,52 @@
     let dayNotes = JSON.parse(localStorage.getItem('londonDayNotes') || '{}');
     let packingList = JSON.parse(localStorage.getItem('londonPackingList') || '{}');
     let tripPhotos = JSON.parse(localStorage.getItem('londonPhotos') || '{}');
+    let currentLang = localStorage.getItem('yudiLanguage') || 'nl';
+
+    // Translation system
+    const translations = {
+      nl: {
+        planning: '📅 Planning', map: '🗺️ Kaart', budget: '💰 Budget', checklist: '✅ Checklist',
+        packing: '🎒 Inpakken', photos: '📸 Fotos', loadWeather: '🌤️ Weer laden',
+        day: 'Dag', duration: 'Duur', price: 'Kosten', tips: 'Tips',
+        book: 'Boek nu op', openMaps: 'Open in Google Maps', accommodation: 'Accommodatie',
+        distance: 'Afstand', fromAccom: 'Vanaf hotel', driving: 'rijden',
+        description: 'Beschrijving', highlights: 'Highlights', warning: 'Let op!',
+        total: 'Totaal', perPerson: 'Per persoon', progress: 'Voortgang',
+        addPhoto: '+ Foto', noPhotos: 'Nog geen foto\'s', photoGallery: 'Foto Galerij',
+        smartPacking: 'Slimme Inpaklijst'
+      },
+      en: {
+        planning: '📅 Planning', map: '🗺️ Map', budget: '💰 Budget', checklist: '✅ Checklist',
+        packing: '🎒 Packing', photos: '📸 Photos', loadWeather: '🌤️ Load Weather',
+        day: 'Day', duration: 'Duration', price: 'Price', tips: 'Tips',
+        book: 'Book now at', openMaps: 'Open in Google Maps', accommodation: 'Accommodation',
+        distance: 'Distance', fromAccom: 'From hotel', driving: 'drive',
+        description: 'Description', highlights: 'Highlights', warning: 'Note!',
+        total: 'Total', perPerson: 'Per person', progress: 'Progress',
+        addPhoto: '+ Photo', noPhotos: 'No photos yet', photoGallery: 'Photo Gallery',
+        smartPacking: 'Smart Packing List'
+      },
+      fr: {
+        planning: '📅 Planning', map: '🗺️ Carte', budget: '💰 Budget', checklist: '✅ Liste',
+        packing: '🎒 Bagages', photos: '📸 Photos', loadWeather: '🌤️ Charger météo',
+        day: 'Jour', duration: 'Durée', price: 'Prix', tips: 'Conseils',
+        book: 'Réserver sur', openMaps: 'Ouvrir dans Google Maps', accommodation: 'Hébergement',
+        distance: 'Distance', fromAccom: 'Depuis hôtel', driving: 'en voiture',
+        description: 'Description', highlights: 'Points forts', warning: 'Attention!',
+        total: 'Total', perPerson: 'Par personne', progress: 'Progression',
+        addPhoto: '+ Photo', noPhotos: 'Pas de photos', photoGallery: 'Galerie Photos',
+        smartPacking: 'Liste Intelligente'
+      }
+    };
+
+    function t(key) { return translations[currentLang][key] || key; }
+    
+    function setLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('yudiLanguage', lang);
+      render();
+    }
 
     // Photo gallery functions
     function addPhoto(dayNum) {
@@ -357,9 +403,16 @@
               <p class="text-red-600 font-medium">${trip.subtitle}</p>
               <p class="text-gray-500 text-sm mt-1">${trip.dates} • ${trip.persons} personen • ${trip.duration}</p>
             </div>
-            <a href="/" class="text-gray-400 hover:text-gray-600">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </a>
+            <div class="flex items-center gap-2">
+              <select onchange="setLanguage(this.value)" class="px-3 py-2 bg-gray-100 rounded-xl text-sm font-medium border-0 cursor-pointer">
+                <option value="nl" ${currentLang === 'nl' ? 'selected' : ''}>🇳🇱 NL</option>
+                <option value="en" ${currentLang === 'en' ? 'selected' : ''}>🇬🇧 EN</option>
+                <option value="fr" ${currentLang === 'fr' ? 'selected' : ''}>🇫🇷 FR</option>
+              </select>
+              <a href="/" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </a>
+            </div>
           </div>
           <div class="flex flex-wrap gap-2 mt-3">
             ${daysLeft > 0 ? `
@@ -394,14 +447,14 @@
       // TABS
       html += `<div class="flex gap-2 mb-4 overflow-x-auto hide-scrollbar">`;
       [
-        { id: 'planning', label: '📅 Planning' },
-        { id: 'map', label: '🗺️ Kaart' },
-        { id: 'budget', label: '💰 Budget' },
-        { id: 'checklist', label: `✅ (${checkedCount}/${totalChecks})` },
-        { id: 'packing', label: '🎒 Inpakken' },
-        { id: 'photos', label: '📸 Fotos' }
-      ].forEach(t => {
-        html += `<button onclick="setTab('${t.id}')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap shadow ${activeTab === t.id ? 'bg-red-600 text-white' : 'bg-white text-gray-700 hover:bg-red-50'}">${t.label}</button>`;
+        { id: 'planning', label: t('planning') },
+        { id: 'map', label: t('map') },
+        { id: 'budget', label: t('budget') },
+        { id: 'checklist', label: `${t('checklist')} (${checkedCount}/${totalChecks})` },
+        { id: 'packing', label: t('packing') },
+        { id: 'photos', label: t('photos') }
+      ].forEach(tab => {
+        html += `<button onclick="setTab('${tab.id}')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap shadow ${activeTab === tab.id ? 'bg-red-600 text-white' : 'bg-white text-gray-700 hover:bg-red-50'}">${tab.label}</button>`;
       });
       html += `</div>`;
 
