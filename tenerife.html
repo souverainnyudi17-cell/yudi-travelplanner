@@ -504,6 +504,7 @@
         <!-- TABS -->
         <div class="flex gap-2 mb-4 overflow-x-auto hide-scrollbar">
           <button onclick="setTab('planning')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'planning' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">📅 Dagplanning</button>
+          <button onclick="setTab('map')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'map' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">🗺️ Kaart</button>
           <button onclick="setTab('budget')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'budget' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">💰 Budget</button>
           <button onclick="setTab('checklist')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'checklist' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">✅ Checklist (${checkedCount}/${totalChecks})</button>
         </div>
@@ -699,6 +700,68 @@
             `}
           </div>
         `;
+      }
+
+      // MAP TAB
+      if (activeTab === 'map') {
+        const dayLocations = acts.filter(a => a.loc && locations[a.loc]).map(a => ({
+          name: a.title,
+          icon: a.icon,
+          time: a.time,
+          ...locations[a.loc]
+        }));
+
+        // Calculate center of all locations for this day
+        const centerLat = dayLocations.length > 0 
+          ? dayLocations.reduce((s, l) => s + l.lat, 0) / dayLocations.length 
+          : 28.3;
+        const centerLng = dayLocations.length > 0 
+          ? dayLocations.reduce((s, l) => s + l.lng, 0) / dayLocations.length 
+          : -16.5;
+        
+        html += `
+          <!-- Day Selector for Map -->
+          <div class="flex gap-2 overflow-x-auto pb-3 hide-scrollbar mb-4">
+            ${days.map(d => `
+              <button onclick="setDay(${d.day}); setTab('map');" class="flex items-center gap-2 px-4 py-2 rounded-xl font-medium whitespace-nowrap shadow ${activeDay === d.day ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'}">
+                <span>${d.icon}</span>
+                <span>Dag ${d.day}</span>
+              </button>
+            `).join('')}
+          </div>
+
+          <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="p-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
+              <h3 class="font-bold text-lg">🗺️ Kaart - Dag ${activeDay}: ${day.title}</h3>
+              <p class="text-white/80 text-sm">${dayLocations.length} locaties op ${day.island}</p>
+            </div>
+            
+            <!-- Map as location list with links -->
+            <div class="p-4 space-y-2">
+              ${dayLocations.map((loc, idx) => \`
+                <a href="https://www.google.com/maps/search/?api=1&query=\${loc.lat},\${loc.lng}" 
+                   target="_blank"
+                   class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-blue-50 transition">
+                  <div class="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-sm">\${idx + 1}</div>
+                  <span class="text-2xl">\${loc.icon}</span>
+                  <div class="flex-1">
+                    <div class="font-medium">\${loc.name}</div>
+                    <div class="text-sm text-gray-500">\${loc.time}</div>
+                  </div>
+                  <span class="text-blue-500">📍 Open</span>
+                </a>
+              \`).join('')}
+            </div>
+
+            <div class="p-4 bg-blue-50 border-t">
+              <a href="https://www.google.com/maps/dir/${dayLocations.map(l => l.lat + ',' + l.lng).join('/')}" 
+                 target="_blank"
+                 class="block w-full bg-blue-600 text-white text-center py-3 rounded-xl font-bold hover:bg-blue-700 transition">
+                🗺️ Open route in Google Maps
+              </a>
+            </div>
+          </div>
+        \`;
       }
 
       // BUDGET TAB
