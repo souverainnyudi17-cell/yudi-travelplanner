@@ -1,448 +1,528 @@
- item: '✈️ Vluchten (2p)', budget: 730, comfort: 850 },
-        { item: '🏠 Kotor (3n)', budget: 195, comfort: 250 },
-        { item: '🏠 Durmitor (2n)', budget: 100, comfort: 140 },
-        { item: '🏠 Budva (3n)', budget: 210, comfort: 280 },
-        { item: '🚗 Huurauto (8 dagen)', budget: 200, comfort: 280 },
-        { item: '⛽ Benzine (~600km)', budget: 60, comfort: 80 },
-        { item: '🚣 Tara Rafting (2p)', budget: 140, comfort: 170 },
-        { item: '⛵ Kotor boottocht (2p)', budget: 60, comfort: 80 },
-        { item: '🚀 Jetski (2p)', budget: 60, comfort: 100 },
-        { item: '🪂 Parasailing (duo)', budget: 80, comfort: 80 },
-        { item: '🍌 Banana + Wakeboard', budget: 60, comfort: 80 },
-        { item: '⛵ Skadar boottrip (2p)', budget: 40, comfort: 50 },
-        { item: '🎫 Entreegelden', budget: 30, comfort: 40 },
-        { item: '🍽️ Eten (9 dagen)', budget: 350, comfort: 500 },
-        { item: '🏥 Reisverzekering', budget: 40, comfort: 60 },
-        { item: '💰 Buffer', budget: 85, comfort: 120 }
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🏔️ Montenegro Adventure 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-100 via-stone-50 to-amber-50">
+  <div id="app" class="p-4"></div>
+
+  <script>
+    // State
+    let activeDay = 1;
+    let activeTab = 'overview';
+    let selectedActivity = null;
+    let checklist = {
+      flights: false, accommodationKotor: false, accommodationDurmitor: false, accommodationBudva: false,
+      insurance: false, raftingBooked: false, carRental: false, kayakBooked: false, boatTour: false,
+      restaurantReservations: false, mapsOffline: false, printConfirmations: false, eurosCash: false,
+      paspoort: false, rijbewijs: false, creditcard: false, ehic: false, kopieDocumenten: false,
+      wandelschoenen: false, zwemkleding: false, zonnebrand: false, regenjas: false,
+      waterflessen: false, camera: false, powerbank: false, snorkelset: false
+    };
+
+    // Load from localStorage
+    const saved = localStorage.getItem('montenegroChecklist');
+    if (saved) checklist = JSON.parse(saved);
+
+    // Flights
+    const flights = {
+      outbound: { route: 'Amsterdam → Tivat', date: '16 mei 2026', time: '~11:00 - 14:30', price: 350 },
+      return: { route: 'Tivat → Amsterdam', date: '24 mei 2026', time: '~15:00 - 20:30', price: 380 },
+      totalPrice: 730
+    };
+
+    // Accommodations
+    const accommodations = {
+      kotor: { name: 'Appartement Kotor Old Town', address: 'Kotor Old Town / Dobrota', dates: '16-19 mei', nights: 3, totalPrice: 195, lat: 42.4247, lng: 18.7712 },
+      durmitor: { name: 'Mountain Lodge Žabljak', address: 'Žabljak, Durmitor', dates: '19-21 mei', nights: 2, totalPrice: 100, lat: 43.1556, lng: 19.1228 },
+      budva: { name: 'Beach Apartment Budva', address: 'Budva Riviera', dates: '21-24 mei', nights: 3, totalPrice: 210, lat: 42.2864, lng: 18.8400 }
+    };
+
+    // Locations
+    const locations = {
+      tivat_airport: { lat: 42.4047, lng: 18.7233 },
+      kotor: { lat: 42.4247, lng: 18.7712 },
+      kotor_fortress: { lat: 42.4280, lng: 18.7720 },
+      perast: { lat: 42.4867, lng: 18.6983 },
+      our_lady_rocks: { lat: 42.4870, lng: 18.6910 },
+      lovcen: { lat: 42.3994, lng: 18.8389 },
+      cetinje: { lat: 42.3903, lng: 18.9233 },
+      njegos_mausoleum: { lat: 42.3994, lng: 18.8389 },
+      skadar_lake: { lat: 42.2167, lng: 19.1000 },
+      virpazar: { lat: 42.2417, lng: 19.0917 },
+      ostrog: { lat: 42.6747, lng: 19.0297 },
+      durmitor: { lat: 43.1500, lng: 19.0500 },
+      zabljak: { lat: 43.1556, lng: 19.1228 },
+      black_lake: { lat: 43.1453, lng: 19.0967 },
+      tara_bridge: { lat: 43.1500, lng: 19.2833 },
+      tara_canyon: { lat: 43.1167, lng: 19.3500 },
+      scepan_polje: { lat: 43.3500, lng: 18.8667 },
+      budva: { lat: 42.2864, lng: 18.8400 },
+      sveti_stefan: { lat: 42.2569, lng: 18.8903 },
+      mogren_beach: { lat: 42.2903, lng: 18.8333 },
+      jaz_beach: { lat: 42.2917, lng: 18.8083 },
+      blue_cave: { lat: 42.3833, lng: 18.7167 }
+    };
+
+    // Calculate distance
+    function calculateDistance(loc1, loc2) {
+      const R = 6371;
+      const dLat = (loc2.lat - loc1.lat) * Math.PI / 180;
+      const dLon = (loc2.lng - loc1.lng) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(loc1.lat * Math.PI / 180) * Math.cos(loc2.lat * Math.PI / 180) *
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return Math.round(R * c);
+    }
+
+    function estimateDriveTime(km) {
+      const minutes = Math.round((km / 45) * 60);
+      if (minutes < 60) return minutes + ' min';
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return mins > 0 ? hours + 'u ' + mins + 'min' : hours + 'u';
+    }
+
+    // Days
+    const days = [
+      { day: 1, date: 'Za 16 mei', title: 'Aankomst Kotor', icon: '✈️', location: 'Kotor', highlight: 'Old Town verkennen', accommodation: 'kotor' },
+      { day: 2, date: 'Zo 17 mei', title: 'Bay of Kotor', icon: '⛵', location: 'Kotor', highlight: 'Boottrip + Perast', accommodation: 'kotor' },
+      { day: 3, date: 'Ma 18 mei', title: 'Lovćen & Cetinje', icon: '🏔️', location: 'Kotor', highlight: 'Bergpanorama', accommodation: 'kotor' },
+      { day: 4, date: 'Di 19 mei', title: 'Naar Durmitor', icon: '🚗', location: 'Bergen', highlight: 'Ostrog + Black Lake', featured: true, accommodation: 'durmitor' },
+      { day: 5, date: 'Wo 20 mei', title: 'Tara Rafting!', icon: '🚣', location: 'Durmitor', highlight: 'Diepste canyon Europa!', featured: true, accommodation: 'durmitor' },
+      { day: 6, date: 'Do 21 mei', title: 'Naar Budva', icon: '🏖️', location: 'Kust', highlight: 'Sveti Stefan', accommodation: 'budva' },
+      { day: 7, date: 'Vr 22 mei', title: 'Watersport Dag!', icon: '🚀', location: 'Budva', highlight: 'Jetski + Parasailing + Beach', featured: true, accommodation: 'budva' },
+      { day: 8, date: 'Za 23 mei', title: 'Skadar Lake', icon: '🦅', location: 'Budva', highlight: 'Vogelparadijs + Wijn', accommodation: 'budva' },
+      { day: 9, date: 'Zo 24 mei', title: 'Vertrek', icon: '🏠', location: 'Terug', highlight: 'Afscheid Montenegro', accommodation: 'budva' }
+    ];
+
+    // Day details
+    const dayDetails = {
+      1: [
+        { time: '11:00', activity: 'Vertrek Amsterdam', type: 'transport', location: 'tivat_airport', details: 'Vlucht via overstap', fullInfo: { description: 'Vlucht Amsterdam → Tivat', tips: ['2 uur voor vertrek', 'Online inchecken'] } },
+        { time: '14:30', activity: 'Landing Tivat', type: 'transport', location: 'tivat_airport', details: 'Kleine luchthaven', fullInfo: { description: 'Tivat Airport - snel door!', tips: ['Paspoort klaar', 'Taxi prijs afspreken'] } },
+        { time: '15:00', activity: 'Auto ophalen', type: 'transport', location: 'tivat_airport', details: 'Huurauto', fullInfo: { tips: ['Creditcard verplicht', 'Check op schade'], price: '~€25-35/dag' } },
+        { time: '15:45', activity: 'Check-in Kotor', type: 'accommodation', location: 'kotor', details: 'Appartement', fullInfo: { price: '€195 totaal (3 nachten)' } },
+        { time: '17:00', activity: '⭐ Kotor Old Town', type: 'highlight', location: 'kotor', details: 'UNESCO Werelderfgoed', fullInfo: { description: 'Middeleeuwse ommuurde stad!', highlights: ['Sea Gate', 'Clock Tower', 'St. Tryphon Cathedral'], tips: ['Verdwaal in steegjes', 'Veel katten 🐱'], duration: '2-3 uur', mustSee: true } },
+        { time: '19:00', activity: 'Fortress Climb', type: 'activity', location: 'kotor_fortress', details: '1350 treden!', fullInfo: { description: 'Beklim naar San Giovanni Fortress', stats: '1350 treden, 260m', tips: ['Voor zonsondergang!', 'Water mee', '€8 entree'], duration: '1-1.5 uur' } },
+        { time: '21:00', activity: 'Diner', type: 'food', location: 'kotor', details: 'Old Town', fullInfo: { recommendations: ['Galion', 'Bastion'], specialty: 'Ćevapi, zwarte risotto', priceRange: '€15-25 p.p.' } }
+      ],
+      2: [
+        { time: '09:30', activity: '⭐ Bay of Kotor Boottocht', type: 'highlight', location: 'kotor', details: 'Hele baai per boot', fullInfo: { description: 'Spectaculaire Bay of Kotor per boot', route: 'Kotor → Perast → Our Lady → Blue Cave', price: '€25-40 p.p.', duration: '3-4 uur', mustSee: true } },
+        { time: '10:30', activity: 'Our Lady of the Rocks', type: 'activity', location: 'our_lady_rocks', details: 'Kunstmatig eiland', fullInfo: { description: 'Klein eiland met 17e-eeuwse kerk' } },
+        { time: '11:30', activity: 'Perast', type: 'activity', location: 'perast', details: 'Barok dorpje', fullInfo: { description: 'Pittoresk barok stadje', highlights: ['St. Nicholas Church', 'Waterkant paleizen'] } },
+        { time: '13:00', activity: 'Lunch Perast', type: 'food', location: 'perast', details: 'Verse vis', fullInfo: { specialty: 'Gegrilde vis, mosselen', priceRange: '€12-20 p.p.' } },
+        { time: '15:00', activity: 'Blue Cave', type: 'activity', location: 'blue_cave', details: 'Zwemmen in blauwe grot', fullInfo: { description: 'Zeegrot met blauw licht', tips: ['Zwemmen mogelijk!', 'Snorkelset mee'] } },
+        { time: '20:00', activity: 'Diner', type: 'food', location: 'kotor', details: 'Seafood', fullInfo: { priceRange: '€20-30 p.p.' } }
+      ],
+      3: [
+        { time: '08:30', activity: 'Vertrek Lovćen', type: 'transport', location: 'kotor', details: '25 haarspeldbochten!', fullInfo: { description: 'Spectaculaire bergweg!', warning: 'Smalle weg, steile afgronden!', duration: '1-1.5 uur' } },
+        { time: '10:00', activity: '⭐ Njegoš Mausoleum', type: 'highlight', location: 'njegos_mausoleum', details: '461 treden naar top!', fullInfo: { description: 'Mausoleum op 1657m hoogte', access: '461 treden door tunnel!', tips: ['360° uitzicht', 'Jas mee!'], price: '€5 p.p.', mustSee: true } },
+        { time: '12:00', activity: 'Lovćen NP', type: 'activity', location: 'lovcen', details: 'Panorama', fullInfo: { tips: ['Korte wandelingen', 'Picknicken'] } },
+        { time: '13:30', activity: 'Lunch Njeguši', type: 'food', location: 'lovcen', details: 'Pršut & kaas!', fullInfo: { description: 'Beroemd om gerookte ham!', mustTry: ['Njeguški pršut', 'Njeguški sir'], priceRange: '€10-15 p.p.' } },
+        { time: '15:00', activity: 'Cetinje', type: 'activity', location: 'cetinje', details: 'Oude hoofdstad', fullInfo: { description: 'Historische hoofdstad', highlights: ['Cetinje Monastery', 'King Nikola Museum'] } },
+        { time: '20:00', activity: 'Diner', type: 'food', location: 'kotor', details: 'Laatste avond Kotor', fullInfo: { priceRange: '€15-25 p.p.' } }
+      ],
+      4: [
+        { time: '08:00', activity: 'Check-out Kotor', type: 'accommodation', location: 'kotor', details: 'Naar de bergen!', fullInfo: { tips: ['Water & snacks', 'Volle tank'] } },
+        { time: '10:30', activity: '⭐ Ostrog Monastery', type: 'highlight', location: 'ostrog', details: 'In rotswand gebouwd!', fullInfo: { description: 'Spectaculair klooster in rotswand!', highlights: ['Upper Monastery', 'Relikwieën St. Basil'], tips: ['Knieën/schouders bedekt', 'Gratis entree'], mustSee: true, warning: 'Respecteer religieuze sfeer' } },
+        { time: '12:30', activity: 'Lunch onderweg', type: 'food', location: 'ostrog', details: 'Lokaal', fullInfo: { specialty: 'Kačamak, Ćevapi', priceRange: '€8-15 p.p.' } },
+        { time: '16:30', activity: 'Check-in Žabljak', type: 'accommodation', location: 'zabljak', details: 'Mountain Lodge', fullInfo: { price: '€100 totaal (2 nachten)' } },
+        { time: '17:30', activity: '⭐ Black Lake', type: 'highlight', location: 'black_lake', details: 'Wandeling rond meer', fullInfo: { description: 'Prachtig bergmeer - "Oog van de Berg"', trail: '3.5 km rondje', tips: ['Makkelijk', 'Zonsondergang!', '€3 parkentree'], mustSee: true } },
+        { time: '20:00', activity: 'Diner', type: 'food', location: 'zabljak', details: 'Bergdiner', fullInfo: { specialty: 'Lamsvlees, Kačamak', priceRange: '€10-18 p.p.' } }
+      ],
+      5: [
+        { time: '06:00', activity: '⚠️ VROEG opstaan!', type: 'warning', location: 'zabljak', details: 'Rafting pickup', fullInfo: { warning: 'Vroege pickup!' } },
+        { time: '08:30', activity: 'Ontbijt kamp', type: 'food', location: 'scepan_polje', details: 'Traditioneel', fullInfo: { menu: 'Brood, eieren, kaas', price: 'Inbegrepen' } },
+        { time: '10:00', activity: '⭐ TARA RIVER RAFTING!', type: 'highlight', location: 'tara_canyon', details: '2e diepste canyon!', fullInfo: { description: 'Raft door diepste canyon van Europa!', route: '18 km', rapids: 'Klasse II-III', highlights: ['Kristalhelder water', '50+ stroomversnellingen', 'Watervallen'], tips: ['Luister naar gids!', 'Waterproof camera', 'Water is KOUD (12°C)!'], price: '€65-85 p.p.', duration: '3-4 uur', mustSee: true, warning: 'VOORAF BOEKEN!' } },
+        { time: '14:00', activity: 'Lunch rivier', type: 'food', location: 'tara_canyon', details: 'BBQ', fullInfo: { price: 'Inbegrepen' } },
+        { time: '15:30', activity: 'Tara Bridge', type: 'activity', location: 'tara_bridge', details: '172m hoog!', fullInfo: { description: 'Iconische brug - 172m boven rivier!', tips: ['Wandelen over brug', 'Ziplining (€20)'] } },
+        { time: '20:00', activity: 'Afscheidsdiner', type: 'food', location: 'zabljak', details: 'Bergen', fullInfo: { tips: ['Rakija proberen!'], priceRange: '€12-20 p.p.' } }
+      ],
+      6: [
+        { time: '09:00', activity: 'Check-out Žabljak', type: 'accommodation', location: 'zabljak', details: 'Naar kust!', fullInfo: { tips: ['~3.5 uur rijden'] } },
+        { time: '13:00', activity: 'Aankomst Budva', type: 'accommodation', location: 'budva', details: 'Beach Apartment', fullInfo: { price: '€210 totaal (3 nachten)' } },
+        { time: '15:30', activity: 'Budva Old Town', type: 'activity', location: 'budva', details: '2500 jaar oud', fullInfo: { description: 'Een van oudste nederzettingen!', highlights: ['Citadel', 'Stadsmuren'] } },
+        { time: '17:30', activity: '⭐ Sveti Stefan', type: 'highlight', location: 'sveti_stefan', details: 'Iconisch eiland', fullInfo: { description: 'Beroemdste beeld van Montenegro!', access: 'Eiland = luxe hotel, uitzicht gratis!', tips: ['Beste foto vanaf strand', 'Zonsondergang!'], mustSee: true } },
+        { time: '19:30', activity: 'Diner', type: 'food', location: 'budva', details: 'Terras', fullInfo: { priceRange: '€18-28 p.p.' } }
+      ],
+      7: [
+        { time: '09:30', activity: '🚀 Jetski', type: 'highlight', location: 'budva', details: 'Langs de kust racen!', fullInfo: { description: 'Jetski over de Adriatische Zee langs Budva Riviera!', tips: ['Boek ter plekke op strand', 'Vroeg = rustiger water', 'Zwemvest verplicht'], price: '€30-60 p.p. (15-30 min)', duration: '15-30 min', mustSee: true } },
+        { time: '10:30', activity: '🪂 Parasailing', type: 'highlight', location: 'budva', details: 'Vliegen boven Budva!', fullInfo: { description: 'Zweef tot 60m boven de zee met uitzicht op Sveti Stefan en de hele kust!', tips: ['Samen vliegen = €80 voor 2', 'Geen ervaring nodig', 'Spectaculaire fotos!', 'Gewichtslimiet ~100kg p.p.'], price: '€50 solo / €80 duo', duration: '~15 min vlucht', mustSee: true } },
+        { time: '11:30', activity: '⭐ Mogren Beach', type: 'highlight', location: 'mogren_beach', details: 'Mooiste strand relaxen', fullInfo: { description: 'Twee prachtige stranden verbonden door tunnel in de rotsen!', tips: ['Ligbedden €10-15', 'Restaurant op strand', 'Tunnel naar Mogren II'], mustSee: true } },
+        { time: '13:00', activity: 'Lunch strand', type: 'food', location: 'mogren_beach', details: 'Beachbar', fullInfo: { tips: ['Verse vis', 'Voeten in het zand'], priceRange: '€10-18 p.p.' } },
+        { time: '14:30', activity: '🍌 Banana Boat', type: 'activity', location: 'budva', details: 'Klassieke strandpret!', fullInfo: { description: 'Achter speedboot over de golven!', tips: ['Probeer niet te vallen', 'Super leuk', 'Boek op strand'], price: '€15-20 p.p.', duration: '~15 min' } },
+        { time: '15:30', activity: '🏄 Wakeboard / SUP', type: 'activity', location: 'jaz_beach', details: 'Jaz Beach watersporten', fullInfo: { description: 'Wakeboarden, wakesurfen of SUP paddleboarden op Jaz Beach!', options: ['Wakeboard/Wakesurf: €30-50', 'Waterskiën: €25-40', 'SUP huren: €10-20/uur'], tips: ['Jaz Beach heeft beste faciliteiten', 'Beginners welkom'], price: '€10-50 afhankelijk van activiteit', duration: '30 min - 1 uur' } },
+        { time: '18:30', activity: 'Jaz Beach sunset', type: 'beach', location: 'jaz_beach', details: 'Zonsondergang & beachbar', fullInfo: { description: 'Sea Dance festival strand - relaxen na actieve dag!', tips: ['Minder druk dan Budva', 'Mooie zonsondergang', 'Cocktails aan zee'] } },
+        { time: '20:30', activity: 'Diner', type: 'food', location: 'budva', details: 'Seafood feast', fullInfo: { tips: ['Verdiend na sportieve dag!'], priceRange: '€20-35 p.p.' } }
+      ],
+      8: [
+        { time: '10:00', activity: '⭐ Skadar Lake', type: 'highlight', location: 'skadar_lake', details: 'Grootste meer Balkan', fullInfo: { description: 'Nationaal Park - vogelparadijs!', wildlife: ['Pelikanen', 'Aalscholvers', 'Reigers'], mustSee: true } },
+        { time: '10:30', activity: 'Boottrip Skadar', type: 'activity', location: 'virpazar', details: 'Waterlelievelden', fullInfo: { highlights: ['Waterlelies (mei = perfect!)', 'Vogeleilanden'], price: '€15-25 p.p.', duration: '2-3 uur' } },
+        { time: '13:30', activity: 'Lunch + Wijn', type: 'food', location: 'skadar_lake', details: 'Wijnproeverij', fullInfo: { description: 'Beroemd om Vranac wijn!', wineries: ['Šipčanik Wine Cellar'], priceRange: '€15-25 p.p.' } },
+        { time: '21:00', activity: '⭐ Afscheidsdiner', type: 'highlight', location: 'budva', details: 'Beste restaurant!', fullInfo: { tips: ['Reserveer vooraf!', 'Rakija als digestief'], priceRange: '€30-45 p.p.' } }
+      ],
+      9: [
+        { time: '08:00', activity: 'Laatste ontbijt', type: 'food', location: 'budva', details: 'Aan zee', fullInfo: {} },
+        { time: '10:00', activity: 'Check-out', type: 'accommodation', location: 'budva', details: 'Apartment', fullInfo: {} },
+        { time: '10:30', activity: 'Auto inleveren', type: 'transport', location: 'tivat_airport', details: 'Tivat', fullInfo: { tips: ['Volle tank!'], warning: 'Ruim op tijd!' } },
+        { time: '15:00', activity: '✈️ Vlucht huis', type: 'highlight', location: 'tivat_airport', details: 'Tivat → Amsterdam', fullInfo: { arrival: 'Aankomst ~20:30' } },
+        { time: '20:30', activity: '🏠 Thuis!', type: 'transport', location: 'tivat_airport', details: 'Welkom terug', fullInfo: {} }
       ]
     };
 
-    const checklistSections = [
-      { title: '🔴 NU BOEKEN', items: [
-        { key: 'flights', label: '✈️ Vluchten Amsterdam ↔ Tivat' },
-        { key: 'accomKotor', label: '🏠 Accommodatie Kotor (3n)' },
-        { key: 'accomDurmitor', label: '🏠 Accommodatie Žabljak (2n)' },
-        { key: 'accomBudva', label: '🏠 Accommodatie Budva (3n)' },
-        { key: 'insurance', label: '🏥 Reisverzekering' },
-        { key: 'rafting', label: '🚣 TARA RAFTING BOEKEN!' }
-      ]},
-      { title: '🟠 APRIL', items: [
-        { key: 'carRental', label: '🚗 Huurauto' },
-        { key: 'boatTour', label: '⛵ Bay of Kotor boottocht' },
-        { key: 'watersports', label: '🚀 Watersport check' }
-      ]},
-      { title: '📦 WEEK VOOR', items: [
-        { key: 'mapsOffline', label: '📱 Google Maps offline' },
-        { key: 'printDocs', label: '🖨️ Bevestigingen printen' },
-        { key: 'eurosCash', label: '💶 Euro\'s cash' }
-      ]},
-      { title: '🧳 DOCUMENTEN', items: [
-        { key: 'passport', label: 'Paspoort / ID' },
-        { key: 'license', label: 'Rijbewijs' },
-        { key: 'creditcard', label: 'Creditcard' },
-        { key: 'ehic', label: 'EHIC kaart' }
-      ]},
-      { title: '🎒 INPAKKEN', items: [
-        { key: 'hikingShoes', label: '🥾 Wandelschoenen!' },
-        { key: 'swimwear', label: '👙 Zwemkleding (2x)' },
-        { key: 'sunscreen', label: '☀️ Zonnebrand SPF50' },
-        { key: 'rainJacket', label: '🧥 Regenjas (bergen!)' },
-        { key: 'camera', label: '📷 Camera + waterproof' }
-      ]}
+    // Budget
+    const budget = [
+      { item: '✈️ Vluchten (2 pers)', budget: 730, comfort: 850 },
+      { item: '🏠 Kotor (3 nachten)', budget: 195, comfort: 250 },
+      { item: '🏠 Durmitor (2 nachten)', budget: 100, comfort: 140 },
+      { item: '🏠 Budva (3 nachten)', budget: 210, comfort: 280 },
+      { item: '🚗 Huurauto (8 dagen)', budget: 200, comfort: 280 },
+      { item: '⛽ Benzine (~600km)', budget: 60, comfort: 80 },
+      { item: '🚣 Tara Rafting (2p)', budget: 140, comfort: 170 },
+      { item: '⛵ Kotor boottocht (2p)', budget: 60, comfort: 80 },
+      { item: '🚀 Jetski (2p)', budget: 60, comfort: 100 },
+      { item: '🪂 Parasailing (duo)', budget: 80, comfort: 80 },
+      { item: '🍌 Banana + Wakeboard (2p)', budget: 60, comfort: 80 },
+      { item: '⛵ Skadar boottrip (2p)', budget: 40, comfort: 50 },
+      { item: '🎫 Entreegelden', budget: 30, comfort: 40 },
+      { item: '🍽️ Eten (9 dagen)', budget: 350, comfort: 500 },
+      { item: '🏥 Reisverzekering', budget: 40, comfort: 60 },
+      { item: '💰 Buffer', budget: 85, comfort: 120 }
     ];
 
-    checklistSections.forEach(sec => sec.items.forEach(i => { if (checklist[i.key] === undefined) checklist[i.key] = false; }));
-
-    function getTypeClass(type) {
-      const classes = {
-        transport: 'bg-gradient-to-r from-amber-100 to-yellow-100 border-l-4 border-amber-500',
-        accommodation: 'bg-gradient-to-r from-amber-100 to-yellow-100 border-l-4 border-yellow-500',
-        highlight: 'bg-gradient-to-r from-orange-100 to-amber-100 border-l-4 border-orange-500',
-        food: 'bg-gradient-to-r from-green-100 to-emerald-100 border-l-4 border-green-500',
-        activity: 'bg-gradient-to-r from-violet-100 to-purple-100 border-l-4 border-purple-500',
-        beach: 'bg-gradient-to-r from-cyan-100 to-blue-100 border-l-4 border-cyan-500',
-        warning: 'bg-gradient-to-r from-red-200 to-rose-200 border-l-4 border-red-600'
+    function getTypeColor(type) {
+      const colors = {
+        highlight: 'bg-gradient-to-r from-amber-100 to-orange-100 border-orange-400',
+        warning: 'bg-gradient-to-r from-red-100 to-rose-100 border-red-400',
+        food: 'bg-gradient-to-r from-green-100 to-emerald-100 border-green-400',
+        beach: 'bg-gradient-to-r from-cyan-100 to-blue-100 border-blue-400',
+        transport: 'bg-gradient-to-r from-slate-100 to-gray-100 border-gray-400',
+        activity: 'bg-gradient-to-r from-violet-100 to-purple-100 border-purple-400',
+        accommodation: 'bg-gradient-to-r from-yellow-100 to-amber-100 border-yellow-500'
       };
-      return classes[type] || 'bg-gray-100 border-l-4 border-gray-400';
+      return colors[type] || 'bg-gray-100 border-gray-300';
     }
 
-    function setDay(d) { activeDay = d; render(); }
-    function setTab(t) { activeTab = t; render(); }
-    function openModal(act) { selectedModal = act; render(); }
-    function closeModal() { selectedModal = null; render(); }
-    function toggleCheck(key) { checklist[key] = !checklist[key]; localStorage.setItem('montenegroChecklist', JSON.stringify(checklist)); render(); }
-    function toggleDarkMode() { darkMode = !darkMode; localStorage.setItem('montenegroDarkMode', darkMode.toString()); document.body.classList.toggle('dark', darkMode); render(); }
+    function getTypeIcon(type) {
+      const icons = { highlight: '⭐', warning: '⚠️', food: '🍽️', beach: '🏖️', transport: '🚗', activity: '📍', accommodation: '🏠' };
+      return icons[type] || '📍';
+    }
 
-    function addExpense() {
-      const desc = document.getElementById('expenseDesc')?.value;
-      const amount = parseFloat(document.getElementById('expenseAmount')?.value);
-      const cat = document.getElementById('expenseCategory')?.value || '💰 Overig';
-      if (desc && amount > 0) {
-        expenses.push({ id: Date.now(), desc, amount, category: cat });
-        localStorage.setItem('montenegroExpenses', JSON.stringify(expenses));
-        render();
+    function toggleCheck(key) {
+      checklist[key] = !checklist[key];
+      localStorage.setItem('montenegroChecklist', JSON.stringify(checklist));
+      render();
+    }
+
+    function setTab(tab) {
+      activeTab = tab;
+      render();
+    }
+
+    function setDay(day) {
+      activeDay = day;
+      render();
+    }
+
+    function openModal(activity, distInfo) {
+      selectedActivity = { ...activity, distInfo };
+      render();
+    }
+
+    function closeModal() {
+      selectedActivity = null;
+      render();
+    }
+
+    function getDistanceInfo(activity, index, dayActivities) {
+      const currentLoc = locations[activity.location];
+      if (!currentLoc) return null;
+      const dayInfo = days[activeDay - 1];
+      const accom = accommodations[dayInfo.accommodation];
+      if (!accom) return null;
+      const accomLoc = { lat: accom.lat, lng: accom.lng };
+      const distFromAccom = calculateDistance(accomLoc, currentLoc);
+      let distFromPrev = null;
+      if (index > 0) {
+        const prevLoc = locations[dayActivities[index - 1].location];
+        if (prevLoc) distFromPrev = calculateDistance(prevLoc, currentLoc);
       }
-    }
-    function deleteExpense(id) { expenses = expenses.filter(e => e.id !== id); localStorage.setItem('montenegroExpenses', JSON.stringify(expenses)); render(); }
-
-    function saveNote() {
-      const note = document.getElementById('dayNoteInput')?.value;
-      if (note && note.trim()) {
-        if (!dayNotes[activeDay]) dayNotes[activeDay] = [];
-        dayNotes[activeDay].push({ id: Date.now(), text: note, ts: new Date().toLocaleString('nl-NL') });
-        localStorage.setItem('montenegroDayNotes', JSON.stringify(dayNotes));
-        render();
-      }
-    }
-    function deleteNote(id) { dayNotes[activeDay] = (dayNotes[activeDay] || []).filter(n => n.id !== id); localStorage.setItem('montenegroDayNotes', JSON.stringify(dayNotes)); render(); }
-
-    function shareTrip() {
-      if (navigator.share) navigator.share({ title: trip.title, url: window.location.href });
-      else { navigator.clipboard.writeText(window.location.href); alert('Link gekopieerd!'); }
+      return { distFromAccom, distFromPrev };
     }
 
-    function exportTrip() {
-      let txt = `${trip.title}\n${trip.dates}\n\n`;
-      days.forEach(d => {
-        txt += `=== DAG ${d.day}: ${d.title} ===\n`;
-        (activities[d.day] || []).forEach(a => { txt += `${a.time} - ${a.title}\n`; });
-        txt += '\n';
-      });
-      const blob = new Blob([txt], { type: 'text/plain' });
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'montenegro-trip.txt'; a.click();
-    }
-
-    // MAIN RENDER
     function render() {
-      const day = days[activeDay - 1];
-      const acts = activities[activeDay] || [];
-      const accom = day.accom ? accommodations[day.accom] : null;
-
-      const estBudget = budget.estimated.reduce((s, i) => s + i.budget, 0);
-      const estComfort = budget.estimated.reduce((s, i) => s + i.comfort, 0);
-      const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+      const totalBudget = budget.reduce((sum, item) => sum + item.budget, 0);
+      const totalComfort = budget.reduce((sum, item) => sum + item.comfort, 0);
       const checkedCount = Object.values(checklist).filter(Boolean).length;
-      const totalChecks = checklistSections.reduce((s, sec) => s + sec.items.length, 0);
+      const totalChecks = Object.keys(checklist).length;
 
-      const tripDate = new Date('2026-05-16');
-      const daysLeft = Math.ceil((tripDate - new Date()) / (1000*60*60*24));
+      let html = '<div class="max-w-6xl mx-auto">';
+      
+      // Header
+      html += '<div class="text-center mb-8">';
+      html += '<a href="index.html" class="inline-flex items-center gap-2 text-amber-600 hover:text-amber-700 mb-4"><span>←</span> Terug naar overzicht</a>';
+      html += '<h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-700 to-amber-600 bg-clip-text text-transparent mb-2">🏔️ Montenegro Adventure</h1>';
+      html += '<h2 class="text-2xl md:text-3xl text-amber-700 font-semibold">Bergen, Canyon & Kust</h2>';
+      html += '<p class="text-gray-600 mt-3 text-lg">16-24 mei 2026 • 2 personen • 9 dagen</p>';
+      html += '<div class="mt-4 flex flex-wrap justify-center gap-2">';
+      html += '<span class="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium">🏰 Kotor UNESCO</span>';
+      html += '<span class="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">🚣 Tara Rafting</span>';
+      html += '<span class="bg-amber-100 text-amber-800 px-4 py-2 rounded-full text-sm font-medium">🏖️ Adriatische Kust</span>';
+      html += '</div></div>';
 
-      let html = '';
-
-      // HEADER
-      html += `
-        <div class="bg-white rounded-3xl p-5 shadow-lg mb-4">
-          <div class="flex items-center justify-between">
-            <div>
-              <h1 class="text-2xl font-bold text-gray-800">${trip.title}</h1>
-              <p class="text-amber-600 font-medium">${trip.subtitle}</p>
-              <p class="text-gray-500 text-sm mt-1">${trip.dates} • ${trip.persons} pers • ${trip.duration}</p>
-            </div>
-            <a href="/" class="text-gray-400 hover:text-gray-600 text-2xl">×</a>
-          </div>
-          <div class="flex flex-wrap gap-2 mt-3">
-            ${daysLeft > 0 ? `<span class="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-1.5 rounded-full text-sm font-bold">🏔️ Nog ${daysLeft} dagen!</span>` : ''}
-            <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">🏰 Kotor UNESCO</span>
-            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">🚣 Tara Rafting</span>
-          </div>
-        </div>
-      `;
-
-      // TABS
-      html += `<div class="flex gap-2 mb-4 overflow-x-auto hide-scrollbar">`;
-      [
-        { id: 'planning', label: '📅 Planning' },
-        { id: 'map', label: '🗺️ Kaart' },
-        { id: 'budget', label: '💰 Budget' },
-        { id: 'checklist', label: `✅ (${checkedCount}/${totalChecks})` }
-      ].forEach(t => {
-        html += `<button onclick="setTab('${t.id}')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap shadow ${activeTab === t.id ? 'bg-amber-600 text-white' : 'bg-white text-gray-700 hover:bg-amber-50'}">${t.label}</button>`;
+      // Tabs
+      html += '<div class="flex flex-wrap justify-center gap-2 mb-8">';
+      ['overview', 'planning', 'budget', 'checklist'].forEach(tab => {
+        const labels = { overview: '📅 Overzicht', planning: '🗓️ Dagplanning', budget: '💰 Budget', checklist: '✅ Checklist (' + checkedCount + '/' + totalChecks + ')' };
+        const isActive = activeTab === tab;
+        html += '<button onclick="setTab(\'' + tab + '\')" class="px-5 py-3 rounded-xl font-medium transition-all ' + (isActive ? 'bg-gradient-to-r from-slate-700 to-amber-600 text-white shadow-lg' : 'bg-white text-gray-700 hover:bg-amber-50 shadow-md') + '">' + labels[tab] + '</button>';
       });
-      html += `</div>`;
+      html += '</div>';
 
-      // PLANNING TAB
+      // Overview Tab
+      if (activeTab === 'overview') {
+        html += '<div class="grid md:grid-cols-3 gap-4">';
+        days.forEach(day => {
+          const locColor = day.location === 'Kotor' ? 'bg-blue-100 text-blue-800' :
+            (day.location === 'Bergen' || day.location === 'Durmitor') ? 'bg-green-100 text-green-800' :
+            (day.location === 'Kust' || day.location === 'Budva') ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-800';
+          html += '<div onclick="setDay(' + day.day + '); setTab(\'planning\');" class="bg-white rounded-2xl p-5 shadow-lg cursor-pointer transition-all hover:shadow-xl hover:scale-[1.02] ' + (day.featured ? 'ring-2 ring-amber-400 ring-offset-2' : '') + '">';
+          html += '<div class="flex items-center justify-between mb-3"><span class="text-4xl">' + day.icon + '</span><span class="text-xs px-3 py-1 rounded-full font-medium ' + locColor + '">' + day.location + '</span></div>';
+          html += '<div class="text-sm text-gray-500 font-medium">' + day.date + '</div>';
+          html += '<div class="font-bold text-xl text-gray-800 mt-1">Dag ' + day.day + ': ' + day.title + '</div>';
+          html += '<div class="text-sm text-amber-600 mt-2 font-medium">' + day.highlight + '</div>';
+          if (day.featured) html += '<div class="mt-3 bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full inline-block">⭐ Highlight!</div>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+
+      // Planning Tab
       if (activeTab === 'planning') {
-        html += `<div class="flex gap-2 overflow-x-auto pb-3 hide-scrollbar">`;
-        days.forEach(d => {
-          html += `<button onclick="setDay(${d.day})" class="flex items-center gap-2 px-4 py-2 rounded-xl font-medium whitespace-nowrap shadow ${activeDay === d.day ? 'bg-amber-600 text-white' : 'bg-white text-gray-700'}">${d.icon} Dag ${d.day}</button>`;
+        html += '<div class="flex overflow-x-auto gap-2 mb-6 pb-2 hide-scrollbar">';
+        days.forEach(day => {
+          html += '<button onclick="setDay(' + day.day + ')" class="flex-shrink-0 px-4 py-3 rounded-xl font-medium transition-all ' + (activeDay === day.day ? 'bg-gradient-to-r from-slate-700 to-amber-600 text-white shadow-lg' : 'bg-white text-gray-700 hover:bg-amber-50 shadow-md') + '"><span class="mr-2">' + day.icon + '</span>Dag ' + day.day + '</button>';
         });
-        html += `</div>`;
+        html += '</div>';
 
-        html += `
-          <div class="bg-white rounded-2xl p-5 shadow-lg mb-4">
-            <div class="flex items-center gap-4">
-              <span class="text-5xl">${day.icon}</span>
-              <div class="flex-1">
-                <h2 class="text-2xl font-bold text-gray-800">Dag ${day.day}: ${day.title}</h2>
-                <p class="text-gray-500">${day.date} • ${day.region}</p>
-                <p class="text-amber-600 font-semibold">${day.highlight}</p>
-              </div>
-            </div>
-            ${accom ? `<div class="mt-3 bg-amber-50 rounded-xl p-3"><span class="text-xs text-amber-600 font-bold">🏨 ACCOMMODATIE</span><div class="font-bold text-amber-800">${accom.name}</div><div class="text-sm text-amber-600">${accom.area}</div></div>` : ''}
-          </div>
-        `;
+        const currentDay = days[activeDay - 1];
+        html += '<div class="bg-white rounded-2xl p-5 shadow-lg mb-4">';
+        html += '<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">';
+        html += '<div class="flex items-center gap-4"><span class="text-5xl">' + currentDay.icon + '</span><div>';
+        html += '<h3 class="text-2xl font-bold text-gray-800">Dag ' + activeDay + ': ' + currentDay.title + '</h3>';
+        html += '<p class="text-gray-600">' + currentDay.date + ' • ' + currentDay.location + '</p>';
+        html += '<p class="text-amber-600 font-semibold mt-1">' + currentDay.highlight + '</p></div></div>';
+        html += '<div class="bg-gradient-to-r from-slate-50 to-stone-50 p-4 rounded-xl border border-slate-200">';
+        html += '<div class="text-xs text-slate-600 font-bold">🏠 ACCOMMODATIE</div>';
+        html += '<div class="font-bold text-slate-800">' + accommodations[currentDay.accommodation].name + '</div></div></div></div>';
 
-        html += `<div class="bg-white rounded-2xl p-4 shadow-lg mb-4"><div class="space-y-2">`;
-        acts.forEach((act, idx) => {
-          const prevLoc = idx > 0 ? acts[idx-1].loc : (accom ? day.accom : null);
-          const dist = prevLoc && act.loc ? calcDist(prevLoc, act.loc) : null;
-          html += `
-            <div onclick='openModal(${JSON.stringify(act).replace(/'/g, "\\'")})' class="rounded-xl p-3 cursor-pointer hover:shadow-md transition ${getTypeClass(act.type)}">
-              <div class="flex items-center gap-3">
-                <div class="font-mono font-bold text-gray-700 w-12 text-center">${act.time}</div>
-                <div class="text-2xl">${act.icon}</div>
-                <div class="flex-1 min-w-0">
-                  <div class="font-bold text-gray-800">${act.title}</div>
-                  <div class="text-gray-600 text-sm truncate">${act.subtitle}</div>
-                </div>
-                ${dist ? `<div class="text-xs bg-white/60 px-2 py-1 rounded-full hidden md:block">${dist}km</div>` : ''}
-                <div class="text-gray-400">→</div>
-              </div>
-            </div>
-          `;
+        html += '<div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 mb-4 text-sm flex items-center gap-2">';
+        html += '<span class="text-xl">💡</span><span><strong>Klik op een activiteit</strong> voor gedetailleerde info!</span></div>';
+
+        html += '<div class="bg-white rounded-2xl p-5 shadow-lg"><div class="space-y-3">';
+        const activities = dayDetails[activeDay] || [];
+        activities.forEach((item, idx) => {
+          const distInfo = getDistanceInfo(item, idx, activities);
+          const itemStr = JSON.stringify(item).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+          const distStr = JSON.stringify(distInfo);
+          html += '<div onclick="openModal(' + itemStr + ', ' + distStr + ')" class="flex items-center gap-4 p-4 rounded-xl border-l-4 cursor-pointer hover:shadow-lg transition-all ' + getTypeColor(item.type) + '">';
+          html += '<div class="font-mono text-sm font-bold w-14 text-center">' + item.time + '</div>';
+          html += '<div class="text-2xl">' + getTypeIcon(item.type) + '</div>';
+          html += '<div class="flex-1 min-w-0"><div class="font-semibold text-lg truncate">' + item.activity + '</div>';
+          html += '<div class="text-sm opacity-80 truncate">' + item.details + '</div></div>';
+          if (distInfo && distInfo.distFromPrev > 0) html += '<div class="text-xs bg-white/60 px-3 py-1 rounded-full hidden md:block font-medium">🚗 ' + distInfo.distFromPrev + 'km</div>';
+          html += '<div class="text-gray-400 text-xl">→</div></div>';
         });
-        html += `</div></div>`;
+        html += '</div></div>';
 
-        // Special day info boxes
         if (activeDay === 5) {
-          html += `
-            <div class="bg-gradient-to-r from-blue-100 to-cyan-100 border border-blue-300 rounded-2xl p-4 mb-4">
-              <h4 class="font-bold text-blue-800 mb-2">🚣 RAFTING DAG - WAT MEENEMEN</h4>
-              <div class="flex flex-wrap gap-2">
-                ${['👙 Zwemkleding (aan!)', '👟 Sportschoenen', '☀️ Zonnebrand', '📷 Waterproof camera', '🧴 Handdoek'].map(i => `<span class="bg-blue-200 text-blue-800 px-3 py-1 rounded-full text-sm">${i}</span>`).join('')}
-              </div>
-              <p class="mt-2 text-blue-700 text-sm">⚠️ Water is KOUD (12°C) maar wetsuit wordt verstrekt!</p>
-            </div>
-          `;
+          html += '<div class="mt-4 bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-2xl p-5">';
+          html += '<h4 class="font-bold text-blue-800 mb-3 text-lg">🚣 RAFTING DAG - WAT MEENEMEN</h4>';
+          html += '<div class="flex flex-wrap gap-2">';
+          ['👙 Zwemkleding (aan!)', '👟 Sportschoenen', '☀️ Zonnebrand', '📷 Waterproof camera', '🧴 Handdoek'].forEach(item => {
+            html += '<span class="bg-blue-100 text-blue-800 px-3 py-2 rounded-full text-sm font-medium">' + item + '</span>';
+          });
+          html += '</div><p class="mt-3 text-blue-700 text-sm">⚠️ Water is KOUD (12°C) maar wetsuit wordt verstrekt!</p></div>';
         }
 
         if (activeDay === 7) {
-          html += `
-            <div class="bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-300 rounded-2xl p-4 mb-4">
-              <h4 class="font-bold text-amber-800 mb-2">🚀 WATERSPORT DAG - PRIJZEN</h4>
-              <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-                <div class="bg-white p-2 rounded-lg"><strong>🚀 Jetski</strong><br/>€30-60 p.p.</div>
-                <div class="bg-white p-2 rounded-lg"><strong>🪂 Parasailing</strong><br/>€50/€80 duo</div>
-                <div class="bg-white p-2 rounded-lg"><strong>🍌 Banana</strong><br/>€15-20 p.p.</div>
-                <div class="bg-white p-2 rounded-lg"><strong>🏄 Wakeboard</strong><br/>€30-50</div>
-                <div class="bg-white p-2 rounded-lg"><strong>🛶 SUP</strong><br/>€10-20/uur</div>
-              </div>
-            </div>
-          `;
+          html += '<div class="mt-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5">';
+          html += '<h4 class="font-bold text-amber-800 mb-3 text-lg">🚀 WATERSPORT DAG - PRIJZEN OVERZICHT</h4>';
+          html += '<div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">';
+          [['🚀 Jetski', '€30-60 p.p.'], ['🪂 Parasailing', '€50 / €80 duo'], ['🍌 Banana Boat', '€15-20 p.p.'], ['🏄 Wakeboard', '€30-50'], ['🎿 Waterskiën', '€25-40'], ['🛶 SUP', '€10-20/uur']].forEach(([name, price]) => {
+            html += '<div class="bg-white p-3 rounded-xl"><span class="font-bold">' + name + '</span><br/>' + price + '</div>';
+          });
+          html += '</div><p class="mt-3 text-amber-700 text-sm">💡 Boek ter plekke op Slovenska Plaza of Jaz Beach!</p></div>';
+        }
+      }
+
+      // Budget Tab
+      if (activeTab === 'budget') {
+        html += '<div class="space-y-6">';
+        html += '<div class="bg-gradient-to-r from-slate-600 to-amber-600 rounded-2xl p-5 text-white shadow-lg">';
+        html += '<h3 class="text-xl font-bold mb-2">💡 Montenegro = Budget-vriendelijk!</h3>';
+        html += '<p class="opacity-90">30-50% goedkoper dan West-Europa!</p></div>';
+
+        html += '<div class="grid md:grid-cols-2 gap-6">';
+        html += '<div class="bg-white rounded-2xl p-6 shadow-lg">';
+        html += '<h3 class="text-xl font-bold text-gray-800 mb-4">💰 Geschatte Kosten</h3>';
+        html += '<div class="space-y-2 max-h-96 overflow-y-auto">';
+        html += '<div class="flex justify-between text-sm text-gray-500 pb-2 border-b-2"><span>Categorie</span><span>Budget | Comfort</span></div>';
+        budget.forEach(item => {
+          html += '<div class="flex justify-between items-center py-2 border-b border-gray-100">';
+          html += '<span class="text-gray-700 text-sm">' + item.item + '</span>';
+          html += '<div class="text-right font-mono text-sm"><span class="text-gray-600">€' + item.budget + '</span><span class="text-gray-300 mx-1">|</span><span class="text-gray-800">€' + item.comfort + '</span></div></div>';
+        });
+        html += '</div>';
+        html += '<div class="flex justify-between items-center pt-4 border-t-2 border-amber-200 mt-4">';
+        html += '<span class="font-bold text-gray-800 text-lg">TOTAAL</span>';
+        html += '<div class="text-right font-mono"><span class="text-amber-600 font-bold text-xl">€' + totalBudget + '</span><span class="text-gray-300 mx-2">|</span><span class="text-amber-800 font-bold text-xl">€' + totalComfort + '</span></div></div>';
+        html += '<div class="flex justify-between items-center text-sm text-gray-500 mt-2"><span>Per persoon</span><span class="font-mono">€' + Math.round(totalBudget/2) + ' | €' + Math.round(totalComfort/2) + '</span></div></div>';
+
+        html += '<div class="bg-white rounded-2xl p-6 shadow-lg">';
+        html += '<h3 class="text-xl font-bold text-gray-800 mb-4">🆚 Vergelijking</h3>';
+        html += '<div class="space-y-4">';
+        html += '<div class="bg-amber-50 p-4 rounded-xl"><h4 class="font-bold text-amber-800">🏔️ Montenegro</h4><p class="text-2xl font-bold text-amber-600">€' + totalBudget + ' - €' + totalComfort + '</p></div>';
+        html += '<div class="bg-blue-50 p-4 rounded-xl"><h4 class="font-bold text-blue-800">🌴 Canarische Eilanden</h4><p class="text-2xl font-bold text-blue-600">€3.060 - €3.560</p></div>';
+        html += '<div class="bg-green-50 p-4 rounded-xl"><h4 class="font-bold text-green-800">💰 Besparing Montenegro</h4><p class="text-2xl font-bold text-green-600">~€700 - €1.000</p></div>';
+        html += '</div></div></div></div>';
+      }
+
+      // Checklist Tab
+      if (activeTab === 'checklist') {
+        const sections = [
+          { title: '🔴 NU BOEKEN', items: [
+            { key: 'flights', label: 'Vluchten Amsterdam ↔ Tivat' },
+            { key: 'accommodationKotor', label: 'Accommodatie Kotor (3n)' },
+            { key: 'accommodationDurmitor', label: 'Accommodatie Žabljak (2n)' },
+            { key: 'accommodationBudva', label: 'Accommodatie Budva (3n)' },
+            { key: 'insurance', label: 'Reisverzekering' },
+            { key: 'raftingBooked', label: '🚣 TARA RAFTING!' }
+          ]},
+          { title: '🟠 APRIL', items: [
+            { key: 'carRental', label: 'Huurauto' },
+            { key: 'boatTour', label: 'Bay of Kotor boottocht' },
+            { key: 'kayakBooked', label: 'Watersport check' }
+          ]},
+          { title: '📦 WEEK VOOR', items: [
+            { key: 'mapsOffline', label: 'Google Maps offline' },
+            { key: 'printConfirmations', label: 'Bevestigingen printen' },
+            { key: 'eurosCash', label: 'Euros cash' }
+          ]},
+          { title: '🧳 DOCUMENTEN', items: [
+            { key: 'paspoort', label: 'Paspoort / ID' },
+            { key: 'rijbewijs', label: 'Rijbewijs' },
+            { key: 'creditcard', label: 'Creditcard' },
+            { key: 'ehic', label: 'EHIC kaart' }
+          ]},
+          { title: '🎒 INPAKKEN', items: [
+            { key: 'wandelschoenen', label: 'Wandelschoenen!' },
+            { key: 'zwemkleding', label: 'Zwemkleding (2x)' },
+            { key: 'zonnebrand', label: 'Zonnebrand SPF50' },
+            { key: 'regenjas', label: 'Regenjas (bergen!)' },
+            { key: 'camera', label: 'Camera + waterproof' }
+          ]}
+        ];
+
+        html += '<div class="space-y-4"><div class="grid md:grid-cols-2 gap-4">';
+        sections.forEach(section => {
+          const sectionChecked = section.items.filter(i => checklist[i.key]).length;
+          html += '<div class="bg-white rounded-2xl p-5 shadow-lg">';
+          html += '<h3 class="text-lg font-bold mb-3 flex items-center gap-2">' + section.title + '<span class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">' + sectionChecked + '/' + section.items.length + '</span></h3>';
+          html += '<div class="space-y-2">';
+          section.items.forEach(item => {
+            html += '<label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">';
+            html += '<input type="checkbox" ' + (checklist[item.key] ? 'checked' : '') + ' onchange="toggleCheck(\'' + item.key + '\')" class="w-5 h-5 rounded text-amber-600 cursor-pointer">';
+            html += '<span class="' + (checklist[item.key] ? 'line-through text-gray-400' : 'text-gray-700') + '">' + item.label + '</span></label>';
+          });
+          html += '</div></div>';
+        });
+        html += '</div>';
+
+        html += '<div class="bg-gradient-to-r from-slate-600 to-amber-600 rounded-2xl p-6 shadow-lg text-white">';
+        html += '<h3 class="text-xl font-bold mb-4">📊 Voortgang</h3>';
+        html += '<div class="bg-white/20 rounded-full h-6 mb-3">';
+        html += '<div class="bg-white rounded-full h-6 transition-all duration-500 flex items-center justify-end pr-2" style="width: ' + Math.max((checkedCount / totalChecks) * 100, 10) + '%">';
+        html += '<span class="text-amber-600 font-bold text-sm">' + Math.round((checkedCount / totalChecks) * 100) + '%</span></div></div>';
+        html += '<div class="text-center text-lg"><span class="font-bold">' + checkedCount + '</span> van <span class="font-bold">' + totalChecks + '</span> items</div></div></div>';
+      }
+
+      // Modal
+      if (selectedActivity) {
+        const info = selectedActivity.fullInfo || {};
+        const distInfo = selectedActivity.distInfo;
+        html += '<div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50" onclick="closeModal()">';
+        html += '<div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl" onclick="event.stopPropagation()">';
+        html += '<div class="p-5 rounded-t-3xl ' + getTypeColor(selectedActivity.type) + '">';
+        html += '<div class="flex justify-between items-start"><div><span class="text-3xl mr-2">' + getTypeIcon(selectedActivity.type) + '</span>';
+        html += '<span class="font-bold text-xl">' + selectedActivity.activity + '</span></div>';
+        html += '<button onclick="closeModal()" class="text-3xl hover:opacity-70">×</button></div>';
+        html += '<div class="text-sm mt-2 opacity-80 font-medium">' + selectedActivity.time + ' • ' + selectedActivity.details + '</div></div>';
+        
+        html += '<div class="p-5 space-y-4">';
+        if (distInfo) {
+          html += '<div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4">';
+          html += '<h4 class="font-bold text-blue-800 mb-3">📍 Afstanden</h4>';
+          html += '<div class="grid grid-cols-2 gap-3 text-sm">';
+          html += '<div class="bg-white p-3 rounded-xl shadow-sm"><div class="text-gray-500 text-xs">Vanaf accommodatie</div>';
+          html += '<div class="font-bold text-blue-700 text-lg">' + distInfo.distFromAccom + ' km</div>';
+          html += '<div class="text-xs text-gray-500">~' + estimateDriveTime(distInfo.distFromAccom) + '</div></div>';
+          if (distInfo.distFromPrev > 0) {
+            html += '<div class="bg-white p-3 rounded-xl shadow-sm"><div class="text-gray-500 text-xs">Vanaf vorige</div>';
+            html += '<div class="font-bold text-green-700 text-lg">' + distInfo.distFromPrev + ' km</div>';
+            html += '<div class="text-xs text-gray-500">~' + estimateDriveTime(distInfo.distFromPrev) + '</div></div>';
+          }
+          html += '</div></div>';
         }
 
-        // Day Notes
-        html += `
-          <div class="bg-gradient-to-r from-amber-100 to-orange-100 rounded-2xl p-4 shadow">
-            <h4 class="font-bold text-amber-800 mb-3">📝 Notities - Dag ${activeDay}</h4>
-            <div class="flex gap-2 mb-3">
-              <input type="text" id="dayNoteInput" placeholder="Schrijf notitie..." class="flex-1 px-4 py-2 rounded-xl border text-sm">
-              <button onclick="saveNote()" class="bg-amber-600 text-white px-4 py-2 rounded-xl font-medium">+</button>
-            </div>
-            ${(dayNotes[activeDay] || []).length > 0 ? `<div class="space-y-2">${(dayNotes[activeDay] || []).map(n => `
-              <div class="bg-white rounded-lg p-3 flex justify-between">
-                <div><p class="text-gray-800">${n.text}</p><p class="text-xs text-gray-400">${n.ts}</p></div>
-                <button onclick="deleteNote(${n.id})" class="text-red-400 hover:text-red-600">×</button>
-              </div>
-            `).join('')}</div>` : ''}
-          </div>
-        `;
+        if (info.description) html += '<div><h4 class="font-bold text-gray-700 mb-2">📖 Beschrijving</h4><p class="text-gray-600 leading-relaxed">' + info.description + '</p></div>';
+        if (info.highlights) {
+          html += '<div><h4 class="font-bold text-gray-700 mb-2">✨ Highlights</h4><div class="flex flex-wrap gap-2">';
+          info.highlights.forEach(h => { html += '<span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm">' + h + '</span>'; });
+          html += '</div></div>';
+        }
+        if (info.price || info.priceRange) {
+          html += '<div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl">';
+          html += '<h4 class="font-bold text-green-800 mb-1">💰 Kosten</h4>';
+          html += '<p class="text-green-700 font-semibold text-lg">' + (info.price || info.priceRange) + '</p></div>';
+        }
+        if (info.duration) html += '<div class="flex items-center gap-2 bg-gray-50 p-3 rounded-xl"><span class="text-xl">⏱️</span><span class="font-bold text-gray-700">Duur: </span><span class="text-gray-600">' + info.duration + '</span></div>';
+        if (info.tips) {
+          html += '<div><h4 class="font-bold text-gray-700 mb-3">💡 Tips</h4><ul class="space-y-2">';
+          info.tips.forEach(tip => { html += '<li class="flex items-start gap-2 text-sm text-gray-600 bg-gray-50 p-2 rounded-lg"><span class="text-blue-500 mt-0.5">•</span><span>' + tip + '</span></li>'; });
+          html += '</ul></div>';
+        }
+        if (info.warning) {
+          html += '<div class="bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 p-4 rounded-xl">';
+          html += '<h4 class="font-bold text-red-800 mb-1">⚠️ Let op!</h4><p class="text-red-700">' + info.warning + '</p></div>';
+        }
+        if (info.mustTry) {
+          html += '<div><h4 class="font-bold text-gray-700 mb-2">🍴 Must Try</h4><div class="flex flex-wrap gap-2">';
+          info.mustTry.forEach(item => { html += '<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm">' + item + '</span>'; });
+          html += '</div></div>';
+        }
+        if (info.wildlife) {
+          html += '<div><h4 class="font-bold text-gray-700 mb-2">🦅 Wildlife</h4><div class="flex flex-wrap gap-2">';
+          info.wildlife.forEach(a => { html += '<span class="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-sm">' + a + '</span>'; });
+          html += '</div></div>';
+        }
+        html += '</div></div></div>';
       }
 
-      // MAP TAB
-      if (activeTab === 'map') {
-        const dayLocs = acts.filter(a => a.loc && locations[a.loc]).map(a => ({ ...a, ...locations[a.loc] }));
-        
-        html += `<div class="flex gap-2 overflow-x-auto pb-3 hide-scrollbar mb-4">`;
-        days.forEach(d => {
-          html += `<button onclick="setDay(${d.day}); setTab('map');" class="flex items-center gap-2 px-4 py-2 rounded-xl font-medium whitespace-nowrap shadow ${activeDay === d.day ? 'bg-amber-600 text-white' : 'bg-white text-gray-700'}">${d.icon} Dag ${d.day}</button>`;
-        });
-        html += `</div>`;
-
-        html += `
-          <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div class="p-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white">
-              <h3 class="font-bold text-lg">🗺️ Dag ${activeDay}: ${day.title}</h3>
-              <p class="text-white/80 text-sm">${dayLocs.length} locaties</p>
-            </div>
-            <div class="p-4 space-y-2">
-              ${dayLocs.map((loc, i) => `
-                <a href="${getMapsUrl(loc.loc)}" target="_blank" class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-amber-50 transition">
-                  <div class="w-8 h-8 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold text-sm">${i+1}</div>
-                  <span class="text-2xl">${loc.icon}</span>
-                  <div class="flex-1"><div class="font-medium text-gray-800">${loc.title}</div><div class="text-sm text-gray-500">${loc.time}</div></div>
-                  <span class="text-amber-500">📍</span>
-                </a>
-              `).join('')}
-            </div>
-            ${dayLocs.length > 1 ? `
-              <div class="p-4 bg-amber-50 border-t">
-                <a href="https://www.google.com/maps/dir/${dayLocs.map(l => `${l.lat},${l.lng}`).join('/')}" target="_blank" class="block w-full bg-amber-600 text-white text-center py-3 rounded-xl font-bold">🗺️ Open volledige route</a>
-              </div>
-            ` : ''}
-          </div>
-        `;
-      }
-
-      // BUDGET TAB
-      if (activeTab === 'budget') {
-        html += `
-          <div class="space-y-4">
-            <div class="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-5 text-white shadow-lg">
-              <h3 class="font-bold text-lg mb-3">💸 Uitgaven Tracker</h3>
-              <div class="grid grid-cols-3 gap-2 mb-3">
-                <input type="text" id="expenseDesc" placeholder="Omschrijving" class="col-span-2 px-3 py-2 rounded-lg text-gray-800 text-sm">
-                <input type="number" id="expenseAmount" placeholder="€" step="0.01" class="px-3 py-2 rounded-lg text-gray-800 text-sm">
-              </div>
-              <div class="flex gap-2">
-                <select id="expenseCategory" class="flex-1 px-3 py-2 rounded-lg text-gray-800 text-sm">
-                  <option>🍽️ Eten</option><option>🚗 Vervoer</option><option>🎫 Activiteit</option><option>🎁 Shopping</option><option>💰 Overig</option>
-                </select>
-                <button onclick="addExpense()" class="bg-white text-amber-600 px-4 py-2 rounded-lg font-bold">+</button>
-              </div>
-              ${expenses.length > 0 ? `<div class="mt-4 pt-4 border-t border-white/30 flex justify-between"><span>Totaal uitgegeven:</span><span class="text-2xl font-bold">€${totalExpenses.toFixed(2)}</span></div>` : ''}
-            </div>
-
-            ${expenses.length > 0 ? `
-              <div class="bg-white rounded-2xl p-4 shadow-lg">
-                <h3 class="font-bold text-gray-800 mb-3">📝 Uitgaven</h3>
-                <div class="space-y-2 max-h-48 overflow-y-auto">
-                  ${expenses.slice().reverse().map(e => `
-                    <div class="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
-                      <div><span class="text-sm text-gray-500">${e.category}</span> <span class="font-medium text-gray-800">${e.desc}</span></div>
-                      <div class="flex items-center gap-2">
-                        <span class="font-bold text-amber-600">€${e.amount.toFixed(2)}</span>
-                        <button onclick="deleteExpense(${e.id})" class="text-gray-400 hover:text-red-500">×</button>
-                      </div>
-                    </div>
-                  `).join('')}
-                </div>
-              </div>
-            ` : ''}
-
-            <div class="bg-white rounded-2xl p-4 shadow-lg">
-              <h3 class="font-bold text-gray-800 mb-3">📊 Geschatte Kosten</h3>
-              <div class="space-y-1 max-h-64 overflow-y-auto">
-                ${budget.estimated.map(i => `
-                  <div class="flex justify-between py-2 border-b border-gray-100">
-                    <span class="text-sm text-gray-700">${i.item}</span>
-                    <span class="font-mono text-sm text-gray-600">€${i.budget} | €${i.comfort}</span>
-                  </div>
-                `).join('')}
-              </div>
-              <div class="mt-3 pt-3 border-t-2 border-amber-200 flex justify-between font-bold">
-                <span class="text-gray-800">TOTAAL</span>
-                <span class="text-gray-800">€${estBudget} | €${estComfort}</span>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-4 text-white text-center">
-                <div class="text-sm opacity-80">💚 Budget</div>
-                <div class="text-3xl font-bold">€${estBudget}</div>
-                <div class="text-sm opacity-80">€${Math.round(estBudget/2)} p.p.</div>
-              </div>
-              <div class="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-4 text-white text-center">
-                <div class="text-sm opacity-80">✨ Comfort</div>
-                <div class="text-3xl font-bold">€${estComfort}</div>
-                <div class="text-sm opacity-80">€${Math.round(estComfort/2)} p.p.</div>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-
-      // CHECKLIST TAB
-      if (activeTab === 'checklist') {
-        html += `<div class="space-y-4">`;
-        checklistSections.forEach(sec => {
-          const secChecked = sec.items.filter(i => checklist[i.key]).length;
-          html += `
-            <div class="bg-white rounded-2xl p-4 shadow-lg">
-              <h3 class="font-bold text-gray-800 mb-3 flex items-center gap-2">${sec.title} <span class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">${secChecked}/${sec.items.length}</span></h3>
-              <div class="space-y-2">
-                ${sec.items.map(i => `
-                  <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
-                    <input type="checkbox" ${checklist[i.key] ? 'checked' : ''} onchange="toggleCheck('${i.key}')" class="w-5 h-5 rounded text-amber-600">
-                    <span class="${checklist[i.key] ? 'line-through text-gray-400' : 'text-gray-700'}">${i.label}</span>
-                  </label>
-                `).join('')}
-              </div>
-            </div>
-          `;
-        });
-        html += `
-          <div class="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-5 text-white">
-            <h3 class="font-bold mb-3">📊 Voortgang</h3>
-            <div class="bg-white/20 rounded-full h-4 mb-2">
-              <div class="bg-white rounded-full h-4 transition-all" style="width: ${Math.max((checkedCount/totalChecks)*100, 5)}%"></div>
-            </div>
-            <div class="text-center">${checkedCount} / ${totalChecks} items</div>
-          </div>
-        </div>`;
-      }
-
-      // MODAL
-      if (selectedModal) {
-        const m = selectedModal;
-        const info = m.info || {};
-        const accomLoc = day.accom || 'kotor';
-        const dist = m.loc ? calcDist(accomLoc, m.loc) : null;
-
-        html += `
-          <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50" onclick="closeModal()">
-            <div class="bg-white rounded-3xl max-w-lg w-full max-h-[85vh] overflow-y-auto shadow-2xl" onclick="event.stopPropagation()">
-              <div class="p-5 ${getTypeClass(m.type)} rounded-t-3xl">
-                <div class="flex justify-between items-start">
-                  <div class="flex items-center gap-3">
-                    <span class="text-4xl">${m.icon}</span>
-                    <div>
-                      <h3 class="text-xl font-bold text-gray-800">${m.title}</h3>
-                      <p class="text-gray-600">${m.time} • ${m.subtitle}</p>
-                    </div>
-                  </div>
-                  <button onclick="closeModal()" class="text-3xl text-gray-400 hover:text-gray-600">×</button>
-                </div>
-              </div>
-              <div class="p-5 space-y-4">
-                ${dist ? `
-                  <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4">
-                    <h4 class="font-bold text-blue-800 mb-2">📍 Afstanden</h4>
-                    <div class="bg-white p-3 rounded-xl shadow-sm">
-                      <div class="text-gray-500 text-xs">Vanaf accommodatie</div>
-                      <div class="font-bold text-blue-700 text-lg">${dist} km</div>
-                      <div class="text-xs text-gray-500">${estTime(dist)}</div>
-                    </div>
-                  </div>
-                ` : ''}
-                ${info.desc ? `<div><h4 class="font-bold text-gray-700 mb-1">📖 Beschrijving</h4><p class="text-gray-600">${info.desc}</p></div>` : ''}
-                ${info.highlights ? `<div><h4 class="font-bold text-gray-700 mb-2">✨ Highlights</h4><div class="flex flex-wrap gap-2">${info.highlights.map(h => `<span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm">${h}</span>`).join('')}</div></div>` : ''}
-                ${info.price ? `<div class="bg-green-50 p-4 rounded-xl"><h4 class="font-bold text-green-800 mb-1">💰 Kosten</h4><p class="text-green-700 font-semibold text-lg">${info.price}</p></div>` : ''}
-                ${info.duration ? `<div class="flex items-center gap-2 bg-gray-50 p-3 rounded-xl"><span>⏱️</span><strong>Duur:</strong> ${info.duration}</div>` : ''}
-                ${info.tips ? `<div><h4 class="font-bold text-gray-700 mb-2">💡 Tips</h4><ul class="space-y-1">${info.tips.map(t => `<li class="text-sm bg-blue-50 text-blue-800 p-2 rounded-lg">• ${t}</li>`).join('')}</ul></div>` : ''}
-                ${info.mustTry ? `<div><h4 class="font-bold text-gray-700 mb-2">🍴 Must Try</h4><div class="flex flex-wrap gap-2">${info.mustTry.map(t => `<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm">${t}</span>`).join('')}</div></div>` : ''}
-                ${info.recommendations ? `<div><h4 class="font-bold text-gray-700 mb-2">🎯 Aanbevelingen</h4><div class="flex flex-wrap gap-2">${info.recommendations.map(r => `<span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">${r}</span>`).join('')}</div></div>` : ''}
-                ${info.warning ? `<div class="bg-red-50 border border-red-200 p-4 rounded-xl"><h4 class="font-bold text-red-800 mb-1">⚠️ Let op!</h4><p class="text-red-700">${info.warning}</p></div>` : ''}
-                ${info.mustSee ? `<div class="bg-gradient-to-r from-amber-100 to-orange-100 p-4 rounded-xl text-center"><span class="text-2xl">⭐</span><span class="font-bold text-gray-800 ml-2">MUST SEE / DO!</span></div>` : ''}
-                ${m.loc && getMapsUrl(m.loc) ? `<a href="${getMapsUrl(m.loc)}" target="_blank" class="block w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-center py-3 px-4 rounded-xl font-semibold">📍 Open in Google Maps</a>` : ''}
-              </div>
-            </div>
-          </div>
-        `;
-      }
-
-      // FOOTER
-      html += `
-        <div class="mt-6 space-y-3 text-center">
-          <div class="flex flex-wrap justify-center gap-2">
-            <button onclick="shareTrip()" class="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-xl font-bold shadow">🔗 Deel</button>
-            <button onclick="exportTrip()" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-xl font-bold shadow">📄 Export</button>
-            <button onclick="toggleDarkMode()" class="bg-gradient-to-r from-gray-600 to-gray-800 text-white px-4 py-2 rounded-xl font-bold shadow">${darkMode ? '☀️ Light' : '🌙 Dark'}</button>
-          </div>
-          <p class="text-gray-600 text-sm">🏔️ Montenegro Adventure 2026 🏔️</p>
-          <a href="/" class="text-amber-600 hover:underline text-sm">← Terug naar overzicht</a>
-        </div>
-      `;
+      html += '<div class="text-center mt-10 text-gray-500 text-sm">';
+      html += '<p>🏔️ Montenegro Adventure • Bergen, Canyon & Kust 2026 🏔️</p>';
+      html += '<p class="mt-1">16-24 mei • 2 personen • 9 onvergetelijke dagen</p></div></div>';
 
       document.getElementById('app').innerHTML = html;
     }
