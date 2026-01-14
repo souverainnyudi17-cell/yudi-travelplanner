@@ -134,10 +134,10 @@
     }
 
     const days = [
-      { day: 1, date: 'Do 27 nov', title: 'Aankomst & South Bank', icon: '✈️', area: 'South Bank', highlight: 'London Eye + Kerst sfeer', accom: 'london' },
-      { day: 2, date: 'Vr 28 nov', title: 'Winter Wonderland', icon: '🎡', area: 'Hyde Park', highlight: 'Magisch kerstpark!', featured: true, accom: 'london' },
-      { day: 3, date: 'Za 29 nov', title: 'Shopping & Shows', icon: '🎁', area: 'West End', highlight: 'Oxford Street lichtjes', featured: true, accom: 'london' },
-      { day: 4, date: 'Zo 30 nov', title: 'Vertrek', icon: '🏠', area: 'Centrum', highlight: 'Laatste kerstsfeer', accom: null }
+      { day: 1, date: 'Do 27 nov', title: 'Aankomst & South Bank', icon: '✈️', area: 'South Bank', highlight: 'London Eye + Kerst sfeer', accom: 'london', weather: { high: 10, low: 5, icon: '🌧️', rain: 40 } },
+      { day: 2, date: 'Vr 28 nov', title: 'Winter Wonderland', icon: '🎡', area: 'Hyde Park', highlight: 'Magisch kerstpark!', featured: true, accom: 'london', weather: { high: 9, low: 4, icon: '☁️', rain: 35 } },
+      { day: 3, date: 'Za 29 nov', title: 'Shopping & Shows', icon: '🎁', area: 'West End', highlight: 'Oxford Street lichtjes', featured: true, accom: 'london', weather: { high: 10, low: 5, icon: '🌤️', rain: 30, note: '🌙 Donker om 16:00 - perfecte kerstlichtjes!' } },
+      { day: 4, date: 'Zo 30 nov', title: 'Vertrek', icon: '🏠', area: 'Centrum', highlight: 'Laatste kerstsfeer', accom: null, weather: { high: 9, low: 4, icon: '☁️', rain: 35 } }
     ];
 
     const activities = {
@@ -147,13 +147,13 @@
         { time: '11:30', icon: '🏠', title: 'Check-in hotel', subtitle: 'Bagage droppen', type: 'accommodation', loc: 'covent_garden', info: { desc: 'Inchecken hotel centrum Londen', price: '€400-500 totaal (3 nachten)', tips: ['Vroeg inchecken vaak mogelijk', 'Bagage opslaan als kamer niet klaar'] } },
         { time: '12:30', icon: '⭐', title: 'Borough Market', subtitle: 'Beste foodmarkt!', type: 'highlight', loc: 'borough_market', info: { desc: 'Historische overdekte markt met heerlijk streetfood!', highlights: ['Raclette', 'Scotch eggs', 'Mince pies'], price: '€10-20 p.p.', tips: ['Druk in weekend', 'Cash handig'], mustTry: ['Mulled wine 🍷', 'Fresh oysters'], mustSee: true } },
         { time: '14:30', icon: '🚶', title: 'South Bank wandeling', subtitle: 'Langs de Theems', type: 'highlight', loc: 'southbank', info: { desc: 'Sfeervolle wandeling langs de Theems met kerstmarkt kraampjes!', highlights: ['Tate Modern (gratis!)', 'Millennium Bridge', 'Kerstkraampjes'], duration: '2-3 uur', tips: ['Straatmuzikanten geven fooien'], mustSee: true } },
-        { time: '17:00', icon: '🎡', title: 'London Eye', subtitle: 'Zonsondergang views!', type: 'highlight', loc: 'london_eye', info: { desc: 'Spectaculair uitzicht over Londen bij zonsondergang!', price: '£30-36 p.p.', duration: '30 min', tips: ['Boek online = skip the line', 'Zonsondergang ~16:00 in november'], mustSee: true } },
+        { time: '17:00', icon: '🎡', title: 'London Eye', subtitle: 'Zonsondergang views!', type: 'highlight', loc: 'london_eye', info: { desc: 'Spectaculair uitzicht over Londen bij zonsondergang!', price: '£30-36 p.p.', duration: '30 min', tips: ['Boek online = skip the line', 'Zonsondergang ~16:00 in november'], website: 'londoneye.com', mustSee: true } },
         { time: '18:30', icon: '🎄', title: 'Southbank Christmas Market', subtitle: 'Glühwein & kraampjes', type: 'activity', loc: 'southbank', info: { desc: 'Gezellige kerstmarkt met houten chalets', mustTry: ['Mulled wine', 'German sausages', 'Churros'], tips: ['Sfeervoller na donker', 'Gratis toegang'] } },
         { time: '20:00', icon: '🍽️', title: 'Diner', subtitle: 'Kerst pub dinner', type: 'food', loc: 'southbank', info: { desc: 'Traditionele Engelse pub met kerstsfeer', price: '€20-35 p.p.', mustTry: ['Fish & Chips', 'Sticky Toffee Pudding'], recommendations: ['The Anchor Bankside', 'Founders Arms'] } }
       ],
       2: [
         { time: '09:30', icon: '🍳', title: 'Ontbijt', subtitle: 'Full English!', type: 'food', loc: 'covent_garden', info: { desc: 'Traditioneel Engels ontbijt', price: '€12-18 p.p.', mustTry: ['Full English Breakfast', 'Eggs Benedict'], recommendations: ['The Breakfast Club', "Bill's"] } },
-        { time: '11:00', icon: '⭐', title: 'WINTER WONDERLAND', subtitle: 'Magisch kerstpark!', type: 'highlight', loc: 'winter_wonderland', info: { desc: "Europa's grootste gratis kerstevenement in Hyde Park!", highlights: ['🎢 Attracties & reuzenrad', '⛸️ Grootste ijsbaan UK', '🍺 Bavarian Village', '🎪 Circus shows'], price: 'GRATIS entree, attracties €3-10', duration: '4-6 uur', tips: ['Boek ijsbaan vooraf!', 'Druk in weekenden', 'Ga doordeweeks = rustiger'], mustSee: true, warning: '⚠️ Boek ijsbaan + attracties VOORAF online!' } },
+        { time: '11:00', icon: '⭐', title: 'WINTER WONDERLAND', subtitle: 'Magisch kerstpark!', type: 'highlight', loc: 'winter_wonderland', info: { desc: "Europa's grootste gratis kerstevenement in Hyde Park!", highlights: ['🎢 Attracties & reuzenrad', '⛸️ Grootste ijsbaan UK', '🍺 Bavarian Village', '🎪 Circus shows'], price: 'GRATIS entree, attracties €3-10', duration: '4-6 uur', tips: ['Boek ijsbaan vooraf!', 'Druk in weekenden', 'Ga doordeweeks = rustiger'], website: 'hydeparkwinterwonderland.com', mustSee: true, warning: '⚠️ Boek ijsbaan + attracties VOORAF online!' } },
         { time: '12:30', icon: '🍺', title: 'Lunch Bavarian Village', subtitle: 'Bratwurst & Glühwein!', type: 'food', loc: 'winter_wonderland', info: { desc: 'Authentiek Duits kerstdorp met live muziek!', price: '€15-25 p.p.', mustTry: ['Bratwurst', 'Schweinshaxe', 'Glühwein', 'Kaiserschmarrn'] } },
         { time: '14:00', icon: '⛸️', title: 'Ice Skating', subtitle: 'Grootste ijsbaan UK!', type: 'highlight', loc: 'winter_wonderland', info: { desc: 'Schaatsen op de gigantische ijsbaan!', price: '£15-20 p.p.', duration: '1 uur sessie', tips: ['VOORAF BOOKEN VERPLICHT', 'Handschoenen meenemen', 'Schaatsen inbegrepen'], mustSee: true, warning: 'VOORAF BOEKEN!' } },
         { time: '15:30', icon: '🎢', title: 'Attracties', subtitle: 'Reuzenrad & meer!', type: 'activity', loc: 'winter_wonderland', info: { desc: 'Diverse attracties in Winter Wonderland', highlights: ['Giant Wheel (reuzenrad)', 'Ice Mountain', 'Magical Ice Kingdom'], price: '€5-12 per attractie', tips: ['Koop tokens ter plekke', 'Reuzenrad = beste uitzicht'] } },
@@ -348,7 +348,8 @@
         { id: 'planning', label: '📅 Planning' },
         { id: 'map', label: '🗺️ Kaart' },
         { id: 'budget', label: '💰 Budget' },
-        { id: 'checklist', label: `✅ (${checkedCount}/${totalChecks})` }
+        { id: 'checklist', label: `✅ (${checkedCount}/${totalChecks})` },
+        { id: 'packing', label: '🎒 Inpakken' }
       ].forEach(t => {
         html += `<button onclick="setTab('${t.id}')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap shadow ${activeTab === t.id ? 'bg-red-600 text-white' : 'bg-white text-gray-700 hover:bg-red-50'}">${t.label}</button>`;
       });
@@ -371,7 +372,24 @@
                 <p class="text-gray-500">${day.date} • ${day.area}</p>
                 <p class="text-red-600 font-semibold">${day.highlight}</p>
               </div>
+              ${day.weather ? `
+              <div class="text-center bg-gradient-to-br from-sky-100 to-blue-100 rounded-xl px-3 py-2 border border-sky-200">
+                <div class="text-2xl">${day.weather.icon}</div>
+                <div class="text-lg font-bold text-gray-800">${day.weather.high}°</div>
+                <div class="text-xs text-gray-500">nov gem</div>
+              </div>
+              ` : ''}
             </div>
+            ${day.weather ? `
+            <div class="mt-4 grid grid-cols-4 gap-2 text-center text-sm">
+              <div class="bg-orange-50 rounded-lg p-2"><div class="text-orange-500">🌡️ Max</div><div class="font-bold">${day.weather.high}°C</div></div>
+              <div class="bg-blue-50 rounded-lg p-2"><div class="text-blue-500">🌡️ Min</div><div class="font-bold">${day.weather.low}°C</div></div>
+              <div class="bg-gray-50 rounded-lg p-2"><div class="text-gray-500">🌅 Licht</div><div class="font-bold">8u</div></div>
+              <div class="bg-cyan-50 rounded-lg p-2"><div class="text-cyan-600">💧 Regen</div><div class="font-bold">${day.weather.rain}%</div></div>
+            </div>
+            ${day.weather.note ? `<div class="mt-2 bg-amber-50 border border-amber-200 rounded-lg p-2 text-sm text-amber-700 text-center">${day.weather.note}</div>` : ''}
+            <div class="mt-2 text-xs text-gray-400 text-center">📊 Historisch gemiddelde november</div>
+            ` : ''}
             ${accom ? `<div class="mt-3 bg-red-50 rounded-xl p-3"><span class="text-xs text-red-600 font-bold">🏨 ACCOMMODATIE</span><div class="font-bold text-red-800">${accom.name}</div></div>` : ''}
           </div>
         `;
@@ -589,6 +607,7 @@
                 ${info.recommendations ? `<div><h4 class="font-bold text-gray-700 mb-2">🎭 Aanbevelingen</h4><div class="flex flex-wrap gap-2">${info.recommendations.map(r => `<span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm">${r}</span>`).join('')}</div></div>` : ''}
                 ${info.warning ? `<div class="bg-red-50 border border-red-200 p-4 rounded-xl"><h4 class="font-bold text-red-800 mb-1">⚠️ Let op!</h4><p class="text-red-700">${info.warning}</p></div>` : ''}
                 ${info.mustSee ? `<div class="bg-gradient-to-r from-red-100 to-green-100 p-4 rounded-xl text-center"><span class="text-2xl">⭐</span><span class="font-bold text-gray-800 ml-2">MUST SEE / DO!</span></div>` : ''}
+                ${info.website ? `<a href="https://${info.website}" target="_blank" rel="noopener" class="block w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white text-center py-3 px-4 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg mb-2">🎫 Boek nu op ${info.website}</a>` : ''}
                 ${m.loc && getMapsUrl(m.loc) ? `<a href="${getMapsUrl(m.loc)}" target="_blank" class="block w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-center py-3 px-4 rounded-xl font-semibold">📍 Open in Google Maps</a>` : ''}
               </div>
             </div>
