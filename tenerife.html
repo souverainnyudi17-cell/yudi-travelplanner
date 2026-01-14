@@ -756,19 +756,7 @@
             
             <!-- Map as location list with links -->
             <div class="p-4 space-y-2">
-              ${dayLocations.map((loc, idx) => \`
-                <a href="https://www.google.com/maps/search/?api=1&query=\${loc.lat},\${loc.lng}" 
-                   target="_blank"
-                   class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-blue-50 transition">
-                  <div class="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-sm">\${idx + 1}</div>
-                  <span class="text-2xl">\${loc.icon}</span>
-                  <div class="flex-1">
-                    <div class="font-medium">\${loc.name}</div>
-                    <div class="text-sm text-gray-500">\${loc.time}</div>
-                  </div>
-                  <span class="text-blue-500">📍 Open</span>
-                </a>
-              \`).join('')}
+              ${dayLocations.map((loc, idx) => '<a href="https://www.google.com/maps/search/?api=1&query=' + loc.lat + ',' + loc.lng + '" target="_blank" class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-blue-50 transition"><div class="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-sm">' + (idx + 1) + '</div><span class="text-2xl">' + loc.icon + '</span><div class="flex-1"><div class="font-medium">' + loc.name + '</div><div class="text-sm text-gray-500">' + loc.time + '</div></div><span class="text-blue-500">📍 Open</span></a>').join('')}
             </div>
 
             <div class="p-4 bg-blue-50 border-t">
@@ -779,7 +767,7 @@
               </a>
             </div>
           </div>
-        \`;
+        `;
       }
 
       // BUDGET TAB
