@@ -505,7 +505,36 @@
                 <p class="text-gray-500">${day.date} • ${day.island}</p>
                 <p class="text-blue-600 font-semibold mt-1">${day.highlight}</p>
               </div>
+              <!-- Weather Badge -->
+              <div class="text-center bg-gradient-to-br from-sky-100 to-blue-100 rounded-xl px-3 py-2 border border-sky-200">
+                <div class="text-2xl">${day.island === 'Tenerife' || day.island === 'Ferry' ? '☀️' : day.island === 'Gran Canaria' ? '🌤️' : '✈️'}</div>
+                <div class="text-lg font-bold text-gray-800">${day.island === 'Tenerife' ? '24°' : day.island === 'Gran Canaria' || day.island === 'Ferry' ? '25°' : '--'}</div>
+                <div class="text-xs text-gray-500">${day.island === 'Tenerife' || day.island === 'Gran Canaria' || day.island === 'Ferry' ? 'mei avg' : ''}</div>
+              </div>
             </div>
+            
+            <!-- Weather Details -->
+            ${day.island !== 'Terug' ? `
+              <div class="mt-4 grid grid-cols-4 gap-2 text-center text-sm">
+                <div class="bg-orange-50 rounded-lg p-2">
+                  <div class="text-orange-500">🌡️ Max</div>
+                  <div class="font-bold">${day.island === 'Tenerife' ? '26°C' : '27°C'}</div>
+                </div>
+                <div class="bg-blue-50 rounded-lg p-2">
+                  <div class="text-blue-500">🌡️ Min</div>
+                  <div class="font-bold">${day.island === 'Tenerife' ? '18°C' : '19°C'}</div>
+                </div>
+                <div class="bg-yellow-50 rounded-lg p-2">
+                  <div class="text-yellow-600">☀️ Zon</div>
+                  <div class="font-bold">11u</div>
+                </div>
+                <div class="bg-cyan-50 rounded-lg p-2">
+                  <div class="text-cyan-600">🌊 Zee</div>
+                  <div class="font-bold">21°C</div>
+                </div>
+              </div>
+              <div class="mt-2 text-xs text-gray-400 text-center">📊 Gemiddelden mei • Bron: klimaatdata Canarische Eilanden</div>
+            ` : ''}
 
             ${accom ? `
               <div class="mt-4 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-4">
