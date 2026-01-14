@@ -59,6 +59,19 @@
     let activeTab = 'planning';
     let selectedModal = null;
     let checklist = JSON.parse(localStorage.getItem('tenerifeChecklist2') || '{}');
+    let packingList = JSON.parse(localStorage.getItem('tenerifePackingList') || '{}');
+
+    // Auto-generated packing list based on activities
+    const packingCategories = {
+      documents: { title: '📄 Documenten', items: ['Paspoort / ID-kaart', 'Rijbewijs', 'Creditcard', 'EHIC / Zorgpas', 'Bevestigingen (print/digitaal)', 'Reisverzekering documenten'] },
+      teide: { title: '🧥 El Teide (5-10°C!)', items: ['Winterjas', 'Handschoenen', 'Muts / sjaal', 'Wandelschoenen', 'Zonnebril (reflectie)', 'Water 2L', 'Lunch / snacks'] },
+      strand: { title: '🏖️ Strand & Watersport', items: ['Zwemkleding (2x)', 'Badhanddoek', 'Zonnebrand SPF50', 'Zonnebril', 'Slippers', 'Waterproof telefoonhoesje'] },
+      cueva: { title: '🦇 Cueva del Viento', items: ['Comfortabele schoenen', 'Lichte jas (15°C in grot)', 'Camera'] },
+      walvissen: { title: '🐋 Walvissen Tour', items: ['Reiziektepillen!', 'Zonnebrand', 'Camera met zoom', 'Pet / zonnehoed', 'Jas (wind op zee)'] },
+      algemeen: { title: '👕 Algemene Kleding', items: ['T-shirts (6x)', 'Shorts (3x)', 'Lange broek (2x)', 'Ondergoed (9x)', 'Sokken (9x)', 'Pyjama', 'Nette outfit (diner)'] },
+      tech: { title: '📱 Elektronica', items: ['Telefoon + oplader', 'Powerbank', 'Camera + oplader', 'Koptelefoon', 'EU stekker (standaard)'] },
+      toilettas: { title: '🧴 Toilettas', items: ['Tandenborstel & tandpasta', 'Deodorant', 'Shampoo / douchegel', 'Medicijnen (persoonlijk)', 'Aftersun', 'Lippenbalsem SPF'] }
+    };
     let weatherData = null;
     let weatherLoading = false;
 
@@ -207,15 +220,15 @@
 
     // DAYS
     const days = [
-      { day: 1, date: 'Za 16 mei', title: 'Aankomst', icon: '✈️', island: 'Tenerife', highlight: 'Supermarkt MOET vandaag!', accom: 'tenerife', showParking: true },
-      { day: 2, date: 'Zo 17 mei', title: 'Anaga', icon: '🌿', island: 'Tenerife', highlight: 'Jurassic Park + Stranden', accom: 'tenerife' },
-      { day: 3, date: 'Ma 18 mei', title: 'Walvissen', icon: '🐋', island: 'Tenerife', highlight: 'Cueva + Walvissen spotten', accom: 'tenerife', featured: true },
-      { day: 4, date: 'Di 19 mei', title: 'El Teide', icon: '🌋', island: 'Tenerife', highlight: '3.718m - Hoogste berg Spanje!', accom: 'tenerife', featured: true },
-      { day: 5, date: 'Wo 20 mei', title: 'Ferry', icon: '⛴️', island: 'Ferry', highlight: 'Naar Gran Canaria!', accom: 'grancanaria' },
-      { day: 6, date: 'Do 21 mei', title: 'Roque Nublo', icon: '🏔️', island: 'Gran Canaria', highlight: 'Bergen + UNESCO Vegueta', accom: 'grancanaria' },
-      { day: 7, date: 'Vr 22 mei', title: 'Watersport!', icon: '🚀', island: 'Gran Canaria', highlight: 'Jetski + Parasailing!', accom: 'grancanaria', featured: true },
-      { day: 8, date: 'Za 23 mei', title: 'Aquarium', icon: '🐟', island: 'Gran Canaria', highlight: 'Poema del Mar + Strand', accom: 'grancanaria' },
-      { day: 9, date: 'Zo 24 mei', title: 'Terug', icon: '🏠', island: 'Terug', highlight: 'Tot ziens!', accom: null }
+      { day: 1, date: 'Za 16 mei', title: 'Aankomst', icon: '✈️', island: 'Tenerife', highlight: 'Supermarkt MOET vandaag!', accom: 'tenerife', showParking: true, weather: { high: 24, low: 18, icon: '☀️', rain: 5 } },
+      { day: 2, date: 'Zo 17 mei', title: 'Anaga', icon: '🌿', island: 'Tenerife', highlight: 'Jurassic Park + Stranden', accom: 'tenerife', weather: { high: 24, low: 18, icon: '🌤️', rain: 10, note: '🌿 Nevelwoud: frisser!' } },
+      { day: 3, date: 'Ma 18 mei', title: 'Walvissen', icon: '🐋', island: 'Tenerife', highlight: 'Cueva + Walvissen spotten', accom: 'tenerife', featured: true, weather: { high: 25, low: 18, icon: '☀️', rain: 5 } },
+      { day: 4, date: 'Di 19 mei', title: 'El Teide', icon: '🌋', island: 'Tenerife', highlight: '3.718m - Hoogste berg Spanje!', accom: 'tenerife', featured: true, weather: { high: 25, low: 19, icon: '☀️', rain: 5, note: '🧥 Op Teide: 5-10°C!' } },
+      { day: 5, date: 'Wo 20 mei', title: 'Ferry', icon: '⛴️', island: 'Ferry', highlight: 'Naar Gran Canaria!', accom: 'grancanaria', weather: { high: 25, low: 19, icon: '☀️', rain: 5 } },
+      { day: 6, date: 'Do 21 mei', title: 'Roque Nublo', icon: '🏔️', island: 'Gran Canaria', highlight: 'Bergen + UNESCO Vegueta', accom: 'grancanaria', weather: { high: 26, low: 19, icon: '☀️', rain: 5 } },
+      { day: 7, date: 'Vr 22 mei', title: 'Watersport!', icon: '🚀', island: 'Gran Canaria', highlight: 'Jetski + Parasailing!', accom: 'grancanaria', featured: true, weather: { high: 26, low: 20, icon: '☀️', rain: 5, note: '🌊 Perfect strandweer!' } },
+      { day: 8, date: 'Za 23 mei', title: 'Aquarium', icon: '🐟', island: 'Gran Canaria', highlight: 'Poema del Mar + Strand', accom: 'grancanaria', weather: { high: 26, low: 20, icon: '☀️', rain: 5 } },
+      { day: 9, date: 'Zo 24 mei', title: 'Terug', icon: '🏠', island: 'Terug', highlight: 'Tot ziens!', accom: null, weather: { high: 26, low: 20, icon: '☀️', rain: 5 } }
     ];
 
     // ACTIVITIES - with card types for colors
@@ -444,6 +457,12 @@
       render();
     }
 
+    function togglePacking(key) {
+      packingList[key] = !packingList[key];
+      localStorage.setItem('tenerifePackingList', JSON.stringify(packingList));
+      render();
+    }
+
     // EXPENSES TRACKER
     let expenses = JSON.parse(localStorage.getItem('tenerifeExpenses') || '[]');
     
@@ -567,6 +586,7 @@
           <button onclick="setTab('map')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'map' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">🗺️ Kaart</button>
           <button onclick="setTab('budget')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'budget' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">💰 Budget</button>
           <button onclick="setTab('checklist')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'checklist' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">✅ Checklist (${checkedCount}/${totalChecks})</button>
+          <button onclick="setTab('packing')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'packing' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">🎒 Inpaklijst</button>
         </div>
       `;
 
@@ -593,34 +613,37 @@
                 <p class="text-blue-600 font-semibold mt-1">${day.highlight}</p>
               </div>
               <!-- Weather Badge -->
+              ${day.weather ? `
               <div class="text-center bg-gradient-to-br from-sky-100 to-blue-100 rounded-xl px-3 py-2 border border-sky-200">
-                <div class="text-2xl">${day.island === 'Tenerife' || day.island === 'Ferry' ? '☀️' : day.island === 'Gran Canaria' ? '🌤️' : '✈️'}</div>
-                <div class="text-lg font-bold text-gray-800">${day.island === 'Tenerife' ? '24°' : day.island === 'Gran Canaria' || day.island === 'Ferry' ? '25°' : '--'}</div>
-                <div class="text-xs text-gray-500">${day.island === 'Tenerife' || day.island === 'Gran Canaria' || day.island === 'Ferry' ? 'mei avg' : ''}</div>
+                <div class="text-2xl">${day.weather.icon}</div>
+                <div class="text-lg font-bold text-gray-800">${day.weather.high}°</div>
+                <div class="text-xs text-gray-500">mei gem</div>
               </div>
+              ` : ''}
             </div>
             
             <!-- Weather Details -->
-            ${day.island !== 'Terug' ? `
+            ${day.weather ? `
               <div class="mt-4 grid grid-cols-4 gap-2 text-center text-sm">
                 <div class="bg-orange-50 rounded-lg p-2">
                   <div class="text-orange-500">🌡️ Max</div>
-                  <div class="font-bold">${day.island === 'Tenerife' ? '26°C' : '27°C'}</div>
+                  <div class="font-bold">${day.weather.high}°C</div>
                 </div>
                 <div class="bg-blue-50 rounded-lg p-2">
                   <div class="text-blue-500">🌡️ Min</div>
-                  <div class="font-bold">${day.island === 'Tenerife' ? '18°C' : '19°C'}</div>
+                  <div class="font-bold">${day.weather.low}°C</div>
                 </div>
                 <div class="bg-yellow-50 rounded-lg p-2">
                   <div class="text-yellow-600">☀️ Zon</div>
                   <div class="font-bold">11u</div>
                 </div>
                 <div class="bg-cyan-50 rounded-lg p-2">
-                  <div class="text-cyan-600">🌊 Zee</div>
-                  <div class="font-bold">21°C</div>
+                  <div class="text-cyan-600">💧 Regen</div>
+                  <div class="font-bold">${day.weather.rain}%</div>
                 </div>
               </div>
-              <div class="mt-2 text-xs text-gray-400 text-center">📊 Gemiddelden mei • Bron: klimaatdata Canarische Eilanden</div>
+              ${day.weather.note ? `<div class="mt-2 bg-amber-50 border border-amber-200 rounded-lg p-2 text-sm text-amber-700 text-center">${day.weather.note}</div>` : ''}
+              <div class="mt-2 text-xs text-gray-400 text-center">📊 Historisch gemiddelde mei</div>
             ` : ''}
 
             ${accom ? `
@@ -941,6 +964,53 @@
         `;
       }
 
+      // PACKING TAB
+      if (activeTab === 'packing') {
+        const packingChecked = Object.keys(packingList).filter(k => packingList[k]).length;
+        const packingTotal = Object.values(packingCategories).reduce((sum, cat) => sum + cat.items.length, 0);
+        
+        html += `
+          <div class="space-y-4">
+            <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-5 text-white">
+              <h2 class="text-xl font-bold mb-2">🎒 Slimme Inpaklijst</h2>
+              <p class="text-white/80 text-sm">Automatisch gegenereerd op basis van je activiteiten!</p>
+              <div class="mt-3 flex items-center gap-3">
+                <div class="flex-1 bg-white/20 rounded-full h-3">
+                  <div class="bg-white rounded-full h-3 transition-all" style="width: ${Math.max((packingChecked/packingTotal)*100, 3)}%"></div>
+                </div>
+                <span class="font-bold">${packingChecked}/${packingTotal}</span>
+              </div>
+            </div>
+            
+            ${Object.entries(packingCategories).map(([key, cat]) => `
+              <div class="bg-white rounded-2xl p-5 shadow-lg">
+                <h3 class="font-bold mb-3 text-lg">${cat.title}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  ${cat.items.map((item, idx) => {
+                    const itemKey = key + '_' + idx;
+                    return `
+                      <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                        <input type="checkbox" ${packingList[itemKey] ? 'checked' : ''} onchange="togglePacking('${itemKey}')" class="w-5 h-5 rounded text-purple-600">
+                        <span class="${packingList[itemKey] ? 'line-through text-gray-400' : 'text-gray-700'}">${item}</span>
+                      </label>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            `).join('')}
+            
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+              <h3 class="font-bold text-amber-800 mb-2">💡 Pro Tips</h3>
+              <ul class="text-amber-700 text-sm space-y-1">
+                <li>• El Teide: warme kleding is ESSENTIEEL (5-10°C op 3.555m!)</li>
+                <li>• Reiziektepillen voor ferry én walvissen tour</li>
+                <li>• Zonnebrand SPF50 - zon is sterk op Canarische Eilanden</li>
+              </ul>
+            </div>
+          </div>
+        `;
+      }
+
       // MODAL
       if (selectedModal) {
         const m = selectedModal;
@@ -1017,10 +1087,10 @@
                 ` : ''}
                 
                 ${info.website ? `
-                  <div class="bg-blue-50 p-4 rounded-xl">
-                    <h4 class="font-bold text-blue-800 mb-1">🔗 Website</h4>
-                    <p class="text-blue-600">${info.website}</p>
-                  </div>
+                  <a href="https://${info.website}" target="_blank" rel="noopener" 
+                     class="block w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white text-center py-3 px-4 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg mb-2">
+                    🎫 Boek nu op ${info.website}
+                  </a>
                 ` : ''}
                 
                 ${info.recommendations ? `
