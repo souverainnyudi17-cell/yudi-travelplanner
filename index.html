@@ -12,7 +12,6 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icon-192.png">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     body { font-family: 'Inter', sans-serif; }
@@ -20,289 +19,374 @@
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .card-hover { transition: all 0.3s ease; }
     .card-hover:hover { transform: scale(1.02); }
+    .edit-mode .delete-btn { display: flex !important; }
+    .edit-mode .card-hover:hover { transform: none; }
   </style>
-<!-- deployed: 20260114013012 -->
 </head>
 <body class="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900">
-  
-  <!-- Header -->
-  <header class="pt-12 pb-8 px-6">
-    <div class="max-w-4xl mx-auto text-center">
-      <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-400 shadow-xl mb-4 overflow-hidden">
-        <img src="/icon-192.png" alt="YUDI" class="w-full h-full object-cover">
-      </div>
-      <h1 class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400">YUDI</h1>
-      <p class="text-purple-300 font-medium tracking-[0.3em] text-sm mt-1">TRAVELPLANNER</p>
-      <p class="text-gray-400 mt-4 text-sm">Plan je perfecte reis</p>
-    </div>
-  </header>
-
-  <!-- Search & Filter -->
-  <div class="px-6 mb-6">
-    <div class="max-w-4xl mx-auto">
-      <div class="relative mb-4">
-        <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
-        <input type="text" id="searchInput" placeholder="Zoek bestemming..." class="w-full pl-12 pr-4 py-3 bg-white/10 backdrop-blur border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition" oninput="filterTrips()">
-      </div>
-      <div class="flex gap-2 overflow-x-auto pb-2 hide-scrollbar" id="categoryPills">
-        <button onclick="setCategory('Alle')" class="cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-purple-600 text-white shadow-lg" data-cat="Alle">Alle</button>
-        <button onclick="setCategory('Zomer')" class="cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-white/10 text-gray-300 hover:bg-white/20" data-cat="Zomer">☀️ Zomer</button>
-        <button onclick="setCategory('Avontuur')" class="cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-white/10 text-gray-300 hover:bg-white/20" data-cat="Avontuur">🏔️ Avontuur</button>
-        <button onclick="setCategory('Winter')" class="cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-white/10 text-gray-300 hover:bg-white/20" data-cat="Winter">❄️ Winter</button>
-        <button onclick="setCategory('Stedentrip')" class="cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-white/10 text-gray-300 hover:bg-white/20" data-cat="Stedentrip">🏙️ Stedentrip</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Trip Cards -->
-  <main class="px-6 pb-8">
-    <div class="max-w-4xl mx-auto">
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4" id="tripGrid">
-        
-        <!-- Canary Islands - NOT LOCKED -->
-        <div class="trip-card card-hover cursor-pointer" data-id="canary" data-category="Zomer" data-name="Canarische Eilanden Tenerife Gran Canaria" onclick="handleTripClick('canary')">
-          <div class="bg-gradient-to-br from-blue-500 to-cyan-400 rounded-3xl p-6 h-full">
-            <div class="inline-flex items-center gap-1 px-2 py-1 bg-white/20 backdrop-blur rounded-full text-xs text-white mb-3">☀️ Zomer</div>
-            <div class="text-4xl mb-3">🌴</div>
-            <h2 class="text-xl font-bold text-white mb-1">Canarische Eilanden</h2>
-            <p class="text-white/80 text-sm mb-4">Tenerife & Gran Canaria</p>
-            <div class="flex items-center gap-3 text-white/70 text-xs mb-4">
-              <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i>9 dagen</span>
-              <span class="flex items-center gap-1"><i data-lucide="users" class="w-3 h-3"></i>2p</span>
-              <span>25-28°C</span>
-            </div>
-            <div class="space-y-1 mb-4 text-sm">
-              <div class="flex items-center gap-2 text-white/90"><i data-lucide="star" class="w-3 h-3 text-yellow-300"></i><span>El Teide vulkaan</span></div>
-              <div class="flex items-center gap-2 text-white/90"><i data-lucide="star" class="w-3 h-3 text-yellow-300"></i><span>Walvissen spotten</span></div>
-              <div class="flex items-center gap-2 text-white/90"><i data-lucide="star" class="w-3 h-3 text-yellow-300"></i><span>Jetski & Parasailing</span></div>
-            </div>
-            <div class="flex items-center justify-between">
-              <div class="bg-white/20 backdrop-blur rounded-xl px-3 py-2">
-                <span class="text-white/70 text-xs">Budget</span>
-                <div class="text-white font-bold">€3.060</div>
-              </div>
-              <div class="flex items-center gap-1 text-white font-medium text-sm">Bekijk <i data-lucide="chevron-right" class="w-4 h-4"></i></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Montenegro - LOCKED -->
-        <div class="trip-card card-hover cursor-pointer" data-id="montenegro" data-category="Avontuur" data-name="Montenegro Bergen Canyon Kust Kotor" data-locked="true" onclick="handleTripClick('montenegro')">
-          <div id="montenegroCard" class="bg-gradient-to-br from-amber-500 to-orange-400 rounded-3xl p-6 h-full relative filter grayscale-[50%] blur-[1px] transition-all">
-            <div class="absolute top-4 right-4 bg-white/20 backdrop-blur rounded-full p-2"><i data-lucide="lock" class="w-4 h-4 text-white"></i></div>
-            <div class="inline-flex items-center gap-1 px-2 py-1 bg-white/20 backdrop-blur rounded-full text-xs text-white mb-3">🏔️ Avontuur</div>
-            <div class="text-4xl mb-3">🏔️</div>
-            <h2 class="text-xl font-bold text-white mb-1">Montenegro</h2>
-            <p class="text-white/80 text-sm mb-4">Bergen, Canyon & Kust</p>
-            <div class="flex items-center gap-3 text-white/70 text-xs mb-4">
-              <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i>9 dagen</span>
-              <span class="flex items-center gap-1"><i data-lucide="users" class="w-3 h-3"></i>2p</span>
-              <span>22-26°C</span>
-            </div>
-            <div class="space-y-1 mb-4 text-sm">
-              <div class="flex items-center gap-2 text-white/90"><i data-lucide="star" class="w-3 h-3 text-yellow-300"></i><span>Tara Canyon rafting</span></div>
-              <div class="flex items-center gap-2 text-white/90"><i data-lucide="star" class="w-3 h-3 text-yellow-300"></i><span>Kotor UNESCO</span></div>
-              <div class="flex items-center gap-2 text-white/90"><i data-lucide="star" class="w-3 h-3 text-yellow-300"></i><span>Jetski & Parasailing</span></div>
-            </div>
-            <div class="flex items-center justify-between">
-              <div class="bg-white/20 backdrop-blur rounded-xl px-3 py-2">
-                <span class="text-white/70 text-xs">Budget</span>
-                <div class="text-white font-bold">€2.440</div>
-              </div>
-              <div id="montenegroAction" class="flex items-center gap-1 text-white font-medium text-sm">🔐 Ontgrendel</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- London - LOCKED -->
-        <div class="trip-card card-hover cursor-pointer" data-id="london" data-category="Winter" data-name="London Christmas Winter Wonderland Kerst" data-locked="true" onclick="handleTripClick('london')">
-          <div id="londonCard" class="bg-gradient-to-br from-red-600 to-green-600 rounded-3xl p-6 h-full relative filter grayscale-[50%] blur-[1px] transition-all">
-            <div class="absolute top-4 right-4 bg-white/20 backdrop-blur rounded-full p-2"><i data-lucide="lock" class="w-4 h-4 text-white"></i></div>
-            <div class="inline-flex items-center gap-1 px-2 py-1 bg-white/20 backdrop-blur rounded-full text-xs text-white mb-3">❄️ Winter</div>
-            <div class="text-4xl mb-3">🎄</div>
-            <h2 class="text-xl font-bold text-white mb-1">London Christmas</h2>
-            <p class="text-white/80 text-sm mb-4">Winter Wonderland</p>
-            <div class="flex items-center gap-3 text-white/70 text-xs mb-4">
-              <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i>4 dagen</span>
-              <span class="flex items-center gap-1"><i data-lucide="users" class="w-3 h-3"></i>2p</span>
-              <span>5-10°C</span>
-            </div>
-            <div class="space-y-1 mb-4 text-sm">
-              <div class="flex items-center gap-2 text-white/90"><i data-lucide="star" class="w-3 h-3 text-yellow-300"></i><span>Winter Wonderland</span></div>
-              <div class="flex items-center gap-2 text-white/90"><i data-lucide="star" class="w-3 h-3 text-yellow-300"></i><span>Ice skating</span></div>
-              <div class="flex items-center gap-2 text-white/90"><i data-lucide="star" class="w-3 h-3 text-yellow-300"></i><span>West End Show</span></div>
-            </div>
-            <div class="flex items-center justify-between">
-              <div class="bg-white/20 backdrop-blur rounded-xl px-3 py-2">
-                <span class="text-white/70 text-xs">Budget</span>
-                <div class="text-white font-bold">€1.200</div>
-              </div>
-              <div id="londonAction" class="flex items-center gap-1 text-white font-medium text-sm">🔐 Ontgrendel</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Add New Trip Card -->
-        <div class="border-2 border-dashed border-white/20 rounded-3xl p-6 flex flex-col items-center justify-center text-center min-h-[320px] hover:border-purple-500/50 transition cursor-pointer group">
-          <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center mb-3 group-hover:bg-purple-600/50 transition">
-            <i data-lucide="plus" class="w-6 h-6 text-gray-400 group-hover:text-white"></i>
-          </div>
-          <p class="text-gray-400 group-hover:text-white transition font-medium">Nieuwe reis</p>
-          <p class="text-gray-500 text-xs mt-1">Binnenkort beschikbaar</p>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <!-- Stats Section -->
-  <section class="px-6 pb-8">
-    <div class="max-w-4xl mx-auto">
-      <div class="bg-white/5 backdrop-blur border border-white/10 rounded-3xl p-6">
-        <h3 class="text-white font-semibold mb-4 flex items-center gap-2"><i data-lucide="bar-chart-2" class="w-5 h-5 text-purple-400"></i>Reis Overzicht</h3>
-        <div class="grid grid-cols-3 gap-4 text-center">
-          <div><div class="text-2xl font-bold text-purple-400">3</div><div class="text-gray-400 text-xs">Reizen</div></div>
-          <div><div class="text-2xl font-bold text-cyan-400">22</div><div class="text-gray-400 text-xs">Dagen</div></div>
-          <div><div class="text-2xl font-bold text-green-400">€6.700</div><div class="text-gray-400 text-xs">Totaal Budget</div></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="px-6 pb-8 text-center">
-    <p class="text-gray-500 text-sm">✈️ <span class="text-purple-400 font-medium">YUDI</span> Travelplanner</p>
-    <p class="text-gray-600 text-xs mt-1">Jouw reizen, één app</p>
-    <button id="installBtn" onclick="installApp()" class="hidden mt-6 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-full hover:scale-105 transition-all shadow-lg">📲 Installeer App</button>
-  </footer>
-
-  <!-- Password Modal -->
-  <div id="passwordModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-white/10">
-      <div class="text-center">
-        <div class="w-16 h-16 rounded-full bg-purple-600/20 flex items-center justify-center mx-auto mb-4"><i data-lucide="lock" class="w-8 h-8 text-purple-400"></i></div>
-        <h3 id="modalTitle" class="text-xl font-bold text-white mb-2">Reis ontgrendelen</h3>
-        <p class="text-gray-400 mb-6 text-sm">Voer het wachtwoord in</p>
-        <input type="password" id="passwordInput" placeholder="Wachtwoord..." class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-center placeholder-gray-500 focus:outline-none focus:border-purple-500 mb-4" onkeypress="if(event.key==='Enter')checkPassword()">
-        <p id="errorMsg" class="text-red-400 text-sm mb-4 hidden">❌ Onjuist wachtwoord</p>
-        <div class="flex gap-3">
-          <button onclick="closeModal()" class="flex-1 px-4 py-3 bg-white/10 text-white rounded-xl hover:bg-white/20 transition">Annuleer</button>
-          <button onclick="checkPassword()" class="flex-1 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-500 transition font-medium">Ontgrendel</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div id="app"></div>
 
   <script>
-    lucide.createIcons();
-    let currentModal = null;
-    let currentCategory = 'Alle';
-    
-    const tripUrls = {
-      canary: 'tenerife.html',
-      montenegro: 'montenegro.html',
-      london: 'london.html'
+    // State
+    var editMode = false;
+    var currentCategory = 'Alle';
+    var searchQuery = '';
+
+    // Hidden trips (stored in localStorage)
+    var hiddenTrips = JSON.parse(localStorage.getItem('yudi_hiddenTrips') || '[]');
+
+    // Unlocked trips
+    var unlockedTrips = {
+      montenegro: localStorage.getItem('montenegroUnlocked') === 'true',
+      london: localStorage.getItem('londonUnlocked') === 'true'
     };
-    
-    const tripNames = {
-      canary: 'Canarische Eilanden',
-      montenegro: 'Montenegro',
-      london: 'London Christmas'
-    };
-    
-    function checkUnlockedState() {
-      if (localStorage.getItem('montenegroUnlocked') === 'true') unlockTrip('montenegro');
-      if (localStorage.getItem('londonUnlocked') === 'true') unlockTrip('london');
+
+    // Trip data
+    var trips = [
+      {
+        id: 'canary',
+        name: 'Canarische Eilanden',
+        subtitle: 'Tenerife & Gran Canaria',
+        icon: '🌴',
+        category: 'Zomer',
+        categoryIcon: '☀️',
+        days: 9,
+        persons: 2,
+        temp: '25-28°C',
+        budget: 3060,
+        highlights: ['El Teide vulkaan', 'Walvissen spotten', 'Jetski & Parasailing'],
+        gradient: 'from-blue-500 to-cyan-400',
+        url: 'tenerife.html',
+        locked: false,
+        keywords: 'canarische eilanden tenerife gran canaria zomer zon strand vulkaan'
+      },
+      {
+        id: 'montenegro',
+        name: 'Montenegro',
+        subtitle: 'Bergen, Canyon & Kust',
+        icon: '🏔️',
+        category: 'Avontuur',
+        categoryIcon: '🏔️',
+        days: 9,
+        persons: 2,
+        temp: '22-26°C',
+        budget: 2440,
+        highlights: ['Tara Canyon rafting', 'Kotor UNESCO', 'Jetski & Parasailing'],
+        gradient: 'from-amber-500 to-orange-400',
+        url: 'montenegro.html',
+        locked: true,
+        keywords: 'montenegro bergen canyon kust kotor tara rafting avontuur'
+      },
+      {
+        id: 'london',
+        name: 'London Christmas',
+        subtitle: 'Winter Wonderland',
+        icon: '🎄',
+        category: 'Winter',
+        categoryIcon: '❄️',
+        days: 4,
+        persons: 2,
+        temp: '5-10°C',
+        budget: 1200,
+        highlights: ['Winter Wonderland', 'Ice skating', 'West End Show'],
+        gradient: 'from-red-600 to-green-600',
+        url: 'london.html',
+        locked: true,
+        keywords: 'london christmas kerst winter wonderland engeland uk stedentrip'
+      }
+    ];
+
+    function toggleEditMode() {
+      editMode = !editMode;
+      render();
     }
-    
-    function unlockTrip(id) {
-      const c = document.getElementById(id + 'Card');
-      const a = document.getElementById(id + 'Action');
-      if (c) c.classList.remove('grayscale-[50%]', 'blur-[1px]');
-      if (a) a.innerHTML = 'Bekijk <i data-lucide="chevron-right" class="w-4 h-4 inline"></i>';
-      lucide.createIcons();
-      localStorage.setItem(id + 'Unlocked', 'true');
-    }
-    
-    function handleTripClick(id) {
-      const card = document.querySelector('[data-id="' + id + '"]');
-      const locked = card && card.dataset.locked === 'true';
-      const unlocked = localStorage.getItem(id + 'Unlocked') === 'true';
-      
-      console.log('Click:', id, 'locked:', locked, 'unlocked:', unlocked);
-      
-      if (!locked || unlocked) {
-        window.location.href = tripUrls[id];
-      } else {
-        currentModal = id;
-        document.getElementById('modalTitle').textContent = tripNames[id];
-        document.getElementById('passwordModal').classList.remove('hidden');
-        document.getElementById('passwordInput').value = '';
-        document.getElementById('errorMsg').classList.add('hidden');
-        document.getElementById('passwordInput').focus();
+
+    function hideTrip(tripId) {
+      if (confirm('Weet je zeker dat je deze reis wilt verbergen?\n\nDe reis blijft beschikbaar en kan later weer getoond worden.')) {
+        hiddenTrips.push(tripId);
+        localStorage.setItem('yudi_hiddenTrips', JSON.stringify(hiddenTrips));
+        render();
       }
     }
-    
-    function closeModal() {
-      document.getElementById('passwordModal').classList.add('hidden');
-      currentModal = null;
+
+    function showTrip(tripId) {
+      hiddenTrips = hiddenTrips.filter(function(id) { return id !== tripId; });
+      localStorage.setItem('yudi_hiddenTrips', JSON.stringify(hiddenTrips));
+      render();
     }
-    
+
+    function restoreAllTrips() {
+      if (confirm('Alle verborgen reizen weer tonen?')) {
+        hiddenTrips = [];
+        localStorage.setItem('yudi_hiddenTrips', JSON.stringify(hiddenTrips));
+        editMode = false;
+        render();
+      }
+    }
+
+    function deleteAllData(tripId) {
+      if (confirm('ALLE DATA VERWIJDEREN voor deze reis?\n\n⚠️ Dit verwijdert:\n- Checklist voortgang\n- Uitgaven\n- Notities\n\nDit kan niet ongedaan worden!')) {
+        var prefixes = {
+          canary: ['tenerifeChecklist', 'tenerifeExpenses', 'tenerifeDayNotes'],
+          montenegro: ['montenegroChecklist', 'montenegroExpenses', 'montenegroDayNotes'],
+          london: ['londonChecklist', 'londonExpenses', 'londonDayNotes']
+        };
+        var keys = prefixes[tripId] || [];
+        keys.forEach(function(key) { localStorage.removeItem(key); });
+        alert('Data verwijderd!');
+        render();
+      }
+    }
+
+    function handleTripClick(trip) {
+      if (editMode) return; // Don't navigate in edit mode
+      
+      var isUnlocked = !trip.locked || unlockedTrips[trip.id];
+      if (isUnlocked) {
+        window.location.href = trip.url;
+      } else {
+        showPasswordModal(trip);
+      }
+    }
+
+    var currentModalTrip = null;
+
+    function showPasswordModal(trip) {
+      currentModalTrip = trip;
+      render();
+    }
+
+    function closePasswordModal() {
+      currentModalTrip = null;
+      render();
+    }
+
     function checkPassword() {
-      if (document.getElementById('passwordInput').value === '02.05.2025') {
-        unlockTrip(currentModal);
-        closeModal();
-        window.location.href = tripUrls[currentModal];
+      var password = document.getElementById('passwordInput').value;
+      if (password === '02.05.2025') {
+        unlockedTrips[currentModalTrip.id] = true;
+        localStorage.setItem(currentModalTrip.id + 'Unlocked', 'true');
+        window.location.href = currentModalTrip.url;
       } else {
         document.getElementById('errorMsg').classList.remove('hidden');
       }
     }
-    
-    function filterTrips() {
-      const q = document.getElementById('searchInput').value.toLowerCase();
-      document.querySelectorAll('.trip-card').forEach(c => {
-        const n = c.dataset.name ? c.dataset.name.toLowerCase() : '';
-        const cat = c.dataset.category || '';
-        c.style.display = (n.includes(q) && (currentCategory === 'Alle' || cat === currentCategory)) ? 'block' : 'none';
-      });
-    }
-    
+
     function setCategory(cat) {
       currentCategory = cat;
-      document.querySelectorAll('.cat-btn').forEach(b => {
-        b.className = b.dataset.cat === cat 
-          ? 'cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-purple-600 text-white shadow-lg' 
-          : 'cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-white/10 text-gray-300 hover:bg-white/20';
-      });
-      filterTrips();
+      render();
     }
-    
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', e => {
-      e.preventDefault();
-      deferredPrompt = e;
-      document.getElementById('installBtn').classList.remove('hidden');
-    });
-    
-    function installApp() {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(r => {
-          if (r.outcome === 'accepted') document.getElementById('installBtn').classList.add('hidden');
-          deferredPrompt = null;
+
+    function filterTrips() {
+      searchQuery = document.getElementById('searchInput').value.toLowerCase();
+      render();
+    }
+
+    function getVisibleTrips() {
+      return trips.filter(function(trip) {
+        // Hide hidden trips unless in edit mode
+        if (hiddenTrips.indexOf(trip.id) !== -1 && !editMode) return false;
+        
+        // Category filter
+        if (currentCategory !== 'Alle' && trip.category !== currentCategory) return false;
+        
+        // Search filter
+        if (searchQuery && trip.keywords.indexOf(searchQuery) === -1 && trip.name.toLowerCase().indexOf(searchQuery) === -1) return false;
+        
+        return true;
+      });
+    }
+
+    function render() {
+      var visibleTrips = getVisibleTrips();
+      var totalBudget = trips.reduce(function(sum, t) { return sum + t.budget; }, 0);
+      var totalDays = trips.reduce(function(sum, t) { return sum + t.days; }, 0);
+
+      var html = '';
+
+      // Header
+      html += '<header class="pt-12 pb-8 px-6"><div class="max-w-4xl mx-auto text-center">';
+      html += '<div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-400 shadow-xl mb-4 overflow-hidden">';
+      html += '<img src="/icon-192.png" alt="YUDI" class="w-full h-full object-cover" onerror="this.style.display=\'none\'">';
+      html += '</div>';
+      html += '<h1 class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400">YUDI</h1>';
+      html += '<p class="text-purple-300 font-medium tracking-[0.3em] text-sm mt-1">TRAVELPLANNER</p>';
+      html += '<p class="text-gray-400 mt-4 text-sm">Plan je perfecte reis</p>';
+      html += '</div></header>';
+
+      // Edit Mode Toggle & Search
+      html += '<div class="px-6 mb-6"><div class="max-w-4xl mx-auto">';
+      
+      // Edit mode button
+      html += '<div class="flex justify-between items-center mb-4">';
+      html += '<button onclick="toggleEditMode()" class="px-4 py-2 rounded-xl font-medium transition ' + (editMode ? 'bg-red-600 text-white' : 'bg-white/10 text-gray-300 hover:bg-white/20') + '">';
+      html += editMode ? '✓ Klaar' : '✏️ Beheer reizen';
+      html += '</button>';
+      if (hiddenTrips.length > 0) {
+        html += '<button onclick="restoreAllTrips()" class="px-4 py-2 rounded-xl font-medium bg-purple-600/50 text-purple-200 hover:bg-purple-600">';
+        html += '👁️ Toon verborgen (' + hiddenTrips.length + ')';
+        html += '</button>';
+      }
+      html += '</div>';
+
+      // Search Bar
+      html += '<div class="relative mb-4">';
+      html += '<svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>';
+      html += '<input type="text" id="searchInput" placeholder="Zoek bestemming..." value="' + searchQuery + '" oninput="filterTrips()" class="w-full pl-12 pr-4 py-3 bg-white/10 backdrop-blur border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition">';
+      html += '</div>';
+
+      // Category Pills
+      html += '<div class="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">';
+      var categories = [
+        { id: 'Alle', label: 'Alle' },
+        { id: 'Zomer', label: '☀️ Zomer' },
+        { id: 'Avontuur', label: '🏔️ Avontuur' },
+        { id: 'Winter', label: '❄️ Winter' },
+        { id: 'Stedentrip', label: '🏙️ Stedentrip' }
+      ];
+      categories.forEach(function(cat) {
+        var active = currentCategory === cat.id;
+        html += '<button onclick="setCategory(\'' + cat.id + '\')" class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ' + (active ? 'bg-purple-600 text-white shadow-lg' : 'bg-white/10 text-gray-300 hover:bg-white/20') + '">' + cat.label + '</button>';
+      });
+      html += '</div></div></div>';
+
+      // Trip Cards
+      html += '<main class="px-6 pb-8"><div class="max-w-4xl mx-auto">';
+      html += '<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 ' + (editMode ? 'edit-mode' : '') + '">';
+
+      visibleTrips.forEach(function(trip) {
+        var isHidden = hiddenTrips.indexOf(trip.id) !== -1;
+        var isLocked = trip.locked && !unlockedTrips[trip.id];
+
+        html += '<div class="trip-card card-hover relative ' + (editMode ? '' : 'cursor-pointer') + '" onclick="' + (editMode ? '' : 'handleTripClick(' + JSON.stringify(trip).replace(/"/g, '&quot;') + ')') + '">';
+        html += '<div class="bg-gradient-to-br ' + trip.gradient + ' rounded-3xl p-6 h-full relative ' + (isLocked && !editMode ? 'filter grayscale-[50%] blur-[1px]' : '') + ' ' + (isHidden ? 'opacity-50' : '') + '">';
+
+        // Edit mode buttons
+        if (editMode) {
+          html += '<div class="absolute top-3 right-3 flex gap-2 z-10">';
+          if (isHidden) {
+            html += '<button onclick="event.stopPropagation(); showTrip(\'' + trip.id + '\')" class="bg-green-500 text-white p-2 rounded-full hover:bg-green-600" title="Toon reis"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></button>';
+          } else {
+            html += '<button onclick="event.stopPropagation(); hideTrip(\'' + trip.id + '\')" class="bg-white/20 backdrop-blur text-white p-2 rounded-full hover:bg-red-500" title="Verberg reis"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg></button>';
+          }
+          html += '<button onclick="event.stopPropagation(); deleteAllData(\'' + trip.id + '\')" class="bg-white/20 backdrop-blur text-white p-2 rounded-full hover:bg-red-600" title="Wis alle data"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>';
+          html += '</div>';
+        }
+
+        // Lock badge
+        if (isLocked && !editMode) {
+          html += '<div class="absolute top-4 right-4 bg-white/20 backdrop-blur rounded-full p-2">';
+          html += '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>';
+          html += '</div>';
+        }
+
+        // Category Badge
+        html += '<div class="inline-flex items-center gap-1 px-2 py-1 bg-white/20 backdrop-blur rounded-full text-xs text-white mb-3">';
+        html += '<span>' + trip.categoryIcon + '</span><span>' + trip.category + '</span></div>';
+
+        html += '<div class="text-4xl mb-3">' + trip.icon + '</div>';
+        html += '<h2 class="text-xl font-bold text-white mb-1">' + trip.name + '</h2>';
+        html += '<p class="text-white/80 text-sm mb-4">' + trip.subtitle + '</p>';
+
+        // Meta
+        html += '<div class="flex items-center gap-3 text-white/70 text-xs mb-4">';
+        html += '<span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg> ' + trip.days + ' dagen</span>';
+        html += '<span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg> ' + trip.persons + 'p</span>';
+        html += '<span>' + trip.temp + '</span>';
+        html += '</div>';
+
+        // Highlights
+        html += '<div class="space-y-1 mb-4 text-sm">';
+        trip.highlights.forEach(function(h) {
+          html += '<div class="flex items-center gap-2 text-white/90"><span class="text-yellow-300">★</span><span>' + h + '</span></div>';
         });
+        html += '</div>';
+
+        // Price & Action
+        html += '<div class="flex items-center justify-between">';
+        html += '<div class="bg-white/20 backdrop-blur rounded-xl px-3 py-2"><span class="text-white/70 text-xs">Budget</span><div class="text-white font-bold">€' + trip.budget.toLocaleString() + '</div></div>';
+        if (!editMode) {
+          html += '<div class="flex items-center gap-1 text-white font-medium text-sm">' + (isLocked ? '🔐 Ontgrendel' : 'Bekijk') + ' <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></div>';
+        }
+        html += '</div>';
+
+        html += '</div></div>';
+      });
+
+      // Add New Trip Card
+      if (!editMode) {
+        html += '<div class="border-2 border-dashed border-white/20 rounded-3xl p-6 flex flex-col items-center justify-center text-center min-h-[320px] hover:border-purple-500/50 transition cursor-pointer group">';
+        html += '<div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center mb-3 group-hover:bg-purple-600/50 transition">';
+        html += '<svg class="w-6 h-6 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>';
+        html += '</div>';
+        html += '<p class="text-gray-400 group-hover:text-white transition font-medium">Nieuwe reis</p>';
+        html += '<p class="text-gray-500 text-xs mt-1">Binnenkort beschikbaar</p>';
+        html += '</div>';
+      }
+
+      html += '</div></div></main>';
+
+      // Stats Section
+      html += '<section class="px-6 pb-8"><div class="max-w-4xl mx-auto">';
+      html += '<div class="bg-white/5 backdrop-blur border border-white/10 rounded-3xl p-6">';
+      html += '<h3 class="text-white font-semibold mb-4 flex items-center gap-2">';
+      html += '<svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>';
+      html += 'Reis Overzicht</h3>';
+      html += '<div class="grid grid-cols-3 gap-4 text-center">';
+      html += '<div><div class="text-2xl font-bold text-purple-400">' + trips.length + '</div><div class="text-gray-400 text-xs">Reizen</div></div>';
+      html += '<div><div class="text-2xl font-bold text-cyan-400">' + totalDays + '</div><div class="text-gray-400 text-xs">Dagen</div></div>';
+      html += '<div><div class="text-2xl font-bold text-green-400">€' + totalBudget.toLocaleString() + '</div><div class="text-gray-400 text-xs">Totaal Budget</div></div>';
+      html += '</div></div></div></section>';
+
+      // Footer
+      html += '<footer class="px-6 pb-8 text-center">';
+      html += '<p class="text-gray-500 text-sm">✈️ <span class="text-purple-400 font-medium">YUDI</span> Travelplanner</p>';
+      html += '<p class="text-gray-600 text-xs mt-1">Jouw reizen, één app</p>';
+      html += '</footer>';
+
+      // Password Modal
+      if (currentModalTrip) {
+        html += '<div class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50" onclick="closePasswordModal()">';
+        html += '<div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-white/10" onclick="event.stopPropagation()">';
+        html += '<div class="text-center">';
+        html += '<div class="w-16 h-16 rounded-full bg-purple-600/20 flex items-center justify-center mx-auto mb-4">';
+        html += '<svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>';
+        html += '</div>';
+        html += '<h3 class="text-xl font-bold text-white mb-2">' + currentModalTrip.name + '</h3>';
+        html += '<p class="text-gray-400 mb-6 text-sm">Voer het wachtwoord in</p>';
+        html += '<input type="password" id="passwordInput" placeholder="Wachtwoord..." class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-center placeholder-gray-500 focus:outline-none focus:border-purple-500 mb-4" onkeypress="if(event.key===\'Enter\')checkPassword()">';
+        html += '<p id="errorMsg" class="text-red-400 text-sm mb-4 hidden">❌ Onjuist wachtwoord</p>';
+        html += '<div class="flex gap-3">';
+        html += '<button onclick="closePasswordModal()" class="flex-1 px-4 py-3 bg-white/10 text-white rounded-xl hover:bg-white/20 transition">Annuleer</button>';
+        html += '<button onclick="checkPassword()" class="flex-1 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-500 transition font-medium">Ontgrendel</button>';
+        html += '</div></div></div></div>';
+      }
+
+      document.getElementById('app').innerHTML = html;
+
+      // Focus password input if modal is open
+      if (currentModalTrip) {
+        setTimeout(function() {
+          var input = document.getElementById('passwordInput');
+          if (input) input.focus();
+        }, 100);
       }
     }
-    
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
-    }
-    
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-    document.getElementById('passwordModal').addEventListener('click', e => {
-      if (e.target === e.currentTarget) closeModal();
+
+    // Initialize
+    render();
+
+    // PWA Install
+    var deferredPrompt;
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      deferredPrompt = e;
     });
-    
-    checkUnlockedState();
+
+    // Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(function() {});
+    }
   </script>
 </body>
 </html>
