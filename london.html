@@ -485,3 +485,16 @@
   </script>
 </body>
 </html>
+ onclick="toggleDarkMode()" class="bg-gradient-to-r from-gray-600 to-gray-800 text-white px-4 py-2 rounded-xl font-bold shadow">' + (darkMode ? '☀️ Light' : '🌙 Dark') + '</button>';
+      html += '</div>';
+      html += '<p class="text-white/70 text-sm">' + trip.title + ' • ' + trip.dates + '</p>';
+      html += '<a href="/" class="text-red-300 hover:underline text-sm">← Terug naar overzicht</a>';
+      html += '</div>';
+
+      document.getElementById('app').innerHTML = html;
+    }
+
+    render();
+  </script>
+</body>
+</html>
