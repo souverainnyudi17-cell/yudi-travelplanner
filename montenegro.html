@@ -35,6 +35,38 @@
     let expenses = JSON.parse(localStorage.getItem('montenegroExpenses') || '[]');
     let dayNotes = JSON.parse(localStorage.getItem('montenegroDayNotes') || '{}');
     let darkMode = localStorage.getItem('montenegroDarkMode') === 'true';
+    let weatherData = null;
+    let weatherLoading = false;
+
+    // Weather coordinates for Montenegro
+    const weatherLocations = {
+      kotor: { lat: 42.42, lon: 18.77, name: 'Kotor' },
+      budva: { lat: 42.29, lon: 18.84, name: 'Budva' }
+    };
+
+    // Fetch current weather
+    async function fetchWeather() {
+      if (weatherLoading || weatherData) return;
+      weatherLoading = true;
+      try {
+        const loc = weatherLocations.kotor;
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto&forecast_days=3`);
+        weatherData = await res.json();
+        render();
+      } catch (e) { console.log('Weather fetch failed:', e); }
+      weatherLoading = false;
+    }
+
+    // Weather code to emoji
+    function getWeatherEmoji(code) {
+      if (code <= 3) return '☀️';
+      if (code <= 48) return '☁️';
+      if (code <= 67) return '🌧️';
+      if (code <= 77) return '🌨️';
+      if (code <= 82) return '🌧️';
+      if (code >= 95) return '⛈️';
+      return '🌤️';
+    }
 
     const trip = {
       title: '🏔️ Montenegro Adventure',
@@ -343,6 +375,16 @@
               <div class="inline-flex items-center gap-2 bg-gray-500 text-white px-4 py-1.5 rounded-full text-sm font-bold">
                 ✅ Reis voltooid
               </div>
+            `}
+            ${weatherData ? `
+              <div class="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-3 py-1.5 rounded-full text-sm font-medium shadow">
+                ${getWeatherEmoji(weatherData.current.weather_code)} ${Math.round(weatherData.current.temperature_2m)}°C
+                <span class="text-white/70 text-xs">nu in Kotor</span>
+              </div>
+            ` : `
+              <button onclick="fetchWeather()" class="inline-flex items-center gap-1 bg-cyan-100 text-cyan-700 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-cyan-200 transition">
+                🌤️ Weer laden
+              </button>
             `}
             <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">🏰 Kotor UNESCO</span>
             <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">🚣 Tara Rafting</span>
