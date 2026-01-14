@@ -647,6 +647,26 @@
       if (selectedModal) {
         const m = selectedModal;
         const info = m.info || {};
+        
+        // Calculate distances for modal
+        const accomLoc = day.accom === 'tenerife' ? 'santa_cruz' : day.accom === 'grancanaria' ? 'las_palmas' : null;
+        const currentIdx = acts.findIndex(a => a.title === m.title && a.time === m.time);
+        const prevAct = currentIdx > 0 ? acts[currentIdx - 1] : null;
+        const distFromAccom = m.loc && accomLoc ? calcDist(accomLoc, m.loc) : null;
+        const distFromPrev = m.loc && prevAct && prevAct.loc ? calcDist(prevAct.loc, m.loc) : null;
+        
+        let distanceHtml = '';
+        if (distFromAccom || distFromPrev) {
+          distanceHtml = '<div class="bg-blue-50 rounded-2xl p-4"><h4 class="font-bold text-blue-700 mb-3 flex items-center gap-2">📍 Afstanden & Rijtijd</h4><div class="grid grid-cols-2 gap-3">';
+          if (distFromAccom) {
+            distanceHtml += '<div class="bg-white rounded-xl p-3"><div class="text-gray-500 text-sm">Vanaf accommodatie</div><div class="text-blue-600 text-xl font-bold">' + distFromAccom + ' km</div><div class="text-gray-500 text-sm">' + driveTime(distFromAccom) + ' rijden</div></div>';
+          }
+          if (distFromPrev) {
+            distanceHtml += '<div class="bg-white rounded-xl p-3"><div class="text-gray-500 text-sm">Vanaf vorige stop</div><div class="text-green-600 text-xl font-bold">' + distFromPrev + ' km</div><div class="text-gray-500 text-sm">' + driveTime(distFromPrev) + ' rijden</div></div>';
+          }
+          distanceHtml += '</div></div>';
+        }
+        
         html += `
           <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onclick="closeModal()">
             <div class="bg-white rounded-3xl max-w-lg w-full max-h-[85vh] overflow-y-auto shadow-2xl" onclick="event.stopPropagation()">
@@ -664,42 +684,7 @@
               </div>
               
               <div class="p-5 space-y-4">
-                ${(() => {
-                  // Calculate distances
-                  const day = days[activeDay - 1];
-                  const accomLoc = day.accom === 'tenerife' ? 'santa_cruz' : day.accom === 'grancanaria' ? 'las_palmas' : null;
-                  const acts = activities[activeDay] || [];
-                  const currentIdx = acts.findIndex(a => a.title === m.title && a.time === m.time);
-                  const prevAct = currentIdx > 0 ? acts[currentIdx - 1] : null;
-                  
-                  const distFromAccom = m.loc && accomLoc ? calcDist(accomLoc, m.loc) : null;
-                  const distFromPrev = m.loc && prevAct?.loc ? calcDist(prevAct.loc, m.loc) : null;
-                  
-                  if (distFromAccom || distFromPrev) {
-                    return \`
-                      <div class="bg-blue-50 rounded-2xl p-4">
-                        <h4 class="font-bold text-blue-700 mb-3 flex items-center gap-2">📍 Afstanden & Rijtijd</h4>
-                        <div class="grid grid-cols-2 gap-3">
-                          \${distFromAccom ? \`
-                            <div class="bg-white rounded-xl p-3">
-                              <div class="text-gray-500 text-sm">Vanaf accommodatie</div>
-                              <div class="text-blue-600 text-xl font-bold">\${distFromAccom} km</div>
-                              <div class="text-gray-500 text-sm">\${driveTime(distFromAccom)} rijden</div>
-                            </div>
-                          \` : ''}
-                          \${distFromPrev ? \`
-                            <div class="bg-white rounded-xl p-3">
-                              <div class="text-gray-500 text-sm">Vanaf vorige stop</div>
-                              <div class="text-green-600 text-xl font-bold">\${distFromPrev} km</div>
-                              <div class="text-gray-500 text-sm">\${driveTime(distFromPrev)} rijden</div>
-                            </div>
-                          \` : ''}
-                        </div>
-                      </div>
-                    \`;
-                  }
-                  return '';
-                })()}
+                ${distanceHtml}
                 
                 ${info.desc ? `<div><h4 class="font-bold text-gray-700 mb-1">📖 Beschrijving</h4><p class="text-gray-600">${info.desc}</p></div>` : ''}
                 
