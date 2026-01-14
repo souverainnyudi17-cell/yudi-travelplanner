@@ -148,6 +148,13 @@
       return m < 60 ? `~${m} min` : `~${Math.floor(m/60)}u${m%60 > 0 ? ` ${m%60}min` : ''}`;
     }
 
+    // Google Maps URL generator
+    function getMapsUrl(locKey) {
+      if (!locations[locKey]) return null;
+      const loc = locations[locKey];
+      return `https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lng}`;
+    }
+
     // DAYS
     const days = [
       { day: 1, date: 'Za 16 mei', title: 'Aankomst', icon: '✈️', island: 'Tenerife', highlight: 'Supermarkt MOET vandaag!', accom: 'tenerife', showParking: true },
@@ -737,6 +744,13 @@
                     <span class="text-2xl">⭐</span>
                     <span class="font-bold text-amber-800 ml-2">MUST SEE / DO!</span>
                   </div>
+                ` : ''}
+                
+                ${m.loc && getMapsUrl(m.loc) ? `
+                  <a href="${getMapsUrl(m.loc)}" target="_blank" rel="noopener" 
+                     class="block w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-center py-3 px-4 rounded-xl font-semibold hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg">
+                    📍 Open in Google Maps
+                  </a>
                 ` : ''}
               </div>
             </div>
