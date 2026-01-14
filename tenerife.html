@@ -77,7 +77,12 @@
         deletePhoto: 'Foto verwijderen?', photoGallery: 'Foto Galerij', smartPacking: 'Slimme Inpaklijst',
         generatedAuto: 'Automatisch gegenereerd op basis van je activiteiten!',
         proTips: 'Pro Tips', weather: 'Weer', high: 'Max', low: 'Min', rain: 'Regen',
-        overview: 'Overzicht', budgetLabel: 'Budget', comfortLabel: 'Comfort'
+        overview: 'Overzicht', budgetLabel: 'Budget', comfortLabel: 'Comfort',
+        persons: 'personen', weeks: 'weken', days: 'dagen', and: 'en', still: 'Nog',
+        tripCompleted: 'Reis voltooid', todayIsTheDay: 'VANDAAG IS HET ZOVER!',
+        nowIn: 'nu in', estimated: 'Geschat', alreadyBooked: 'Al geboekt',
+        category: 'Categorie', costOverview: 'Kosten Overzicht',
+        itemsChecked: 'items afgevinkt', allDone: 'Alles klaar!', close: 'Sluiten'
       },
       en: {
         planning: '📅 Planning', map: '🗺️ Map', budget: '💰 Budget', checklist: '✅ Checklist',
@@ -91,7 +96,12 @@
         deletePhoto: 'Delete photo?', photoGallery: 'Photo Gallery', smartPacking: 'Smart Packing List',
         generatedAuto: 'Automatically generated based on your activities!',
         proTips: 'Pro Tips', weather: 'Weather', high: 'High', low: 'Low', rain: 'Rain',
-        overview: 'Overview', budgetLabel: 'Budget', comfortLabel: 'Comfort'
+        overview: 'Overview', budgetLabel: 'Budget', comfortLabel: 'Comfort',
+        persons: 'persons', weeks: 'weeks', days: 'days', and: 'and', still: 'Only',
+        tripCompleted: 'Trip completed', todayIsTheDay: 'TODAY IS THE DAY!',
+        nowIn: 'now in', estimated: 'Estimated', alreadyBooked: 'Already booked',
+        category: 'Category', costOverview: 'Cost Overview',
+        itemsChecked: 'items checked', allDone: 'All done!', close: 'Close'
       },
       fr: {
         planning: '📅 Planning', map: '🗺️ Carte', budget: '💰 Budget', checklist: '✅ Liste',
@@ -105,7 +115,12 @@
         deletePhoto: 'Supprimer photo?', photoGallery: 'Galerie Photos', smartPacking: 'Liste Intelligente',
         generatedAuto: 'Générée automatiquement selon vos activités!',
         proTips: 'Conseils Pro', weather: 'Météo', high: 'Max', low: 'Min', rain: 'Pluie',
-        overview: 'Aperçu', budgetLabel: 'Économique', comfortLabel: 'Confort'
+        overview: 'Aperçu', budgetLabel: 'Économique', comfortLabel: 'Confort',
+        persons: 'personnes', weeks: 'semaines', days: 'jours', and: 'et', still: 'Plus que',
+        tripCompleted: 'Voyage terminé', todayIsTheDay: 'C\'EST AUJOURD\'HUI!',
+        nowIn: 'actuellement à', estimated: 'Estimé', alreadyBooked: 'Déjà réservé',
+        category: 'Catégorie', costOverview: 'Aperçu des coûts',
+        itemsChecked: 'articles cochés', allDone: 'Tout est prêt!', close: 'Fermer'
       }
     };
 
@@ -641,7 +656,7 @@
             <div>
               <h1 class="text-2xl font-bold text-gray-800">${trip.title}</h1>
               <p class="text-blue-600 font-medium">${trip.subtitle}</p>
-              <p class="text-gray-500 text-sm mt-1">${trip.dates} • ${trip.persons} personen • ${trip.duration}</p>
+              <p class="text-gray-500 text-sm mt-1">${trip.dates} • ${trip.persons} ${t('persons')} • ${trip.duration}</p>
             </div>
             <div class="flex items-center gap-2">
               <!-- Language Dropdown -->
@@ -661,21 +676,21 @@
             </div>
             ${daysLeft > 0 ? `
               <div class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
-                ✈️ Nog ${weeksLeft > 0 ? weeksLeft + ' weken' + (remainingDays > 0 ? ' en ' + remainingDays + ' dagen' : '') : daysLeft + ' dagen'}!
+                ✈️ ${t('still')} ${weeksLeft > 0 ? weeksLeft + ' ' + t('weeks') + (remainingDays > 0 ? ' ' + t('and') + ' ' + remainingDays + ' ' + t('days') : '') : daysLeft + ' ' + t('days')}!
               </div>
             ` : daysLeft === 0 ? `
               <div class="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg animate-pulse">
-                🎉 VANDAAG IS HET ZOVER!
+                🎉 ${t('todayIsTheDay')}
               </div>
             ` : `
               <div class="inline-flex items-center gap-2 bg-gray-500 text-white px-4 py-1.5 rounded-full text-sm font-bold">
-                ✅ Reis voltooid
+                ✅ ${t('tripCompleted')}
               </div>
             `}
             ${weatherData ? `
               <div class="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-3 py-1.5 rounded-full text-sm font-medium shadow">
                 ${getWeatherEmoji(weatherData.current.weather_code)} ${Math.round(weatherData.current.temperature_2m)}°C
-                <span class="text-white/70 text-xs">nu in Tenerife</span>
+                <span class="text-white/70 text-xs">${t('nowIn')} Tenerife</span>
               </div>
             ` : `
               <button onclick="fetchWeather()" class="inline-flex items-center gap-1 bg-cyan-100 text-cyan-700 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-cyan-200 transition">
@@ -1016,9 +1031,9 @@
             </div>
 
             <div class="bg-white rounded-2xl p-5 shadow-lg overflow-x-auto">
-              <h3 class="font-bold text-lg mb-4">💰 Geschat</h3>
+              <h3 class="font-bold text-lg mb-4">💰 ${t('estimated')}</h3>
               <table class="w-full text-sm">
-                <thead><tr class="border-b-2"><th class="text-left py-2">Item</th><th class="text-right py-2">Budget</th><th class="text-right py-2">Comfort</th></tr></thead>
+                <thead><tr class="border-b-2"><th class="text-left py-2">Item</th><th class="text-right py-2">${t('budgetLabel')}</th><th class="text-right py-2">${t('comfortLabel')}</th></tr></thead>
                 <tbody>
                   ${budget.estimated.map(i => `<tr class="border-b border-gray-100"><td class="py-2">${i.item}</td><td class="text-right text-gray-600">€${i.budget}</td><td class="text-right">€${i.comfort}</td></tr>`).join('')}
                 </tbody>
@@ -1027,14 +1042,14 @@
 
             <div class="grid grid-cols-2 gap-4">
               <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-5 text-white text-center">
-                <div class="text-sm opacity-80">💚 Budget</div>
+                <div class="text-sm opacity-80">💚 ${t('budgetLabel')}</div>
                 <div class="text-3xl font-bold">€${totalBudget}</div>
-                <div class="text-sm opacity-80">€${Math.round(totalBudget/2)} p.p.</div>
+                <div class="text-sm opacity-80">€${Math.round(totalBudget/2)} ${t('perPerson')}</div>
               </div>
               <div class="bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl p-5 text-white text-center">
-                <div class="text-sm opacity-80">✨ Comfort</div>
+                <div class="text-sm opacity-80">✨ ${t('comfortLabel')}</div>
                 <div class="text-3xl font-bold">€${totalComfort}</div>
-                <div class="text-sm opacity-80">€${Math.round(totalComfort/2)} p.p.</div>
+                <div class="text-sm opacity-80">€${Math.round(totalComfort/2)} ${t('perPerson')}</div>
               </div>
             </div>
           </div>
@@ -1060,11 +1075,11 @@
             `).join('')}
             
             <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-5 text-white">
-              <h3 class="font-bold mb-3">📊 Voortgang</h3>
+              <h3 class="font-bold mb-3">📊 ${t('progress')}</h3>
               <div class="bg-white/20 rounded-full h-4 mb-2">
                 <div class="bg-white rounded-full h-4 transition-all" style="width: ${Math.max((checkedCount/totalChecks)*100, 5)}%"></div>
               </div>
-              <div class="text-center">${checkedCount} van ${totalChecks} items</div>
+              <div class="text-center">${checkedCount} / ${totalChecks} ${t('items')}</div>
             </div>
           </div>
         `;
@@ -1078,8 +1093,8 @@
         html += `
           <div class="space-y-4">
             <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-5 text-white">
-              <h2 class="text-xl font-bold mb-2">🎒 Slimme Inpaklijst</h2>
-              <p class="text-white/80 text-sm">Automatisch gegenereerd op basis van je activiteiten!</p>
+              <h2 class="text-xl font-bold mb-2">🎒 ${t('smartPacking')}</h2>
+              <p class="text-white/80 text-sm">${t('generatedAuto')}</p>
               <div class="mt-3 flex items-center gap-3">
                 <div class="flex-1 bg-white/20 rounded-full h-3">
                   <div class="bg-white rounded-full h-3 transition-all" style="width: ${Math.max((packingChecked/packingTotal)*100, 3)}%"></div>
@@ -1123,9 +1138,9 @@
         html += `
           <div class="space-y-4">
             <div class="bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl p-5 text-white">
-              <h2 class="text-xl font-bold mb-2">📸 Foto Galerij</h2>
-              <p class="text-white/80 text-sm">Voeg foto's toe per dag om je reis vast te leggen!</p>
-              <div class="mt-2 text-lg font-bold">${totalPhotos} foto's opgeslagen</div>
+              <h2 class="text-xl font-bold mb-2">📸 ${t('photoGallery')}</h2>
+              <p class="text-white/80 text-sm">${t('generatedAuto')}</p>
+              <div class="mt-2 text-lg font-bold">${totalPhotos} ${t('photos')}</div>
             </div>
             
             ${days.map(d => `
@@ -1134,19 +1149,19 @@
                   <div class="flex items-center gap-3">
                     <span class="text-3xl">${d.icon}</span>
                     <div>
-                      <h3 class="font-bold text-gray-800">Dag ${d.day}: ${d.title}</h3>
+                      <h3 class="font-bold text-gray-800">${t('day')} ${d.day}: ${d.title}</h3>
                       <p class="text-sm text-gray-500">${d.date}</p>
                     </div>
                   </div>
                   <button onclick="addPhoto(${d.day})" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition">
-                    + Foto
+                    ${t('addPhoto')}
                   </button>
                 </div>
                 ${tripPhotos[d.day] && tripPhotos[d.day].length > 0 ? `
                   <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                     ${tripPhotos[d.day].map((photo, idx) => `
                       <div class="relative group">
-                        <img src="${photo.src}" alt="Dag ${d.day} foto" class="w-full h-32 object-cover rounded-xl">
+                        <img src="${photo.src}" alt="${t('day')} ${d.day} foto" class="w-full h-32 object-cover rounded-xl">
                         <button onclick="deletePhoto(${d.day}, ${idx})" class="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition text-sm">×</button>
                       </div>
                     `).join('')}
@@ -1154,7 +1169,7 @@
                 ` : `
                   <div class="bg-gray-50 rounded-xl p-6 text-center text-gray-400">
                     <div class="text-3xl mb-2">📷</div>
-                    <p>Nog geen foto's voor deze dag</p>
+                    <p>${t('noPhotos')}</p>
                     <p class="text-xs mt-1">Klik "Foto toevoegen" om te beginnen</p>
                   </div>
                 `}
