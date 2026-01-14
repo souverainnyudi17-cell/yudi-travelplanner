@@ -59,7 +59,11 @@
         description: 'Beschrijving', highlights: 'Highlights', warning: 'Let op!',
         total: 'Totaal', perPerson: 'Per persoon', progress: 'Voortgang',
         addPhoto: '+ Foto', noPhotos: 'Nog geen foto\'s', photoGallery: 'Foto Galerij',
-        smartPacking: 'Slimme Inpaklijst'
+        smartPacking: 'Slimme Inpaklijst',
+        persons: 'personen', weeks: 'weken', days: 'dagen', and: 'en', still: 'Nog',
+        tripCompleted: 'Reis voltooid', todayIsTheDay: 'VANDAAG IS HET ZOVER!',
+        nowIn: 'nu in', items: 'items', budgetLabel: 'Budget', comfortLabel: 'Comfort',
+        generatedAuto: 'Automatisch gegenereerd!'
       },
       en: {
         planning: '📅 Planning', map: '🗺️ Map', budget: '💰 Budget', checklist: '✅ Checklist',
@@ -70,7 +74,11 @@
         description: 'Description', highlights: 'Highlights', warning: 'Note!',
         total: 'Total', perPerson: 'Per person', progress: 'Progress',
         addPhoto: '+ Photo', noPhotos: 'No photos yet', photoGallery: 'Photo Gallery',
-        smartPacking: 'Smart Packing List'
+        smartPacking: 'Smart Packing List',
+        persons: 'persons', weeks: 'weeks', days: 'days', and: 'and', still: 'Only',
+        tripCompleted: 'Trip completed', todayIsTheDay: 'TODAY IS THE DAY!',
+        nowIn: 'now in', items: 'items', budgetLabel: 'Budget', comfortLabel: 'Comfort',
+        generatedAuto: 'Auto-generated!'
       },
       fr: {
         planning: '📅 Planning', map: '🗺️ Carte', budget: '💰 Budget', checklist: '✅ Liste',
@@ -81,7 +89,11 @@
         description: 'Description', highlights: 'Points forts', warning: 'Attention!',
         total: 'Total', perPerson: 'Par personne', progress: 'Progression',
         addPhoto: '+ Photo', noPhotos: 'Pas de photos', photoGallery: 'Galerie Photos',
-        smartPacking: 'Liste Intelligente'
+        smartPacking: 'Liste Intelligente',
+        persons: 'personnes', weeks: 'semaines', days: 'jours', and: 'et', still: 'Plus que',
+        tripCompleted: 'Voyage terminé', todayIsTheDay: 'C\'EST AUJOURD\'HUI!',
+        nowIn: 'actuellement à', items: 'articles', budgetLabel: 'Économique', comfortLabel: 'Confort',
+        generatedAuto: 'Généré automatiquement!'
       }
     };
 
@@ -401,7 +413,7 @@
             <div>
               <h1 class="text-2xl font-bold text-gray-800">${trip.title}</h1>
               <p class="text-red-600 font-medium">${trip.subtitle}</p>
-              <p class="text-gray-500 text-sm mt-1">${trip.dates} • ${trip.persons} personen • ${trip.duration}</p>
+              <p class="text-gray-500 text-sm mt-1">${trip.dates} • ${trip.persons} ${t('persons')} • ${trip.duration}</p>
             </div>
             <div class="flex items-center gap-2">
               <select onchange="setLanguage(this.value)" class="px-3 py-2 bg-gray-100 rounded-xl text-sm font-medium border-0 cursor-pointer">
@@ -417,25 +429,25 @@
           <div class="flex flex-wrap gap-2 mt-3">
             ${daysLeft > 0 ? `
               <div class="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-green-600 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg animate-pulse">
-                🎄 Nog ${weeksLeft > 0 ? weeksLeft + ' weken' + (remainingDays > 0 ? ' en ' + remainingDays + ' dagen' : '') : daysLeft + ' dagen'}!
+                🎄 ${t('still')} ${weeksLeft > 0 ? weeksLeft + ' ' + t('weeks') + (remainingDays > 0 ? ' ' + t('and') + ' ' + remainingDays + ' ' + t('days') : '') : daysLeft + ' ' + t('days')}!
               </div>
             ` : daysLeft === 0 ? `
               <div class="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg animate-pulse">
-                🎉 VANDAAG IS HET ZOVER!
+                🎉 ${t('todayIsTheDay')}
               </div>
             ` : `
               <div class="inline-flex items-center gap-2 bg-gray-500 text-white px-4 py-1.5 rounded-full text-sm font-bold">
-                ✅ Reis voltooid
+                ✅ ${t('tripCompleted')}
               </div>
             `}
             ${weatherData ? `
               <div class="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-3 py-1.5 rounded-full text-sm font-medium shadow">
                 ${getWeatherEmoji(weatherData.current.weather_code)} ${Math.round(weatherData.current.temperature_2m)}°C
-                <span class="text-white/70 text-xs">nu in London</span>
+                <span class="text-white/70 text-xs">${t('nowIn')} London</span>
               </div>
             ` : `
               <button onclick="fetchWeather()" class="inline-flex items-center gap-1 bg-cyan-100 text-cyan-700 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-cyan-200 transition">
-                🌤️ Weer laden
+                ${t('loadWeather')}
               </button>
             `}
             <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">❄️ Winter Wonderland</span>
