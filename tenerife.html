@@ -61,6 +61,61 @@
     let checklist = JSON.parse(localStorage.getItem('tenerifeChecklist2') || '{}');
     let packingList = JSON.parse(localStorage.getItem('tenerifePackingList') || '{}');
     let tripPhotos = JSON.parse(localStorage.getItem('tenerifePhotos') || '{}');
+    let currentLang = localStorage.getItem('yudiLanguage') || 'nl';
+
+    // Translation system
+    const translations = {
+      nl: {
+        planning: '📅 Dagplanning', map: '🗺️ Kaart', budget: '💰 Budget', checklist: '✅ Checklist',
+        packing: '🎒 Inpaklijst', photos: '📸 Foto\'s', loadWeather: '🌤️ Weer laden',
+        day: 'Dag', from: 'vanaf', to: 'naar', duration: 'Duur', price: 'Kosten', tips: 'Tips',
+        book: 'Boek nu op', openMaps: 'Open in Google Maps', accommodation: 'Accommodatie',
+        distance: 'Afstanden', fromAccom: 'Vanaf accommodatie', fromPrev: 'Vanaf vorige stop',
+        driving: 'rijden', description: 'Beschrijving', highlights: 'Highlights', warning: 'Let op!',
+        mustSee: 'MUST SEE / DO!', total: 'Totaal', perPerson: 'Per persoon', progress: 'Voortgang',
+        items: 'items', booked: 'Geboekt', addPhoto: '+ Foto', noPhotos: 'Nog geen foto\'s voor deze dag',
+        deletePhoto: 'Foto verwijderen?', photoGallery: 'Foto Galerij', smartPacking: 'Slimme Inpaklijst',
+        generatedAuto: 'Automatisch gegenereerd op basis van je activiteiten!',
+        proTips: 'Pro Tips', weather: 'Weer', high: 'Max', low: 'Min', rain: 'Regen',
+        overview: 'Overzicht', budgetLabel: 'Budget', comfortLabel: 'Comfort'
+      },
+      en: {
+        planning: '📅 Planning', map: '🗺️ Map', budget: '💰 Budget', checklist: '✅ Checklist',
+        packing: '🎒 Packing', photos: '📸 Photos', loadWeather: '🌤️ Load Weather',
+        day: 'Day', from: 'from', to: 'to', duration: 'Duration', price: 'Price', tips: 'Tips',
+        book: 'Book now at', openMaps: 'Open in Google Maps', accommodation: 'Accommodation',
+        distance: 'Distances', fromAccom: 'From accommodation', fromPrev: 'From previous stop',
+        driving: 'drive', description: 'Description', highlights: 'Highlights', warning: 'Note!',
+        mustSee: 'MUST SEE / DO!', total: 'Total', perPerson: 'Per person', progress: 'Progress',
+        items: 'items', booked: 'Booked', addPhoto: '+ Photo', noPhotos: 'No photos for this day yet',
+        deletePhoto: 'Delete photo?', photoGallery: 'Photo Gallery', smartPacking: 'Smart Packing List',
+        generatedAuto: 'Automatically generated based on your activities!',
+        proTips: 'Pro Tips', weather: 'Weather', high: 'High', low: 'Low', rain: 'Rain',
+        overview: 'Overview', budgetLabel: 'Budget', comfortLabel: 'Comfort'
+      },
+      fr: {
+        planning: '📅 Planning', map: '🗺️ Carte', budget: '💰 Budget', checklist: '✅ Liste',
+        packing: '🎒 Bagages', photos: '📸 Photos', loadWeather: '🌤️ Charger météo',
+        day: 'Jour', from: 'de', to: 'à', duration: 'Durée', price: 'Prix', tips: 'Conseils',
+        book: 'Réserver sur', openMaps: 'Ouvrir dans Google Maps', accommodation: 'Hébergement',
+        distance: 'Distances', fromAccom: 'Depuis hébergement', fromPrev: 'Depuis arrêt précédent',
+        driving: 'en voiture', description: 'Description', highlights: 'Points forts', warning: 'Attention!',
+        mustSee: 'À NE PAS MANQUER!', total: 'Total', perPerson: 'Par personne', progress: 'Progression',
+        items: 'articles', booked: 'Réservé', addPhoto: '+ Photo', noPhotos: 'Pas encore de photos pour ce jour',
+        deletePhoto: 'Supprimer photo?', photoGallery: 'Galerie Photos', smartPacking: 'Liste Intelligente',
+        generatedAuto: 'Générée automatiquement selon vos activités!',
+        proTips: 'Conseils Pro', weather: 'Météo', high: 'Max', low: 'Min', rain: 'Pluie',
+        overview: 'Aperçu', budgetLabel: 'Économique', comfortLabel: 'Confort'
+      }
+    };
+
+    function t(key) { return translations[currentLang][key] || key; }
+    
+    function setLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('yudiLanguage', lang);
+      render();
+    }
 
     // Photo gallery functions
     function addPhoto(dayNum) {
@@ -588,9 +643,17 @@
               <p class="text-blue-600 font-medium">${trip.subtitle}</p>
               <p class="text-gray-500 text-sm mt-1">${trip.dates} • ${trip.persons} personen • ${trip.duration}</p>
             </div>
-            <a href="/" class="text-gray-400 hover:text-gray-600">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </a>
+            <div class="flex items-center gap-2">
+              <!-- Language Dropdown -->
+              <select onchange="setLanguage(this.value)" class="px-3 py-2 bg-gray-100 rounded-xl text-sm font-medium border-0 cursor-pointer">
+                <option value="nl" ${currentLang === 'nl' ? 'selected' : ''}>🇳🇱 NL</option>
+                <option value="en" ${currentLang === 'en' ? 'selected' : ''}>🇬🇧 EN</option>
+                <option value="fr" ${currentLang === 'fr' ? 'selected' : ''}>🇫🇷 FR</option>
+              </select>
+              <a href="/" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </a>
+            </div>
           </div>
           <div class="flex flex-wrap gap-2 mt-3">
             <div class="inline-flex items-center gap-2 bg-red-100 text-red-700 px-3 py-1.5 rounded-full text-sm font-medium">
@@ -616,7 +679,7 @@
               </div>
             ` : `
               <button onclick="fetchWeather()" class="inline-flex items-center gap-1 bg-cyan-100 text-cyan-700 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-cyan-200 transition">
-                🌤️ Weer laden
+                ${t('loadWeather')}
               </button>
             `}
           </div>
@@ -624,12 +687,12 @@
 
         <!-- TABS -->
         <div class="flex gap-2 mb-4 overflow-x-auto hide-scrollbar">
-          <button onclick="setTab('planning')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'planning' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">📅 Dagplanning</button>
-          <button onclick="setTab('map')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'map' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">🗺️ Kaart</button>
-          <button onclick="setTab('budget')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'budget' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">💰 Budget</button>
-          <button onclick="setTab('checklist')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'checklist' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">✅ Checklist (${checkedCount}/${totalChecks})</button>
-          <button onclick="setTab('packing')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'packing' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">🎒 Inpaklijst</button>
-          <button onclick="setTab('photos')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'photos' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">📸 Foto's</button>
+          <button onclick="setTab('planning')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'planning' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">${t('planning')}</button>
+          <button onclick="setTab('map')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'map' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">${t('map')}</button>
+          <button onclick="setTab('budget')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'budget' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">${t('budget')}</button>
+          <button onclick="setTab('checklist')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'checklist' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">${t('checklist')} (${checkedCount}/${totalChecks})</button>
+          <button onclick="setTab('packing')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'packing' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">${t('packing')}</button>
+          <button onclick="setTab('photos')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'photos' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">${t('photos')}</button>
         </div>
       `;
 
