@@ -259,8 +259,12 @@
       const checkedCount = Object.values(checklist).filter(Boolean).length;
       const totalChecks = checklistSections.reduce((s, sec) => s + sec.items.length, 0);
 
-      const tripDate = new Date('2025-11-27');
-      const daysLeft = Math.ceil((tripDate - new Date()) / (1000*60*60*24));
+      const tripDate = new Date('2025-11-27T00:00:00');
+      const now = new Date();
+      const diff = tripDate - now;
+      const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+      const weeksLeft = Math.floor(daysLeft / 7);
+      const remainingDays = daysLeft % 7;
 
       let html = '';
 
@@ -271,12 +275,26 @@
             <div>
               <h1 class="text-2xl font-bold text-gray-800">${trip.title}</h1>
               <p class="text-red-600 font-medium">${trip.subtitle}</p>
-              <p class="text-gray-500 text-sm mt-1">${trip.dates} • ${trip.persons} pers • ${trip.duration}</p>
+              <p class="text-gray-500 text-sm mt-1">${trip.dates} • ${trip.persons} personen • ${trip.duration}</p>
             </div>
-            <a href="/" class="text-gray-400 hover:text-gray-600 text-2xl">×</a>
+            <a href="/" class="text-gray-400 hover:text-gray-600">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </a>
           </div>
           <div class="flex flex-wrap gap-2 mt-3">
-            ${daysLeft > 0 ? `<span class="bg-gradient-to-r from-red-600 to-green-600 text-white px-4 py-1.5 rounded-full text-sm font-bold animate-pulse">🎄 Nog ${daysLeft} dagen!</span>` : ''}
+            ${daysLeft > 0 ? `
+              <div class="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-green-600 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg animate-pulse">
+                🎄 Nog ${weeksLeft > 0 ? weeksLeft + ' weken' + (remainingDays > 0 ? ' en ' + remainingDays + ' dagen' : '') : daysLeft + ' dagen'}!
+              </div>
+            ` : daysLeft === 0 ? `
+              <div class="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg animate-pulse">
+                🎉 VANDAAG IS HET ZOVER!
+              </div>
+            ` : `
+              <div class="inline-flex items-center gap-2 bg-gray-500 text-white px-4 py-1.5 rounded-full text-sm font-bold">
+                ✅ Reis voltooid
+              </div>
+            `}
             <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">❄️ Winter Wonderland</span>
             <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">🎭 West End</span>
           </div>
