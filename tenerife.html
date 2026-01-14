@@ -1043,43 +1043,43 @@
     
     // Export to PDF function
     function exportToPDF() {
-      let content = '🌴 ULTIMATE ADVENTURE TRIP - TENERIFE & GRAN CANARIA 2026\\n';
-      content += '═══════════════════════════════════════════════════════════\\n\\n';
-      content += '📅 Datum: 16-24 mei 2026\\n';
-      content += '👥 Personen: 2\\n';
-      content += '⏱️ Duur: 9 dagen\\n\\n';
+      let content = '🌴 ULTIMATE ADVENTURE TRIP - TENERIFE & GRAN CANARIA 2026\n';
+      content += '═══════════════════════════════════════════════════════════\n\n';
+      content += '📅 Datum: 16-24 mei 2026\n';
+      content += '👥 Personen: 2\n';
+      content += '⏱️ Duur: 9 dagen\n\n';
       
       days.forEach(day => {
-        content += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\\n';
-        content += '📆 DAG ' + day.day + ' - ' + day.date + ' - ' + day.title.toUpperCase() + '\\n';
-        content += '📍 ' + day.island + ' | ⭐ ' + day.highlight + '\\n';
-        content += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\\n\\n';
+        content += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+        content += '📆 DAG ' + day.day + ' - ' + day.date + ' - ' + day.title.toUpperCase() + '\n';
+        content += '📍 ' + day.island + ' | ⭐ ' + day.highlight + '\n';
+        content += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
         
         const dayActs = activities[day.day] || [];
         dayActs.forEach(act => {
-          content += '  ' + act.time + ' │ ' + act.icon + ' ' + act.title + '\\n';
-          content += '         │ ' + act.subtitle + '\\n';
+          content += '  ' + act.time + ' │ ' + act.icon + ' ' + act.title + '\n';
+          content += '         │ ' + act.subtitle + '\n';
           if (act.info && act.info.price) {
-            content += '         │ 💰 ' + act.info.price + '\\n';
+            content += '         │ 💰 ' + act.info.price + '\n';
           }
-          content += '\\n';
+          content += '\n';
         });
-        content += '\\n';
+        content += '\n';
       });
       
-      content += '═══════════════════════════════════════════════════════════\\n';
-      content += '💰 BUDGET OVERZICHT\\n';
-      content += '═══════════════════════════════════════════════════════════\\n\\n';
+      content += '═══════════════════════════════════════════════════════════\n';
+      content += '💰 BUDGET OVERZICHT\n';
+      content += '═══════════════════════════════════════════════════════════\n\n';
       
-      content += '✅ GEBOEKT:\\n';
+      content += '✅ GEBOEKT:\n';
       budget.booked.forEach(item => {
-        content += '  • ' + item.item + ': €' + item.price.toFixed(2) + '\\n';
+        content += '  • ' + item.item + ': €' + item.price.toFixed(2) + '\n';
       });
       
-      content += '\\n📊 TOTAAL: €' + (budget.booked.reduce((s,i) => s + i.price, 0) + budget.estimated.reduce((s,i) => s + i.budget, 0)).toFixed(0) + ' (budget) - €' + (budget.booked.reduce((s,i) => s + i.price, 0) + budget.estimated.reduce((s,i) => s + i.comfort, 0)).toFixed(0) + ' (comfort)\\n';
-      content += '\\n═══════════════════════════════════════════════════════════\\n';
-      content += '🌴 Gegenereerd door YUDI Travelplanner\\n';
-      content += '🔗 https://adventure-trip-2026.vercel.app\\n';
+      content += '\n📊 TOTAAL: €' + (budget.booked.reduce((s,i) => s + i.price, 0) + budget.estimated.reduce((s,i) => s + i.budget, 0)).toFixed(0) + ' (budget) - €' + (budget.booked.reduce((s,i) => s + i.price, 0) + budget.estimated.reduce((s,i) => s + i.comfort, 0)).toFixed(0) + ' (comfort)\n';
+      content += '\n═══════════════════════════════════════════════════════════\n';
+      content += '🌴 Gegenereerd door YUDI Travelplanner\n';
+      content += '🔗 https://adventure-trip-2026.vercel.app\n';
       
       // Create and download text file (more compatible than PDF)
       const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
@@ -1094,7 +1094,7 @@
       
       // Also trigger print dialog for PDF
       setTimeout(() => {
-        if (confirm('📄 Tekstbestand gedownload!\\n\\nWil je ook een PDF maken via print?')) {
+        if (confirm('📄 Tekstbestand gedownload!\n\nWil je ook een PDF maken via print?')) {
           window.print();
         }
       }, 500);
