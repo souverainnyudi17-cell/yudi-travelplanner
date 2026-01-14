@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌴 Ultimate Adventure Trip 2026</title>
+  <meta name="theme-color" content="#f8fafc">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; background: linear-gradient(180deg, #fef3c7 0%, #fed7aa 50%, #fecaca 100%); min-height: 100vh; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    /* Activity card colors */
+    .card-transport { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+    .card-warning { background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%); }
+    .card-food { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); }
+    .card-accommodation { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+    .card-highlight { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
+    .card-beach { background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%); }
+    .card-activity { background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%); }
+    
+    .day-tab { transition: all 0.2s ease; }
+    .day-tab.active { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; }
+  </style>
+</head>
+<body>
+  <div id="app" class="max-w-2xl mx-auto p-4 pb-8"></div>
+
+  <script>
+    // ============================================
+    // TENERIFE & GRAN CANARIA - ORIGINAL STYLE
+    // Met parkeerinfo, accommodatie boxes, kleuren
+    // ============================================
+
+    let activeDay = 1;
+    let activeTab = 'planning';
+    let selectedModal = null;
+    let checklist = JSON.parse(localStorage.getItem('tenerifeChecklist2') || '{}');
+
+    // TRIP INFO
+    const trip = {
+      title: '🌴 Ultimate Adventure Trip',
+      subtitle: 'Tenerife & Gran Canaria',
+      dates: '16-24 mei 2026',
+      duration: '9 dagen',
+      persons: 2,
+      timezone: '⏰ 1 uur ACHTER Nederland!'
+    };
+
+    // ACCOMMODATIONS
+    const accommodations = {
+      tenerife: {
+        name: 'Home2Book Lovely Apartment in Santa Cruz',
+        location: 'Santa Cruz de Tenerife',
+        dates: '16-20 mei 2026',
+        nights: 4,
+        price: 309.80,
+        status: '✅ GEBOEKT',
+        lat: 28.4698, lng: -16.2549
+      },
+      grancanaria: {
+        name: 'Las Palmas Beach House Retreat',
+        location: 'Las Palmas de Gran Canaria',
+        dates: '20-24 mei 2026',
+        nights: 4,
+        price: 323.36,
+        status: '✅ GEBOEKT',
+        lat: 28.1235, lng: -15.4363
+      }
+    };
+
+    // PARKING INFO TENERIFE
+    const parkingTenerife = {
+      warning: '⚠️ Geen parking bij appartement!',
+      estimated: '~€50-70 totaal (4 nachten)',
+      options: [
+        { 
+          name: 'Parking Plaza de España', 
+          address: 'Plaza de España, Santa Cruz',
+          distance: '5-10 min lopen',
+          price: '€1.50-2.00/uur, max €15-18/dag',
+          tip: 'Beste optie voor overnachten - veilig & overdekt',
+          recommended: true
+        },
+        { 
+          name: 'Parking Meridiano', 
+          address: 'Av. 3 de Mayo, 3 (El Corte Inglés)',
+          distance: '10 min lopen',
+          price: '€1.20/uur',
+          tip: 'Gratis eerste uren bij aankoop'
+        },
+        { 
+          name: 'Zona Azul (straat)', 
+          address: 'Diverse straten',
+          distance: 'Variabel',
+          price: '€0.50-1.00/uur',
+          tip: '🎉 ZONDAG = GRATIS straatparkeren!'
+        }
+      ],
+      recommendation: '💡 Aanbeveling: Plaza de España voor overnachten. Zondag = straatparkeren GRATIS!'
+    };
+
+    // LOCATIONS
+    const locations = {
+      tfs_airport: { lat: 28.0445, lng: -16.5725 },
+      santa_cruz: { lat: 28.4698, lng: -16.2549 },
+      anaga: { lat: 28.5500, lng: -16.2000 },
+      cruz_carmen: { lat: 28.5361, lng: -16.2758 },
+      taganana: { lat: 28.5667, lng: -16.2000 },
+      benijo: { lat: 28.5731, lng: -16.1856 },
+      teresitas: { lat: 28.5083, lng: -16.1889 },
+      cueva_viento: { lat: 28.3500, lng: -16.7000 },
+      los_gigantes: { lat: 28.2472, lng: -16.8417 },
+      teide: { lat: 28.2723, lng: -16.6426 },
+      roques_garcia: { lat: 28.2242, lng: -16.6294 },
+      costa_adeje: { lat: 28.0800, lng: -16.7300 },
+      agaete: { lat: 28.1000, lng: -15.7000 },
+      las_palmas: { lat: 28.1235, lng: -15.4363 },
+      las_canteras: { lat: 28.1350, lng: -15.4450 },
+      roque_nublo: { lat: 27.9708, lng: -15.6125 },
+      tejeda: { lat: 27.9942, lng: -15.6139 },
+      maspalomas: { lat: 27.7600, lng: -15.5800 },
+      puerto_rico: { lat: 27.7900, lng: -15.7100 },
+      mogan: { lat: 27.8167, lng: -15.7667 },
+      poema_mar: { lat: 28.1400, lng: -15.4300 },
+      lpa_airport: { lat: 27.9319, lng: -15.3866 }
+    };
+
+    // Calculate distance
+    function calcDist(loc1, loc2) {
+      if (!locations[loc1] || !locations[loc2]) return null;
+      const R = 6371;
+      const l1 = locations[loc1], l2 = locations[loc2];
+      const dLat = (l2.lat - l1.lat) * Math.PI / 180;
+      const dLon = (l2.lng - l1.lng) * Math.PI / 180;
+      const a = Math.sin(dLat/2)**2 + Math.cos(l1.lat * Math.PI/180) * Math.cos(l2.lat * Math.PI/180) * Math.sin(dLon/2)**2;
+      return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+    }
+
+    function driveTime(km) {
+      if (!km) return '';
+      const m = Math.round((km / 50) * 60);
+      return m < 60 ? `~${m} min` : `~${Math.floor(m/60)}u${m%60 > 0 ? ` ${m%60}min` : ''}`;
+    }
+
+    // DAYS
+    const days = [
+      { day: 1, date: 'Za 16 mei', title: 'Aankomst', icon: '✈️', island: 'Tenerife', highlight: 'Supermarkt MOET vandaag!', accom: 'tenerife', showParking: true },
+      { day: 2, date: 'Zo 17 mei', title: 'Anaga', icon: '🌿', island: 'Tenerife', highlight: 'Jurassic Park + Stranden', accom: 'tenerife' },
+      { day: 3, date: 'Ma 18 mei', title: 'Walvissen', icon: '🐋', island: 'Tenerife', highlight: 'Cueva + Walvissen spotten', accom: 'tenerife', featured: true },
+      { day: 4, date: 'Di 19 mei', title: 'El Teide', icon: '🌋', island: 'Tenerife', highlight: '3.718m - Hoogste berg Spanje!', accom: 'tenerife', featured: true },
+      { day: 5, date: 'Wo 20 mei', title: 'Ferry', icon: '⛴️', island: 'Ferry', highlight: 'Naar Gran Canaria!', accom: 'grancanaria' },
+      { day: 6, date: 'Do 21 mei', title: 'Roque Nublo', icon: '🏔️', island: 'Gran Canaria', highlight: 'Bergen + UNESCO Vegueta', accom: 'grancanaria' },
+      { day: 7, date: 'Vr 22 mei', title: 'Watersport!', icon: '🚀', island: 'Gran Canaria', highlight: 'Jetski + Parasailing!', accom: 'grancanaria', featured: true },
+      { day: 8, date: 'Za 23 mei', title: 'Aquarium', icon: '🐟', island: 'Gran Canaria', highlight: 'Poema del Mar + Strand', accom: 'grancanaria' },
+      { day: 9, date: 'Zo 24 mei', title: 'Terug', icon: '🏠', island: 'Terug', highlight: 'Tot ziens!', accom: null }
+    ];
+
+    // ACTIVITIES - with card types for colors
+    const activities = {
+      1: [
+        { time: '14:40', title: 'Vertrek Amsterdam', subtitle: 'Vlucht naar Tenerife Zuid', icon: '🛫', type: 'transport', loc: 'tfs_airport', 
+          info: { desc: 'Vlucht Amsterdam Schiphol → Tenerife Zuid (TFS)', tips: ['2 uur voor vertrek aanwezig', 'Online inchecken', 'Handbagage max 40×30×20cm'], duration: '4u 45min', price: '€382 (2p retour)' }},
+        { time: '18:25', title: 'Landing TFS', subtitle: 'Tenerife Zuid luchthaven (lokale tijd!)', icon: '🛬', type: 'transport', loc: 'tfs_airport',
+          info: { desc: 'Aankomst Tenerife Zuid Airport', tips: ['⏰ Lokale tijd = 1 uur EERDER dan NL!', 'Paspoort/ID klaar houden'], warning: 'Let op tijdsverschil!' }},
+        { time: '19:00', title: 'Auto ophalen', subtitle: 'CICAR terminal', icon: '🚗', type: 'transport', loc: 'tfs_airport',
+          info: { desc: 'Huurauto ophalen bij CICAR', tips: ['Creditcard VERPLICHT op naam bestuurder', 'Check auto op schade + foto\'s maken', 'Volle tank = volle tank terug'], price: '€140-180 (4 dagen)' }},
+        { time: '20:15', title: 'Check-in', subtitle: 'Home2Book Santa Cruz', icon: '🏠', type: 'accommodation', loc: 'santa_cruz',
+          info: { desc: accommodations.tenerife.name, address: accommodations.tenerife.location, price: '€309,80 (4 nachten)', status: '✅ GEBOEKT' }},
+        { time: '20:30', title: '⚠️ SUPERMARKT', subtitle: 'Mercadona - Morgen DICHT!', icon: '⚠️', type: 'warning', loc: 'santa_cruz',
+          info: { desc: 'Supermarkten zijn zondag DICHT op Tenerife!', warning: '⚠️ VANAVOND boodschappen halen!', tips: ['Mercadona open tot 21:30', 'Water, ontbijt, snacks kopen', 'Lokale producten proberen'], mustDo: true }},
+        { time: '21:30', title: 'Diner', subtitle: 'Calle de la Noria', icon: '🍽️', type: 'food', loc: 'santa_cruz',
+          info: { desc: 'Gezellige tapasstraat in Santa Cruz', recommendations: ['Casa del Tapas', 'El Lateral 27', 'Tasca El Obispo'], specialty: 'Papas arrugadas con mojo', priceRange: '€20-35 p.p.' }}
+      ],
+      2: [
+        { time: '09:30', title: 'Vertrek Anaga', subtitle: 'UNESCO Biosfeerreservaat', icon: '🚗', type: 'transport', loc: 'anaga',
+          info: { desc: 'Rijden naar Anaga gebergte', tips: ['Kronkelwegen - rustig rijden!', 'Tank vol'], duration: '30-40 min', distance: '15 km' }},
+        { time: '10:15', title: 'Cruz del Carmen', subtitle: 'Bezoekerscentrum + panorama', icon: '👀', type: 'highlight', loc: 'cruz_carmen',
+          info: { desc: 'Start van Anaga verkenning', highlights: ['360° uitzicht', 'Gratis bezoekerscentrum', 'WC faciliteiten', 'Start wandelpaden'], tips: ['Gratis parkeren', 'Kaart meenemen'], mustSee: true }},
+        { time: '10:45', title: 'Sendero de los Sentidos', subtitle: 'Wandeling nevelwoud (45 min)', icon: '🥾', type: 'activity', loc: 'cruz_carmen',
+          info: { desc: 'Magische wandeling door eeuwenoud laurierbos', highlights: ['Mysterieus nevelwoud', 'Oude laurierbomen', 'Vogelgeluiden'], duration: '45 min rondje', difficulty: 'Makkelijk', tips: ['Goede schoenen aan', 'Kan mistig zijn'] }},
+        { time: '12:00', title: 'Lunch Taganana', subtitle: 'Verse vis bergdorpje', icon: '🍽️', type: 'food', loc: 'taganana',
+          info: { desc: 'Authentiek bergdorp met verse vis restaurants', recommendations: ['Casa Africa', 'El Frontón'], specialty: 'Verse gegrilde vis van de dag', priceRange: '€15-25 p.p.', tips: ['Reserveren niet nodig', 'Cash meenemen'] }},
+        { time: '14:00', title: '⭐ Playa de Benijo', subtitle: 'Wild zwart lavastrand!', icon: '🏖️', type: 'highlight', loc: 'benijo',
+          info: { desc: 'Spectaculair zwart vulkanisch strand met Roques de Anaga', highlights: ['Zwart vulkanisch zand', 'Roques de Anaga rotsen', 'Wilde golven - Instagram perfect!'], tips: ['⚠️ Zwemmen gevaarlijk (stroming)!', 'Wel prachtig voor fotos', 'Chiringuito voor drankjes'], mustSee: true }},
+        { time: '16:30', title: 'Playa de las Teresitas', subtitle: 'Goudgeel Sahara-zand!', icon: '🏖️', type: 'beach', loc: 'teresitas',
+          info: { desc: 'Kunstmatig strand met geïmporteerd Sahara zand - uniek!', highlights: ['Goudgeel zand (enige op Tenerife!)', 'Palmbomen', 'Rustig water - veilig zwemmen'], tips: ['Gratis parkeren', 'Minder toeristisch dan zuiden', 'Lokale sfeer'], duration: '2-3 uur' }},
+        { time: '19:30', title: 'Diner thuis', subtitle: 'Zelf koken (zondag = winkels dicht)', icon: '🍳', type: 'food', loc: 'santa_cruz',
+          info: { desc: 'Koken met boodschappen van gisteren', tips: ['Supermarkten DICHT op zondag', 'Lokale producten gebruiken', 'Wijn uit supermarkt'] }}
+      ],
+      3: [
+        { time: '08:30', title: 'Rijden Cueva del Viento', subtitle: '~1 uur rijden', icon: '🚗', type: 'transport', loc: 'cueva_viento',
+          info: { distance: '65 km', duration: '~1 uur', tips: ['Via TF-5 richting Icod de los Vinos'] }},
+        { time: '09:30', title: '⭐ CUEVA DEL VIENTO', subtitle: 'Grootste lavatunnel Europa!', icon: '🦇', type: 'highlight', loc: 'cueva_viento',
+          info: { desc: 'Ondergrondse lavatunnels - 17km lang, 5e langste ter wereld!', highlights: ['Lavatunnels verkennen', 'Stalactieten & stalagmieten', 'Unieke geologische formaties'], tips: ['⚠️ VOORAF BOEKEN VERPLICHT!', 'Comfortabele schoenen (ongelijk terrein)', 'Jas mee (15°C in grot)', 'Helm wordt verstrekt'], price: '€20 p.p.', duration: '2 uur tour', website: 'cuevadelviento.net', warning: 'Reserveer 2 weken vooraf!', mustSee: true }},
+        { time: '12:00', title: 'Lunch Los Gigantes', subtitle: 'Haven + 600m kliffen', icon: '🍽️', type: 'food', loc: 'los_gigantes',
+          info: { desc: 'Lunchen met uitzicht op spectaculaire kliffen', tips: ['Terrassen aan de haven', 'Uitzicht op 600m hoge kliffen'], priceRange: '€15-25 p.p.' }},
+        { time: '14:00', title: '⭐ WALVISSEN TOUR', subtitle: '90% kans! 2-3 uur', icon: '🐋', type: 'highlight', loc: 'los_gigantes',
+          info: { desc: 'Bootexcursie om walvissen en dolfijnen te spotten', highlights: ['Grienden (pilot whales)', 'Tuimelaars (dolfijnen)', 'Los Gigantes kliffen vanaf zee'], tips: ['⚠️ VOORAF BOEKEN!', '💊 Reiziektepillen meenemen!', 'Zonnebrand + pet', 'Camera met zoom'], price: '€30-50 p.p.', duration: '2-3 uur', website: 'ladyshelley.com', mustSee: true }},
+        { time: '17:00', title: 'Los Gigantes kliffen', subtitle: '600m hoge rotswanden', icon: '📸', type: 'activity', loc: 'los_gigantes',
+          info: { desc: 'Spectaculaire kliffen - 600m recht omhoog uit zee', tips: ['Beste licht late namiddag', 'Mirador de Archipenque voor foto\'s'], mustSee: true }},
+        { time: '19:30', title: 'Guachinche diner', subtitle: 'Traditioneel! €15pp all-in', icon: '🍷', type: 'food', loc: 'los_gigantes',
+          info: { desc: 'Authentieke Canarische eethuizen met lokale wijn', specialty: 'Carne fiesta, papas arrugadas, mojo', tips: ['Cash meenemen!', 'Geen menu - je krijgt wat er is', 'ECHTE lokale ervaring', 'Vaak in garages/schuren'], priceRange: '€15 p.p. all-in!' }}
+      ],
+      4: [
+        { time: '06:30', title: '⚠️ VROEG OPSTAAN!', subtitle: 'Kabelbaan vóór drukte!', icon: '⏰', type: 'warning', loc: 'santa_cruz',
+          info: { warning: 'Vroeg vertrekken = geen wachtrijen bij kabelbaan!', tips: ['Ontbijt meenemen', 'Warme kleding aan!', 'Camera opladen'] }},
+        { time: '07:30', title: 'Rijden El Teide', subtitle: '~1.5 uur', icon: '🚗', type: 'transport', loc: 'teide',
+          info: { distance: '75 km', duration: '~1.5 uur', tips: ['Volle tank!', 'Snacks/water mee', 'Warme jas aan!'] }},
+        { time: '08:30', title: '⭐ Roques de García', subtitle: 'Iconische rotsformaties', icon: '🪨', type: 'highlight', loc: 'roques_garcia',
+          info: { desc: 'Beroemde rotsformaties in maanlandschap', highlights: ['Roque Cinchado (stond op 1000 peseta biljet!)', 'Maanlandschap', 'Spectaculaire foto\'s'], tips: ['Korte wandeling (30 min)', 'Vroeg = weinig mensen'], mustSee: true }},
+        { time: '10:00', title: '⭐ KABELBAAN TEIDE', subtitle: 'Naar 3.555m!', icon: '🚡', type: 'highlight', loc: 'teide',
+          info: { desc: 'Kabelbaan naar bijna de top - spectaculair!', highlights: ['Van 2.356m naar 3.555m in 8 min', 'Uitzicht over alle Canarische Eilanden', 'Maanlandschap'], tips: ['⚠️ VOORAF TIJDSLOT BOEKEN!', 'Hoogte = minder zuurstof - rustig aan!', 'Kan koud zijn (5-10°C)'], price: '€39 p.p. retour', duration: '8 min omhoog', website: 'volcanoteide.com', warning: 'Reserveer op volcanoteide.com!', mustSee: true }},
+        { time: '11:30', title: 'Teide top wandeling', subtitle: '3.718m (vergunning nodig!)', icon: '🥾', type: 'activity', loc: 'teide',
+          info: { desc: 'Laatste 163m naar de absolute top van Spanje', warning: '⚠️ VERGUNNING VERPLICHT - 2+ maanden vooraf!', tips: ['Alleen met vergunning', 'Fysiek zwaar door hoogte', 'Niet verplicht - uitzicht kabelbaan al geweldig'], website: 'reservasparquesnacionales.es' }},
+        { time: '13:30', title: 'Picknick', subtitle: 'Lunch meenemen!', icon: '🧺', type: 'food', loc: 'teide',
+          info: { tips: ['Geen restaurants op hoogte', 'Meenemen van thuis/hotel', 'Veel water drinken'] }},
+        { time: '15:30', title: 'Costa Adeje strand', subtitle: 'Relaxen na bergen', icon: '🏖️', type: 'beach', loc: 'costa_adeje',
+          info: { desc: 'Ontspannen aan het strand na intensieve ochtend', highlights: ['Playa del Duque', 'Luxe boulevard', 'Zwemmen'], tips: ['Ligbedden €10-15', 'Veel restaurants'] }},
+        { time: '19:30', title: 'Diner', subtitle: 'Seafood Costa Adeje', icon: '🍽️', type: 'food', loc: 'costa_adeje',
+          info: { recommendations: ['El Molino Blanco', 'La Torre del Mirador'], priceRange: '€25-40 p.p.' }}
+      ],
+      5: [
+        { time: '08:00', title: 'Check-out Tenerife', subtitle: 'Home2Book Santa Cruz', icon: '📦', type: 'accommodation', loc: 'santa_cruz',
+          info: { tips: ['Niets vergeten!', 'Sleutels inleveren', 'Laatste check'] }},
+        { time: '08:30', title: 'Auto inleveren', subtitle: 'CICAR haven (volle tank!)', icon: '🚗', type: 'transport', loc: 'santa_cruz',
+          info: { tips: ['Volle tank tanken!', 'Foto van kilometerstand', 'Naar haven Santa Cruz'], warning: 'Volle tank verplicht!' }},
+        { time: '10:00', title: '⭐ FERRY Gran Canaria', subtitle: 'Fred Olsen Express', icon: '⛴️', type: 'highlight', loc: 'agaete',
+          info: { desc: 'Snelle ferry naar Gran Canaria', route: 'Santa Cruz de Tenerife → Puerto de Agaete', duration: '1u 20min', tips: ['💊 Reiziektepillen!', 'Buitendek = beste uitzicht', 'Online boeken = goedkoper'], price: '€45-60 p.p.', website: 'fredolsen.es', mustSee: true }},
+        { time: '11:30', title: 'Aankomst Agaete', subtitle: 'Puerto de las Nieves', icon: '🛬', type: 'transport', loc: 'agaete',
+          info: { desc: 'Pittoresk haventje Gran Canaria' }},
+        { time: '12:00', title: 'Bus Las Palmas', subtitle: 'Bus 103 (~50 min)', icon: '🚌', type: 'transport', loc: 'las_palmas',
+          info: { price: '€4.50 p.p.', duration: '50 min', tips: ['Buslijn 103', 'Regelmatige service'] }},
+        { time: '13:00', title: 'Check-in Las Palmas', subtitle: 'Beach House Retreat', icon: '🏠', type: 'accommodation', loc: 'las_palmas',
+          info: { desc: accommodations.grancanaria.name, address: accommodations.grancanaria.location, price: '€323,36 (4 nachten)', status: '✅ GEBOEKT' }},
+        { time: '15:30', title: 'Auto ophalen', subtitle: 'CICAR Las Palmas', icon: '🚗', type: 'transport', loc: 'las_palmas',
+          info: { price: '€148-185 (4 dagen)', tips: ['Creditcard verplicht'] }},
+        { time: '16:30', title: 'Las Canteras strand', subtitle: 'Relaxen na reisdag', icon: '🏖️', type: 'beach', loc: 'las_canteras',
+          info: { desc: 'Prachtig stadsstrand - 3km lang!', highlights: ['Goudgeel zand', 'Surfen mogelijk', 'Boulevard met restaurants'], tips: ['Zwemmen veilig', 'Zonsondergang!'] }},
+        { time: '20:00', title: 'Diner', subtitle: 'Tapas Las Canteras', icon: '🍽️', type: 'food', loc: 'las_canteras',
+          info: { priceRange: '€20-35 p.p.', tips: ['Boulevard vol restaurants'] }}
+      ],
+      6: [
+        { time: '08:30', title: 'Vertrek bergen', subtitle: 'Centrum eiland', icon: '🚗', type: 'transport', loc: 'roque_nublo',
+          info: { duration: '~1 uur', tips: ['Mooie bergwegen!'] }},
+        { time: '09:45', title: 'Pico de las Nieves', subtitle: '1.949m - hoogste punt!', icon: '🏔️', type: 'activity', loc: 'roque_nublo',
+          info: { desc: 'Hoogste punt van Gran Canaria', highlights: ['360° panorama uitzicht', 'Op heldere dag: Teide zien!', 'Militaire basis (niet betreden)'] }},
+        { time: '10:30', title: '⭐ ROQUE NUBLO', subtitle: 'Wandeling 40 min omhoog', icon: '🪨', type: 'highlight', loc: 'roque_nublo',
+          info: { desc: 'Iconische rotsformatie - symbool van Gran Canaria!', highlights: ['80m hoge monoliet', 'Spectaculair 360° uitzicht', 'Door pijnbomenbos'], duration: '40 min omhoog + 40 terug', difficulty: 'Gemiddeld', tips: ['Water meenemen!', 'Goede schoenen', 'Fotogeniek!'], mustSee: true }},
+        { time: '13:00', title: 'Lunch Tejeda', subtitle: 'Mooiste dorp + Bienmesabe!', icon: '🍽️', type: 'food', loc: 'tejeda',
+          info: { desc: 'Pittoresk bergdorp met beste uitzichten', specialty: 'Bienmesabe (amandeldessert)', recommendations: ['Restaurante Yolanda', 'El Refugio'], priceRange: '€15-25 p.p.' }},
+        { time: '14:30', title: 'Artenara', subtitle: 'Grotwoningen', icon: '🏘️', type: 'activity', loc: 'tejeda',
+          info: { desc: 'Hoogste dorp - huizen uitgehakt in rotsen!', highlights: ['Authentieke grotwoningen', 'Panorama uitzicht', 'Lokale sfeer'] }},
+        { time: '17:30', title: 'Vegueta', subtitle: 'UNESCO oude stad', icon: '🏛️', type: 'highlight', loc: 'las_palmas',
+          info: { desc: 'Historisch centrum Las Palmas - UNESCO Werelderfgoed', highlights: ['Kathedraal Santa Ana', 'Casa de Colón (Columbus)', 'Smalle straatjes'], tips: ['Te voet verkennen', 'Gratis musea'] }},
+        { time: '20:00', title: 'Tapas Vegueta', subtitle: 'Papas arrugadas!', icon: '🍽️', type: 'food', loc: 'las_palmas',
+          info: { specialty: 'Papas arrugadas con mojo', priceRange: '€20-30 p.p.' }}
+      ],
+      7: [
+        { time: '08:30', title: 'Naar Maspalomas', subtitle: '45 min rijden', icon: '🚗', type: 'transport', loc: 'maspalomas',
+          info: { tips: ['Zuidkust Gran Canaria', 'Via GC-1 snelweg'] }},
+        { time: '09:30', title: '⭐ Maspalomas Duinen', subtitle: 'Mini Sahara!', icon: '🏜️', type: 'highlight', loc: 'maspalomas',
+          info: { desc: 'Spectaculaire zandduinen - lijkt op Sahara!', highlights: ['Gouden duinen', 'Faro (vuurtoren)', 'Kamelentocht mogelijk'], tips: ['Vroeg = koeler', 'Schoenen uit!', 'Zonsopgang/ondergang = magisch'], mustSee: true }},
+        { time: '11:30', title: '⭐ JETSKI!', subtitle: '30-45 min varen', icon: '🚀', type: 'highlight', loc: 'puerto_rico',
+          info: { desc: 'Jetski over de Atlantische Oceaan!', tips: ['Te boeken ter plekke Puerto Rico', 'Rijbewijs niet nodig', 'Zwemvest verplicht', '⚠️ Check reisverzekering extreme sporten!'], price: '€55-75 p.p. (30 min)', duration: '30-45 min', mustSee: true }},
+        { time: '12:30', title: '⭐ PARASAILING!', subtitle: '80-150m hoog!', icon: '🪂', type: 'highlight', loc: 'puerto_rico',
+          info: { desc: 'Vliegen boven de oceaan - spectaculair!', tips: ['Samen vliegen = €80 voor 2', 'Geen ervaring nodig', 'Spectaculaire foto\'s!', 'Gewichtslimiet ~100kg p.p.'], price: '€50 solo / €80 duo', duration: '~15 min vlucht', mustSee: true }},
+        { time: '13:30', title: 'Lunch', subtitle: 'Puerto Rico haven', icon: '🍽️', type: 'food', loc: 'puerto_rico',
+          info: { priceRange: '€15-25 p.p.' }},
+        { time: '15:00', title: '⭐ Transparante Kayak', subtitle: '1.5u glazen bodem!', icon: '🛶', type: 'highlight', loc: 'mogan',
+          info: { desc: 'Kayakken met doorzichtige bodem - zie onderwaterleven!', highlights: ['Glazen bodem kayak', 'Snorkelen mogelijk', 'Grotten verkennen'], price: '€40-50 p.p.', duration: '1.5 uur', mustSee: true }},
+        { time: '17:00', title: 'Puerto de Mogán', subtitle: '"Klein Venetië" + VRIJDAGMARKT!', icon: '🏘️', type: 'activity', loc: 'mogan',
+          info: { desc: 'Pittoresk haventje met kanalen en bougainville', highlights: ['Kanalen door dorp', 'Bloemenpracht', 'Gezellige haven'], tips: ['🎉 VRIJDAG = GROTE MARKTDAG!', 'Souvenirs kopen', 'Zonsondergang perfect'] }},
+        { time: '20:00', title: 'Diner', subtitle: 'Las Canteras boulevard', icon: '🍽️', type: 'food', loc: 'las_canteras',
+          info: { priceRange: '€25-40 p.p.' }}
+      ],
+      8: [
+        { time: '10:00', title: '⭐ POEMA DEL MAR', subtitle: 'Aquarium 2-3 uur', icon: '🐟', type: 'highlight', loc: 'poema_mar',
+          info: { desc: 'Spectaculair aquarium met 2e grootste panoramaruit ter wereld!', highlights: ['Haaien', 'Gigantische panoramaruit', 'Interactieve zones', 'Pinguïns'], tips: ['Online tickets = goedkoper', 'Niet haasten - veel te zien', '2-3 uur nodig'], price: '€23-28 p.p.', duration: '2-3 uur', website: 'poemadelmar.com', mustSee: true }},
+        { time: '13:00', title: 'Lunch', subtitle: 'Strandtent Las Canteras', icon: '🍽️', type: 'food', loc: 'las_canteras',
+          info: { priceRange: '€15-25 p.p.' }},
+        { time: '14:30', title: 'Laatste stranddag', subtitle: 'Relaxen & zwemmen', icon: '🏖️', type: 'beach', loc: 'las_canteras',
+          info: { desc: 'Genieten van laatste volledige dag', tips: ['Ligbedden huren', 'Zwemmen', 'Laatste zonnestralen opvangen'] }},
+        { time: '17:30', title: 'Boulevard wandeling', subtitle: 'Souvenirs kopen', icon: '🛍️', type: 'activity', loc: 'las_canteras',
+          info: { tips: ['Souvenirs: Mojo sauzen, Gofio, Aloe vera producten', 'Winkels langs boulevard'] }},
+        { time: '19:00', title: 'Auto inleveren', subtitle: 'CICAR Las Palmas', icon: '🚗', type: 'transport', loc: 'las_palmas',
+          info: { tips: ['Volle tank!', 'Tijd voor controle inplannen'] }},
+        { time: '20:30', title: '⭐ AFSCHEIDSDINER', subtitle: 'Reserveer vooraf!', icon: '🍽️', type: 'highlight', loc: 'las_palmas',
+          info: { desc: 'Laatste avond - maak er iets speciaals van!', recommendations: ['La Marinera (vis)', 'Deliciosa Marta (creatief)', 'El Churrasco (vlees)'], tips: ['⚠️ RESERVEER VOORAF!', 'Dress code: smart casual'], priceRange: '€35-50 p.p.', mustSee: true }}
+      ],
+      9: [
+        { time: '07:30', title: 'Laatste ontbijt', subtitle: 'Aan zee', icon: '🍳', type: 'food', loc: 'las_canteras',
+          info: { desc: 'Genieten van laatste uurtjes', tips: ['Boulevard café', 'Rustig wakker worden'] }},
+        { time: '08:30', title: 'Check-out', subtitle: 'Beach House Retreat', icon: '📦', type: 'accommodation', loc: 'las_palmas',
+          info: { tips: ['Niets vergeten!', 'Sleutels inleveren'] }},
+        { time: '09:00', title: 'Naar luchthaven', subtitle: 'Bus 60 of taxi', icon: '🚌', type: 'transport', loc: 'lpa_airport',
+          info: { options: ['Bus 60: €3.50 p.p., 30 min', 'Taxi: ~€30, 25 min'], tips: ['Ruim op tijd!', '2 uur voor vlucht'] }},
+        { time: '10:45', title: '✈️ VLUCHT HUIS', subtitle: 'Las Palmas → Amsterdam', icon: '🛫', type: 'highlight', loc: 'lpa_airport',
+          info: { desc: 'Terugvlucht naar Nederland', duration: '4u 30min', price: '€472 (2p)', tips: ['Tax free shopping', 'Laatste Canarische snacks kopen'] }},
+        { time: '16:15', title: '🏠 Thuis!', subtitle: 'Aankomst Schiphol', icon: '🏠', type: 'transport', loc: 'lpa_airport',
+          info: { desc: 'Welkom terug in Nederland!' }}
+      ]
+    };
+
+    // BUDGET
+    const budget = {
+      booked: [
+        { item: '✈️ Vluchten (2 pers retour)', price: 854, status: '✅ GEBOEKT' },
+        { item: '🏠 Tenerife 4 nachten', price: 309.80, status: '✅ GEBOEKT' },
+        { item: '🏠 Gran Canaria 4 nachten', price: 323.36, status: '✅ GEBOEKT' }
+      ],
+      estimated: [
+        { item: '🚗 Huurauto Tenerife (4d)', budget: 140, comfort: 180 },
+        { item: '🚗 Huurauto Gran Canaria (4d)', budget: 148, comfort: 185 },
+        { item: '⛽ Benzine (~500km)', budget: 50, comfort: 70 },
+        { item: '⛴️ Ferry', budget: 90, comfort: 120 },
+        { item: '🅿️ Parkeren Tenerife', budget: 50, comfort: 70 },
+        { item: '🦇 Cueva del Viento', budget: 40, comfort: 40 },
+        { item: '🐋 Walvissen tour', budget: 60, comfort: 100 },
+        { item: '🚡 Teide Kabelbaan', budget: 78, comfort: 78 },
+        { item: '🚀 Jetski', budget: 110, comfort: 150 },
+        { item: '🪂 Parasailing', budget: 80, comfort: 80 },
+        { item: '🛶 Kayak', budget: 80, comfort: 100 },
+        { item: '🐟 Poema del Mar', budget: 46, comfort: 56 },
+        { item: '🍽️ Eten (9 dagen)', budget: 400, comfort: 550 },
+        { item: '🏥 Reisverzekering', budget: 45, comfort: 65 },
+        { item: '💰 Buffer', budget: 100, comfort: 150 }
+      ]
+    };
+
+    // CHECKLIST
+    const checklistSections = [
+      { title: '🔴 NU BOEKEN', items: [
+        { key: 'insurance', label: 'Reisverzekering (extreme sporten!)' },
+        { key: 'teidePermit', label: 'Teide TOP vergunning (2+ mnd vooraf!)' },
+        { key: 'cueva', label: 'Cueva del Viento reserveren' }
+      ]},
+      { title: '🟠 MAART/APRIL', items: [
+        { key: 'teideCable', label: 'Teide Kabelbaan tijdslot' },
+        { key: 'whales', label: 'Walvissen tour boeken' },
+        { key: 'carTF', label: 'Huurauto Tenerife' },
+        { key: 'carGC', label: 'Huurauto Gran Canaria' },
+        { key: 'ferry', label: 'Ferry Fred Olsen' }
+      ]},
+      { title: '🟢 MEI', items: [
+        { key: 'jetski', label: 'Jetski (ter plekke)' },
+        { key: 'parasail', label: 'Parasailing (ter plekke)' },
+        { key: 'kayak', label: 'Transparante Kayak' },
+        { key: 'poema', label: 'Poema del Mar tickets' }
+      ]},
+      { title: '📦 INPAKKEN', items: [
+        { key: 'passport', label: 'Paspoort / ID' },
+        { key: 'license', label: 'Rijbewijs' },
+        { key: 'creditcard', label: 'Creditcard' },
+        { key: 'swimwear', label: 'Zwemkleding (2x)' },
+        { key: 'hikingshoes', label: 'Wandelschoenen' },
+        { key: 'winterjacket', label: 'Winterjas (Teide!)' },
+        { key: 'seapills', label: '💊 Reiziektepillen!' },
+        { key: 'sunscreen', label: 'Zonnebrand SPF50' }
+      ]}
+    ];
+
+    // Helper functions
+    function getCardClass(type) {
+      const classes = {
+        transport: 'card-transport',
+        warning: 'card-warning',
+        food: 'card-food',
+        accommodation: 'card-accommodation',
+        highlight: 'card-highlight',
+        beach: 'card-beach',
+        activity: 'card-activity'
+      };
+      return classes[type] || 'bg-white';
+    }
+
+    function toggleCheck(key) {
+      checklist[key] = !checklist[key];
+      localStorage.setItem('tenerifeChecklist2', JSON.stringify(checklist));
+      render();
+    }
+
+    function setDay(d) { activeDay = d; render(); }
+    function setTab(t) { activeTab = t; render(); }
+    function openModal(act) { selectedModal = act; render(); }
+    function closeModal() { selectedModal = null; render(); }
+
+    // MAIN RENDER
+    function render() {
+      const day = days[activeDay - 1];
+      const acts = activities[activeDay] || [];
+      const accom = day.accom ? accommodations[day.accom] : null;
+      
+      const bookedTotal = budget.booked.reduce((s, i) => s + i.price, 0);
+      const estBudget = budget.estimated.reduce((s, i) => s + i.budget, 0);
+      const estComfort = budget.estimated.reduce((s, i) => s + i.comfort, 0);
+      const totalBudget = Math.round(bookedTotal + estBudget);
+      const totalComfort = Math.round(bookedTotal + estComfort);
+      
+      const checkedCount = Object.values(checklist).filter(Boolean).length;
+      const totalChecks = checklistSections.reduce((s, sec) => s + sec.items.length, 0);
+
+      let html = `
+        <!-- HEADER -->
+        <div class="bg-white rounded-3xl p-5 shadow-lg mb-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-2xl font-bold text-gray-800">${trip.title}</h1>
+              <p class="text-blue-600 font-medium">${trip.subtitle}</p>
+              <p class="text-gray-500 text-sm mt-1">${trip.dates} • ${trip.persons} personen • ${trip.duration}</p>
+            </div>
+            <a href="/" class="text-gray-400 hover:text-gray-600">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </a>
+          </div>
+          <div class="mt-3 inline-flex items-center gap-2 bg-red-100 text-red-700 px-3 py-1.5 rounded-full text-sm font-medium">
+            ${trip.timezone}
+          </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="flex gap-2 mb-4 overflow-x-auto hide-scrollbar">
+          <button onclick="setTab('planning')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'planning' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">📅 Dagplanning</button>
+          <button onclick="setTab('budget')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'budget' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">💰 Budget</button>
+          <button onclick="setTab('checklist')" class="px-4 py-2 rounded-xl font-medium whitespace-nowrap ${activeTab === 'checklist' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'} shadow">✅ Checklist (${checkedCount}/${totalChecks})</button>
+        </div>
+      `;
+
+      // PLANNING TAB
+      if (activeTab === 'planning') {
+        html += `
+          <!-- Day Tabs -->
+          <div class="flex gap-2 overflow-x-auto pb-3 hide-scrollbar">
+            ${days.map(d => `
+              <button onclick="setDay(${d.day})" class="day-tab flex items-center gap-2 px-4 py-2 rounded-xl font-medium whitespace-nowrap shadow ${activeDay === d.day ? 'active' : 'bg-white text-gray-700'}">
+                <span>${d.icon}</span>
+                <span>Dag ${d.day}</span>
+              </button>
+            `).join('')}
+          </div>
+
+          <!-- Day Header Card -->
+          <div class="bg-white rounded-2xl p-5 shadow-lg mb-4">
+            <div class="flex items-start gap-4">
+              <img src="https://em-content.zobj.net/source/apple/391/${day.icon === '✈️' ? 'airplane-departure_1f6eb' : day.icon === '🌿' ? 'herb_1f33f' : day.icon === '🐋' ? 'spouting-whale_1f433' : day.icon === '🌋' ? 'volcano_1f30b' : day.icon === '⛴️' ? 'ferry_26f4-fe0f' : day.icon === '🏔️' ? 'snow-capped-mountain_1f3d4-fe0f' : day.icon === '🚀' ? 'rocket_1f680' : day.icon === '🐟' ? 'fish_1f41f' : 'house_1f3e0'}.png" alt="${day.icon}" class="w-16 h-16" onerror="this.outerHTML='<span class=\\'text-5xl\\'>${day.icon}</span>'">
+              <div class="flex-1">
+                <h2 class="text-2xl font-bold text-gray-800">Dag ${day.day}: ${day.title}</h2>
+                <p class="text-gray-500">${day.date} • ${day.island}</p>
+                <p class="text-blue-600 font-semibold mt-1">${day.highlight}</p>
+              </div>
+            </div>
+
+            ${accom ? `
+              <div class="mt-4 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-4">
+                <div class="flex items-center gap-2 text-amber-700 font-semibold text-sm mb-1">
+                  <span>🏠</span>
+                  <span>ACCOMMODATIE</span>
+                </div>
+                <div class="font-bold text-gray-800">${accom.name}</div>
+                <div class="text-blue-600 text-sm">${accom.location}</div>
+              </div>
+            ` : ''}
+          </div>
+
+          ${day.showParking ? `
+            <!-- Parking Section -->
+            <div class="bg-gradient-to-br from-amber-100 to-orange-100 rounded-2xl p-5 shadow-lg mb-4">
+              <div class="flex items-center justify-between flex-wrap gap-2 mb-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-2xl">🅿️</span>
+                  <span class="font-bold text-gray-800 text-lg">PARKEREN TENERIFE</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-medium">Geen parking bij appartement!</span>
+                  <span class="text-orange-600 font-bold">${parkingTenerife.estimated}</span>
+                </div>
+              </div>
+              
+              <div class="space-y-3">
+                ${parkingTenerife.options.map(opt => `
+                  <div class="bg-white rounded-xl p-4 ${opt.recommended ? 'ring-2 ring-green-400' : ''}">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="font-bold text-gray-800">${opt.name}</span>
+                      ${opt.recommended ? '<span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">Aanbevolen</span>' : ''}
+                    </div>
+                    <div class="text-sm text-gray-600 space-y-1">
+                      <div class="flex items-center gap-2"><span>📍</span>${opt.address}</div>
+                      <div class="flex items-center gap-2"><span>🚶</span>${opt.distance}</div>
+                      <div class="text-green-600 font-semibold">${opt.price}</div>
+                    </div>
+                    <div class="mt-2 bg-yellow-50 text-yellow-800 text-sm px-3 py-2 rounded-lg flex items-center gap-2">
+                      <span>💡</span>
+                      <span>${opt.tip}</span>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+
+              <div class="mt-4 bg-yellow-50 border border-yellow-300 rounded-xl p-4 text-yellow-800">
+                ${parkingTenerife.recommendation}
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- Activity Info Banner -->
+          <div class="bg-white rounded-xl p-4 mb-4 shadow flex items-center gap-3">
+            <span class="text-2xl">💡</span>
+            <span class="text-gray-700"><strong>Klik op een activiteit</strong> voor gedetailleerde info, afstanden, tips en boekingsinformatie!</span>
+          </div>
+
+          <!-- Timeline -->
+          <div class="bg-white rounded-2xl p-4 shadow-lg">
+            <div class="space-y-3">
+              ${acts.map((act, idx) => {
+                const prevLoc = idx > 0 ? acts[idx-1].loc : null;
+                const dist = prevLoc ? calcDist(prevLoc, act.loc) : null;
+                
+                return `
+                  <div onclick='openModal(${JSON.stringify(act).replace(/'/g, "\\'")})' 
+                       class="rounded-xl p-4 cursor-pointer hover:shadow-md transition-all ${getCardClass(act.type)}">
+                    <div class="flex items-center gap-4">
+                      <div class="font-mono font-bold text-gray-700 w-14 text-center text-lg">${act.time}</div>
+                      <div class="text-3xl">${act.icon}</div>
+                      <div class="flex-1 min-w-0">
+                        <div class="font-bold text-gray-800 text-lg">${act.title}</div>
+                        <div class="text-gray-600 text-sm truncate">${act.subtitle}</div>
+                      </div>
+                      ${dist && dist > 0 ? `
+                        <div class="hidden md:block text-xs bg-white/70 px-2 py-1 rounded-full text-gray-600">
+                          🚗 ${dist}km
+                        </div>
+                      ` : ''}
+                      <div class="text-gray-400">→</div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- Day-specific tips -->
+          ${activeDay === 4 ? `
+            <div class="mt-4 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-2xl p-5 shadow">
+              <h4 class="font-bold text-blue-800 mb-3">🧥 TEIDE - KLEDING MEENEMEN!</h4>
+              <div class="flex flex-wrap gap-2">
+                ${['Winterjas', 'Handschoenen', 'Muts', 'Zonnebril', 'SPF50'].map(i => `<span class="bg-white text-blue-800 px-3 py-1 rounded-full text-sm font-medium">${i}</span>`).join('')}
+              </div>
+              <p class="mt-3 text-blue-700 text-sm">🌡️ Op 3.500m hoogte is het 5-10°C!</p>
+            </div>
+          ` : ''}
+          ${activeDay === 7 ? `
+            <div class="mt-4 bg-gradient-to-r from-amber-100 to-orange-100 rounded-2xl p-5 shadow">
+              <h4 class="font-bold text-amber-800 mb-3">🚀 WATERSPORT PRIJZEN</h4>
+              <div class="grid grid-cols-2 gap-2 text-sm">
+                <div class="bg-white p-3 rounded-xl"><span class="font-bold">🚀 Jetski</span><br/>€55-75 p.p.</div>
+                <div class="bg-white p-3 rounded-xl"><span class="font-bold">🪂 Parasailing</span><br/>€50-80 p.p.</div>
+                <div class="bg-white p-3 rounded-xl"><span class="font-bold">🛶 Kayak</span><br/>€40-50 p.p.</div>
+              </div>
+              <p class="mt-3 text-amber-700 text-sm">⚠️ Check reisverzekering voor extreme sporten!</p>
+            </div>
+          ` : ''}
+        `;
+      }
+
+      // BUDGET TAB
+      if (activeTab === 'budget') {
+        html += `
+          <div class="space-y-4">
+            <div class="bg-white rounded-2xl p-5 shadow-lg">
+              <h3 class="font-bold text-lg mb-4 flex items-center gap-2">✅ Geboekt</h3>
+              ${budget.booked.map(i => `
+                <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span>${i.item}</span>
+                  <div class="text-right">
+                    <span class="font-bold text-green-600">€${i.price.toFixed(2)}</span>
+                    <span class="text-xs text-green-500 ml-2">${i.status}</span>
+                  </div>
+                </div>
+              `).join('')}
+              <div class="mt-3 pt-3 border-t-2 border-green-200 flex justify-between font-bold">
+                <span>Subtotaal</span>
+                <span class="text-green-600">€${bookedTotal.toFixed(2)}</span>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-5 shadow-lg overflow-x-auto">
+              <h3 class="font-bold text-lg mb-4">💰 Geschat</h3>
+              <table class="w-full text-sm">
+                <thead><tr class="border-b-2"><th class="text-left py-2">Item</th><th class="text-right py-2">Budget</th><th class="text-right py-2">Comfort</th></tr></thead>
+                <tbody>
+                  ${budget.estimated.map(i => `<tr class="border-b border-gray-100"><td class="py-2">${i.item}</td><td class="text-right text-gray-600">€${i.budget}</td><td class="text-right">€${i.comfort}</td></tr>`).join('')}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-5 text-white text-center">
+                <div class="text-sm opacity-80">💚 Budget</div>
+                <div class="text-3xl font-bold">€${totalBudget}</div>
+                <div class="text-sm opacity-80">€${Math.round(totalBudget/2)} p.p.</div>
+              </div>
+              <div class="bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl p-5 text-white text-center">
+                <div class="text-sm opacity-80">✨ Comfort</div>
+                <div class="text-3xl font-bold">€${totalComfort}</div>
+                <div class="text-sm opacity-80">€${Math.round(totalComfort/2)} p.p.</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // CHECKLIST TAB
+      if (activeTab === 'checklist') {
+        html += `
+          <div class="space-y-4">
+            ${checklistSections.map(sec => `
+              <div class="bg-white rounded-2xl p-5 shadow-lg">
+                <h3 class="font-bold mb-3">${sec.title}</h3>
+                <div class="space-y-2">
+                  ${sec.items.map(i => `
+                    <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                      <input type="checkbox" ${checklist[i.key] ? 'checked' : ''} onchange="toggleCheck('${i.key}')" class="w-5 h-5 rounded text-blue-600">
+                      <span class="${checklist[i.key] ? 'line-through text-gray-400' : 'text-gray-700'}">${i.label}</span>
+                    </label>
+                  `).join('')}
+                </div>
+              </div>
+            `).join('')}
+            
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-5 text-white">
+              <h3 class="font-bold mb-3">📊 Voortgang</h3>
+              <div class="bg-white/20 rounded-full h-4 mb-2">
+                <div class="bg-white rounded-full h-4 transition-all" style="width: ${Math.max((checkedCount/totalChecks)*100, 5)}%"></div>
+              </div>
+              <div class="text-center">${checkedCount} van ${totalChecks} items</div>
+            </div>
+          </div>
+        `;
+      }
+
+      // MODAL
+      if (selectedModal) {
+        const m = selectedModal;
+        const info = m.info || {};
+        html += `
+          <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onclick="closeModal()">
+            <div class="bg-white rounded-3xl max-w-lg w-full max-h-[85vh] overflow-y-auto shadow-2xl" onclick="event.stopPropagation()">
+              <div class="p-5 ${getCardClass(m.type)} rounded-t-3xl">
+                <div class="flex justify-between items-start">
+                  <div class="flex items-center gap-3">
+                    <span class="text-4xl">${m.icon}</span>
+                    <div>
+                      <h3 class="text-xl font-bold text-gray-800">${m.title}</h3>
+                      <p class="text-gray-600">${m.time} • ${m.subtitle}</p>
+                    </div>
+                  </div>
+                  <button onclick="closeModal()" class="text-3xl text-gray-400 hover:text-gray-600">×</button>
+                </div>
+              </div>
+              
+              <div class="p-5 space-y-4">
+                ${info.desc ? `<div><h4 class="font-bold text-gray-700 mb-1">📖 Beschrijving</h4><p class="text-gray-600">${info.desc}</p></div>` : ''}
+                
+                ${info.highlights ? `
+                  <div>
+                    <h4 class="font-bold text-gray-700 mb-2">✨ Highlights</h4>
+                    <div class="flex flex-wrap gap-2">${info.highlights.map(h => `<span class="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm">${h}</span>`).join('')}</div>
+                  </div>
+                ` : ''}
+                
+                ${info.price || info.priceRange ? `
+                  <div class="bg-green-50 p-4 rounded-xl">
+                    <h4 class="font-bold text-green-800 mb-1">💰 Kosten</h4>
+                    <p class="text-green-700 font-semibold text-lg">${info.price || info.priceRange}</p>
+                  </div>
+                ` : ''}
+                
+                ${info.duration ? `<div class="flex items-center gap-2 bg-gray-50 p-3 rounded-xl"><span>⏱️</span><strong>Duur:</strong> ${info.duration}</div>` : ''}
+                ${info.distance ? `<div class="flex items-center gap-2 bg-gray-50 p-3 rounded-xl"><span>📍</span><strong>Afstand:</strong> ${info.distance}</div>` : ''}
+                
+                ${info.tips ? `
+                  <div>
+                    <h4 class="font-bold text-gray-700 mb-2">💡 Tips</h4>
+                    <ul class="space-y-1">${info.tips.map(t => `<li class="text-sm bg-blue-50 text-blue-800 p-2 rounded-lg">• ${t}</li>`).join('')}</ul>
+                  </div>
+                ` : ''}
+                
+                ${info.warning ? `
+                  <div class="bg-red-50 border border-red-200 p-4 rounded-xl">
+                    <h4 class="font-bold text-red-800 mb-1">⚠️ Let op!</h4>
+                    <p class="text-red-700">${info.warning}</p>
+                  </div>
+                ` : ''}
+                
+                ${info.website ? `
+                  <div class="bg-blue-50 p-4 rounded-xl">
+                    <h4 class="font-bold text-blue-800 mb-1">🔗 Website</h4>
+                    <p class="text-blue-600">${info.website}</p>
+                  </div>
+                ` : ''}
+                
+                ${info.recommendations ? `
+                  <div>
+                    <h4 class="font-bold text-gray-700 mb-2">🍽️ Aanbevelingen</h4>
+                    <div class="flex flex-wrap gap-2">${info.recommendations.map(r => `<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">${r}</span>`).join('')}</div>
+                  </div>
+                ` : ''}
+                
+                ${info.mustSee ? `
+                  <div class="bg-gradient-to-r from-amber-100 to-yellow-100 p-4 rounded-xl text-center">
+                    <span class="text-2xl">⭐</span>
+                    <span class="font-bold text-amber-800 ml-2">MUST SEE / DO!</span>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Footer
+      html += `
+        <div class="text-center mt-6 text-gray-600 text-sm">
+          <p>🌴 Ultimate Adventure Trip 2026</p>
+          <a href="/" class="text-blue-600 hover:underline">← Terug naar overzicht</a>
+        </div>
+      `;
+
+      document.getElementById('app').innerHTML = html;
+    }
+
+    // Init
+    render();
+  </script>
+</body>
+</html>
