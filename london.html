@@ -1,0 +1,149 @@
+        { time: '20:30', title: 'Diner West End', subtitle: 'Pre-theatre menu', icon: '🍽️', type: 'food' }
+      ],
+      3: [
+        { time: '10:00', title: '🏬 Harrods Christmas', subtitle: 'Iconische decoratie!', icon: '🏬', type: 'highlight' },
+        { time: '12:00', title: '🎄 Natural History Museum', subtitle: 'Ijsbaan + kerstboom!', icon: '⛸️', type: 'highlight' },
+        { time: '14:00', title: 'Lunch South Kensington', subtitle: 'Gezellige pubs', icon: '🍽️', type: 'food' },
+        { time: '15:30', title: '⭐ Oxford Street Lights', subtitle: '1 km kerstverlichting!', icon: '✨', type: 'highlight' },
+        { time: '16:30', title: '🎀 Carnaby Street', subtitle: 'Unieke decoraties!', icon: '🎀', type: 'highlight' },
+        { time: '17:30', title: '🎄 Covent Garden', subtitle: 'Gigantische kerstboom!', icon: '🎄', type: 'highlight' },
+        { time: '19:00', title: '⛸️ Somerset House', subtitle: 'Romantische ijsbaan!', icon: '⛸️', type: 'activity' },
+        { time: '20:30', title: '🎭 West End Show', subtitle: 'Musical magic!', icon: '🎭', type: 'highlight' }
+      ],
+      4: [
+        { time: '09:00', title: 'Ontbijt & uitchecken', subtitle: 'Laatste Full English!', icon: '🍳', type: 'food' },
+        { time: '10:30', title: '🎄 Trafalgar Square', subtitle: 'Noorse kerstboom', icon: '🎄', type: 'activity' },
+        { time: '11:30', title: 'Leicester Square Market', subtitle: 'Laatste souvenirs', icon: '🎁', type: 'activity' },
+        { time: '13:00', title: 'Vertrek naar vliegveld', subtitle: 'Stansted Express', icon: '🚃', type: 'transport' },
+        { time: '17:00', title: '✈️ Vlucht → Amsterdam', subtitle: 'Tot ziens London!', icon: '🛫', type: 'highlight' }
+      ]
+    };
+
+    const budget = [
+      { item: '✈️ Vluchten (2p retour)', budget: 150, comfort: 250 },
+      { item: '🏨 Hotel 3 nachten', budget: 400, comfort: 600 },
+      { item: '🚃 Stansted Express (2p)', budget: 76, comfort: 76 },
+      { item: '🚇 Oyster card transport', budget: 50, comfort: 50 },
+      { item: '🎡 London Eye (2p)', budget: 60, comfort: 72 },
+      { item: '⛸️ Ice skating 2x (2p)', budget: 60, comfort: 80 },
+      { item: '🎢 Winter Wonderland', budget: 40, comfort: 60 },
+      { item: '🎭 West End Show (2p)', budget: 80, comfort: 200 },
+      { item: '🍽️ Eten (4 dagen)', budget: 200, comfort: 350 },
+      { item: '🎁 Shopping & souvenirs', budget: 50, comfort: 150 },
+      { item: '💰 Buffer', budget: 34, comfort: 62 }
+    ];
+
+    const checklistSections = [
+      { title: '🔴 NU BOEKEN (Nov = druk!)', items: [
+        { key: 'flights', label: 'Vluchten Amsterdam ↔ London' },
+        { key: 'hotel', label: 'Hotel (centrum!)' },
+        { key: 'winterWonderland', label: 'Winter Wonderland ijsbaan' },
+        { key: 'somersetHouse', label: 'Somerset House ijsbaan' },
+        { key: 'westEnd', label: 'West End Show tickets' }
+      ]},
+      { title: '🟠 WEEK VAN TEVOREN', items: [
+        { key: 'stansted', label: 'Stansted Express tickets' },
+        { key: 'londonEye', label: 'London Eye tickets' },
+        { key: 'oyster', label: 'Oyster card online' }
+      ]},
+      { title: '📦 INPAKKEN', items: [
+        { key: 'passport', label: 'Paspoort' },
+        { key: 'warm', label: 'Warme jas & sjaal' },
+        { key: 'gloves', label: 'Handschoenen (schaatsen!)' },
+        { key: 'umbrella', label: 'Paraplu (Londen = regen!)' },
+        { key: 'adapter', label: 'UK stekker adapter' }
+      ]}
+    ];
+
+    function getCardClass(type) {
+      const c = { transport:'card-transport', warning:'card-warning', food:'card-food', accommodation:'card-accommodation', highlight:'card-highlight', activity:'card-activity' };
+      return c[type] || 'bg-white';
+    }
+
+    function toggleCheck(key) { checklist[key] = !checklist[key]; localStorage.setItem('londonChecklist', JSON.stringify(checklist)); render(); }
+    function setDay(d) { activeDay = d; render(); }
+    function setTab(t) { activeTab = t; render(); }
+
+    function render() {
+      const day = days[activeDay - 1];
+      const acts = activities[activeDay] || [];
+      const accom = day.accom ? accommodations[day.accom] : null;
+      const totalBudget = budget.reduce((s,i) => s + i.budget, 0);
+      const totalComfort = budget.reduce((s,i) => s + i.comfort, 0);
+      const checkedCount = Object.values(checklist).filter(Boolean).length;
+      const totalChecks = checklistSections.reduce((s, sec) => s + sec.items.length, 0);
+
+      let html = `
+        <div class="bg-white rounded-3xl p-5 shadow-lg mb-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-2xl font-bold text-gray-800">${trip.title}</h1>
+              <p class="text-red-600 font-medium">${trip.subtitle}</p>
+              <p class="text-gray-500 text-sm mt-1">${trip.dates} • ${trip.persons} personen</p>
+            </div>
+            <a href="/" class="text-gray-400 hover:text-gray-600">✕</a>
+          </div>
+        </div>
+
+        <div class="flex gap-2 mb-4 overflow-x-auto hide-scrollbar">
+          <button onclick="setTab('planning')" class="px-4 py-2 rounded-xl font-medium ${activeTab === 'planning' ? 'bg-red-600 text-white' : 'bg-white text-gray-700'} shadow">📅 Dagplanning</button>
+          <button onclick="setTab('budget')" class="px-4 py-2 rounded-xl font-medium ${activeTab === 'budget' ? 'bg-red-600 text-white' : 'bg-white text-gray-700'} shadow">💰 Budget</button>
+          <button onclick="setTab('checklist')" class="px-4 py-2 rounded-xl font-medium ${activeTab === 'checklist' ? 'bg-red-600 text-white' : 'bg-white text-gray-700'} shadow">✅ Checklist (${checkedCount}/${totalChecks})</button>
+        </div>
+      `;
+
+      if (activeTab === 'planning') {
+        html += `
+          <div class="flex gap-2 overflow-x-auto pb-3 hide-scrollbar">
+            ${days.map(d => `<button onclick="setDay(${d.day})" class="flex items-center gap-2 px-4 py-2 rounded-xl font-medium whitespace-nowrap shadow ${activeDay === d.day ? 'bg-red-600 text-white' : 'bg-white text-gray-700'}">${d.icon} Dag ${d.day}</button>`).join('')}
+          </div>
+          <div class="bg-white rounded-2xl p-5 shadow-lg mb-4">
+            <div class="flex items-start gap-4">
+              <span class="text-5xl">${day.icon}</span>
+              <div class="flex-1">
+                <h2 class="text-2xl font-bold text-gray-800">Dag ${day.day}: ${day.title}</h2>
+                <p class="text-gray-500">${day.date}</p>
+                <p class="text-red-600 font-semibold mt-1">${day.highlight}</p>
+              </div>
+            </div>
+            ${accom ? `<div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-4"><div class="text-red-700 font-semibold text-sm mb-1">🏠 ACCOMMODATIE</div><div class="font-bold text-gray-800">${accom.name}</div><div class="text-red-600 text-sm">${accom.location}</div></div>` : ''}
+          </div>
+          <div class="bg-white rounded-xl p-4 mb-4 shadow flex items-center gap-3">
+            <span class="text-2xl">💡</span>
+            <span class="text-gray-700"><strong>Klik op een activiteit</strong> voor gedetailleerde info!</span>
+          </div>
+          <div class="bg-white rounded-2xl p-4 shadow-lg">
+            <div class="space-y-3">
+              ${acts.map(a => `<div class="rounded-xl p-4 ${getCardClass(a.type)}"><div class="flex items-center gap-4"><div class="font-mono font-bold text-gray-700 w-14 text-center text-lg">${a.time}</div><div class="text-3xl">${a.icon}</div><div class="flex-1"><div class="font-bold text-gray-800 text-lg">${a.title}</div><div class="text-gray-600 text-sm">${a.subtitle}</div></div><div class="text-gray-400">→</div></div></div>`).join('')}
+            </div>
+          </div>
+          ${activeDay === 2 ? `<div class="mt-4 bg-gradient-to-r from-red-100 to-green-100 rounded-2xl p-5 shadow"><h4 class="font-bold text-red-800 mb-2">🎡 WINTER WONDERLAND TIPS</h4><div class="grid grid-cols-2 gap-2 text-sm">${['⛸️ Boek ijsbaan VOORAF', '🎢 Attracties = tokens', '🍺 Bavarian Village = gezellig', '📸 Reuzenrad = beste fotos'].map(t => `<div class="bg-white rounded-lg p-2">${t}</div>`).join('')}</div></div>` : ''}
+        `;
+      }
+
+      if (activeTab === 'budget') {
+        html += `
+          <div class="bg-white rounded-2xl p-5 shadow-lg">
+            <table class="w-full text-sm"><thead><tr class="border-b-2"><th class="text-left py-2">Item</th><th class="text-right py-2">Budget</th><th class="text-right py-2">Comfort</th></tr></thead>
+            <tbody>${budget.map(i => `<tr class="border-b border-gray-100"><td class="py-2">${i.item}</td><td class="text-right text-gray-600">€${i.budget}</td><td class="text-right">€${i.comfort}</td></tr>`).join('')}
+            <tr class="font-bold"><td class="py-2">TOTAAL</td><td class="text-right text-red-600">€${totalBudget}</td><td class="text-right text-green-600">€${totalComfort}</td></tr></tbody></table>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mt-4">
+            <div class="bg-red-600 rounded-2xl p-5 text-white text-center"><div class="text-sm opacity-80">💚 Budget</div><div class="text-3xl font-bold">€${totalBudget}</div><div class="text-sm opacity-80">€${Math.round(totalBudget/2)} p.p.</div></div>
+            <div class="bg-green-600 rounded-2xl p-5 text-white text-center"><div class="text-sm opacity-80">✨ Comfort</div><div class="text-3xl font-bold">€${totalComfort}</div><div class="text-sm opacity-80">€${Math.round(totalComfort/2)} p.p.</div></div>
+          </div>
+        `;
+      }
+
+      if (activeTab === 'checklist') {
+        html += `<div class="space-y-4">${checklistSections.map(sec => `<div class="bg-white rounded-2xl p-5 shadow-lg"><h3 class="font-bold mb-3">${sec.title}</h3><div class="space-y-2">${sec.items.map(i => `<label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer"><input type="checkbox" ${checklist[i.key] ? 'checked' : ''} onchange="toggleCheck('${i.key}')" class="w-5 h-5 rounded text-red-600"><span class="${checklist[i.key] ? 'line-through text-gray-400' : 'text-gray-700'}">${i.label}</span></label>`).join('')}</div></div>`).join('')}
+        <div class="bg-gradient-to-r from-red-600 to-green-600 rounded-2xl p-5 text-white"><h3 class="font-bold mb-2">📊 Voortgang</h3><div class="bg-white/20 rounded-full h-4 mb-2"><div class="bg-white rounded-full h-4" style="width: ${Math.max((checkedCount/totalChecks)*100, 5)}%"></div></div><div class="text-center">${checkedCount} van ${totalChecks}</div></div></div>`;
+      }
+
+      html += `<div class="text-center mt-6 text-white/80 text-sm"><p>🎄 London Christmas 2025</p><a href="/" class="text-red-300 hover:underline">← Terug naar overzicht</a></div>`;
+      document.getElementById('app').innerHTML = html;
+    }
+    render();
+  </script>
+</body>
+</html>
