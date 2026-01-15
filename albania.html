@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🏖️ Albania & Corfu Adventure 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .drag-handle { cursor: grab; }
+    .drag-handle:active { cursor: grabbing; }
+    .dragging { opacity: 0.5; transform: scale(0.98); }
+    .drag-over { border: 2px dashed #0ea5e9 !important; background: rgba(14, 165, 233, 0.1) !important; }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-cyan-100 via-sky-50 to-blue-100">
+  <div id="app" class="p-4"></div>
+
+  <script>
+    // State
+    let activeDay = 1;
+    let activeTab = 'overview';
+    let selectedActivity = null;
+    let customOrder = {};
+    let draggedItem = null;
+    
+    // Load custom order from localStorage
+    const savedOrder = localStorage.getItem('albaniaActivityOrder');
+    if (savedOrder) customOrder = JSON.parse(savedOrder);
+    
+    let checklist = {
+      flights: false, accommodationSaranda: false, accommodationCorfu: false,
+      insurance: false, ferryBooked: false, carRental: false, boatTour: false,
+      restaurantReservations: false, mapsOffline: false, printConfirmations: false, eurosCash: false,
+      paspoort: false, rijbewijs: false, creditcard: false, ehic: false, kopieDocumenten: false,
+      wandelschoenen: false, zwemkleding: false, zonnebrand: false, regenjas: false,
+      waterflessen: false, camera: false, powerbank: false, snorkelset: false
+    };
+
+    // Load checklist from localStorage
+    const savedChecklist = localStorage.getItem('albaniaChecklist');
+    if (savedChecklist) checklist = JSON.parse(savedChecklist);
+
+    // Accommodations
+    const accommodations = {
+      saranda: { name: 'Beach Apartment Saranda', address: 'Saranda Waterfront', dates: '14-18 juni', nights: 4, totalPrice: 180, lat: 39.8661, lng: 20.0050 },
+      corfu: { name: 'Corfu Old Town Hotel', address: 'Kerkyra Centrum', dates: '18-21 juni', nights: 3, totalPrice: 280, lat: 39.6243, lng: 19.9217 }
+    };
+
+    // Locations
+    const locations = {
+      tirana_airport: { lat: 41.4147, lng: 19.7206 },
+      saranda: { lat: 39.8661, lng: 20.0050 },
+      ksamil: { lat: 39.7833, lng: 20.0000 },
+      blue_eye: { lat: 39.9250, lng: 20.1917 },
+      butrint: { lat: 39.7439, lng: 20.0206 },
+      gjirokaster: { lat: 40.0758, lng: 20.1389 },
+      himara: { lat: 40.1017, lng: 19.7489 },
+      porto_palermo: { lat: 40.0533, lng: 19.7983 },
+      llogara_pass: { lat: 40.1989, lng: 19.5847 },
+      dhermi: { lat: 40.1528, lng: 19.6000 },
+      corfu_port: { lat: 39.6243, lng: 19.9217 },
+      corfu_town: { lat: 39.6243, lng: 19.9217 },
+      paleokastritsa: { lat: 39.6833, lng: 19.7000 },
+      sidari: { lat: 39.7889, lng: 19.7056 },
+      canal_damour: { lat: 39.7889, lng: 19.7056 },
+      achilleion: { lat: 39.5628, lng: 19.8919 },
+      mouse_island: { lat: 39.5925, lng: 19.9139 }
+    };
+
+    // Calculate distance
+    function calculateDistance(loc1, loc2) {
+      const R = 6371;
+      const dLat = (loc2.lat - loc1.lat) * Math.PI / 180;
+      const dLon = (loc2.lng - loc1.lng) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(loc1.lat * Math.PI / 180) * Math.cos(loc2.lat * Math.PI / 180) *
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return Math.round(R * c);
+    }
+
+    function estimateDriveTime(km) {
+      const minutes = Math.round((km / 45) * 60);
+      if (minutes < 60) return `${minutes} min`;
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return mins > 0 ? `${hours}u ${mins}min` : `${hours}u`;
+    }
+
+    // Days
+    const days = [
+      { day: 1, date: 'Za 14 juni', title: 'Aankomst Saranda', icon: '✈️', location: 'Saranda', highlight: 'Albanese Riviera!', accommodation: 'saranda' },
+      { day: 2, date: 'Zo 15 juni', title: 'Ksamil Paradijs', icon: '🏝️', location: 'Saranda', highlight: 'Turquoise wateren', featured: true, accommodation: 'saranda' },
+      { day: 3, date: 'Ma 16 juni', title: 'Blue Eye & Butrint', icon: '💎', location: 'Saranda', highlight: 'UNESCO + Natuur', featured: true, accommodation: 'saranda' },
+      { day: 4, date: 'Di 17 juni', title: 'Gjirokastër', icon: '🏰', location: 'Saranda', highlight: 'Stenen stad UNESCO', accommodation: 'saranda' },
+      { day: 5, date: 'Wo 18 juni', title: 'Ferry naar Corfu', icon: '⛴️', location: 'Oversteek', highlight: 'Griekenland!', accommodation: 'corfu' },
+      { day: 6, date: 'Do 19 juni', title: 'Corfu Verkennen', icon: '🏛️', location: 'Corfu', highlight: 'Old Town + Stranden', featured: true, accommodation: 'corfu' },
+      { day: 7, date: 'Vr 20 juni', title: 'Paleokastritsa', icon: '🌊', location: 'Corfu', highlight: 'Mooiste baai!', accommodation: 'corfu' },
+      { day: 8, date: 'Za 21 juni', title: 'Vertrek', icon: '🏠', location: 'Terug', highlight: 'Afscheid Corfu', accommodation: 'corfu' }
+    ];
+
+    // Day details with duration info for time recalculation
+    const dayDetails = {
+      1: [
+        { time: '10:00', activity: 'Vertrek Amsterdam', type: 'transport', location: 'tirana_airport', duration: 180, details: 'Vlucht naar Tirana', fullInfo: { description: 'Vlucht Amsterdam → Tirana', tips: ['2 uur voor vertrek', 'Online inchecken'], price: '€80-150 p.p.' } },
+        { time: '14:00', activity: 'Landing Tirana', type: 'transport', location: 'tirana_airport', duration: 30, details: 'Moeder Teresa Airport', fullInfo: { description: 'Tirana Airport - modernste van Albanië', tips: ['Paspoort klaar', 'ATM in terminal'] } },
+        { time: '14:30', activity: 'Auto ophalen', type: 'transport', location: 'tirana_airport', duration: 30, details: 'Huurauto', fullInfo: { tips: ['Creditcard verplicht', 'Check op schade', 'Albanië = goedkoop tanken!'], price: '~€20-30/dag' } },
+        { time: '15:00', activity: 'Rit naar Saranda', type: 'transport', location: 'saranda', duration: 240, details: '~4 uur via SH8', fullInfo: { description: 'Spectaculaire kustweg!', highlights: ['Llogara Pass (1000m)', 'Uitzicht Ionische Zee'], warning: 'Veel bochten - reiziektepillen!', tips: ['Stop bij Llogara voor fotos', 'Benzine tanken in Vlora'] } },
+        { time: '19:00', activity: 'Check-in Saranda', type: 'accommodation', location: 'saranda', duration: 30, details: 'Beach Apartment', fullInfo: { price: '€180 totaal (4 nachten)', tips: ['Zeezicht appartement!'] } },
+        { time: '19:30', activity: 'Wandeling Boulevard', type: 'activity', location: 'saranda', duration: 60, details: 'Promenade verkennen', fullInfo: { description: 'Sfeervolle boulevard langs het water', tips: ['Zonsondergang!', 'Veel restaurants'] } },
+        { time: '20:30', activity: 'Diner', type: 'food', location: 'saranda', duration: 90, details: 'Zeefood aan het water', fullInfo: { recommendations: ['Mare Nostrum', 'Haxhi'], specialty: 'Gegrilde vis, calamares', priceRange: '€8-15 p.p.' } }
+      ],
+      2: [
+        { time: '09:00', activity: 'Ontbijt', type: 'food', location: 'saranda', duration: 45, details: 'Café aan zee', fullInfo: { specialty: 'Byrek, Griekse yoghurt', priceRange: '€3-5 p.p.' } },
+        { time: '10:00', activity: '⭐ Ksamil Beach', type: 'highlight', location: 'ksamil', duration: 180, details: 'Albanese Malediven!', fullInfo: { description: 'Turkooizen water, kleine eilandjes - het mooiste strand van Albanië!', highlights: ['3 kleine eilanden', 'Kristalhelder water', 'Snorkelen'], tips: ['Vroeg komen = beste plekje', 'Zwem naar eilandjes', 'Ligbed ~€5-10'], duration: '3-4 uur', mustSee: true } },
+        { time: '13:00', activity: 'Lunch Ksamil', type: 'food', location: 'ksamil', duration: 60, details: 'Strandtent', fullInfo: { specialty: 'Verse vis, mosselen', priceRange: '€10-15 p.p.', tips: ['Voeten in het zand'] } },
+        { time: '14:00', activity: 'Zwemmen & Relaxen', type: 'beach', location: 'ksamil', duration: 180, details: 'Eilandhoppen', fullInfo: { description: 'Zwem naar de drie eilandjes!', tips: ['Snorkelset mee', 'Waterproof telefoonhoesje'] } },
+        { time: '17:00', activity: 'Mirror Beach', type: 'beach', location: 'ksamil', duration: 120, details: 'Rustigere optie', fullInfo: { description: 'Iets rustiger strand met spiegelend water', tips: ['Minder toeristisch', 'Perfect voor zonsondergang'] } },
+        { time: '19:00', activity: 'Terugrit Saranda', type: 'transport', location: 'saranda', duration: 20, details: '15 min', fullInfo: {} },
+        { time: '20:00', activity: 'Diner', type: 'food', location: 'saranda', duration: 90, details: 'Boulevard', fullInfo: { priceRange: '€10-18 p.p.' } }
+      ],
+      3: [
+        { time: '08:30', activity: 'Vertrek Blue Eye', type: 'transport', location: 'saranda', duration: 40, details: '30 min rijden', fullInfo: { tips: ['Vroeg = minder druk'] } },
+        { time: '09:30', activity: '⭐ Blue Eye (Syri i Kaltër)', type: 'highlight', location: 'blue_eye', duration: 90, details: 'Magische bron!', fullInfo: { description: 'Natuurlijke bron met hypnotiserend blauw water - 50m diep!', highlights: ['Intens blauwe kleur', 'IJskoud water (12°C)', 'Omringd door natuur'], tips: ['Zwemmen mag maar KOUD!', '€50 Lek entree (~€0.50)', 'Wandeling 15 min'], duration: '1-2 uur', mustSee: true, warning: 'NIET duiken - gevaarlijk!' } },
+        { time: '11:00', activity: 'Naar Butrint', type: 'transport', location: 'butrint', duration: 30, details: '25 min', fullInfo: {} },
+        { time: '11:30', activity: '⭐ Butrint UNESCO', type: 'highlight', location: 'butrint', duration: 150, details: 'Antieke ruïnes!', fullInfo: { description: 'UNESCO Werelderfgoed - 3000 jaar geschiedenis!', highlights: ['Grieks theater', 'Romeinse baden', 'Venetiaanse toren', 'Byzantijnse basiliek'], tips: ['Comfortabele schoenen', 'Water meenemen', '1000 Lek entree (~€9)'], duration: '2-3 uur', mustSee: true } },
+        { time: '14:00', activity: 'Lunch Butrint', type: 'food', location: 'butrint', duration: 60, details: 'Restaurant bij park', fullInfo: { specialty: 'Lokale gerechten', priceRange: '€8-12 p.p.' } },
+        { time: '15:00', activity: 'Terug naar Saranda', type: 'transport', location: 'saranda', duration: 40, details: '30 min', fullInfo: {} },
+        { time: '16:00', activity: 'Strand Saranda', type: 'beach', location: 'saranda', duration: 180, details: 'Relaxen', fullInfo: { tips: ['Stadsstrand is prima', 'Ligbed €3-5'] } },
+        { time: '20:00', activity: 'Diner', type: 'food', location: 'saranda', duration: 90, details: 'Old Town', fullInfo: { priceRange: '€10-15 p.p.' } }
+      ],
+      4: [
+        { time: '08:00', activity: 'Vroeg vertrek', type: 'transport', location: 'saranda', duration: 60, details: 'Naar Gjirokastër', fullInfo: { tips: ['1 uur rijden', 'Mooie bergweg'] } },
+        { time: '09:00', activity: '⭐ Gjirokastër', type: 'highlight', location: 'gjirokaster', duration: 180, details: 'UNESCO Stenen Stad', fullInfo: { description: 'Ottomaanse "Stenen Stad" met karakteristieke grijze daken!', highlights: ['Gjirokastër Castle', 'Oude Bazaar', 'Zekate House', 'Skenduli House'], tips: ['Steile straatjes - goede schoenen', 'Kasteel = geweldig uitzicht', '200 Lek entree kasteel'], duration: '3-4 uur', mustSee: true } },
+        { time: '12:00', activity: 'Lunch Gjirokastër', type: 'food', location: 'gjirokaster', duration: 60, details: 'Traditioneel', fullInfo: { recommendations: ['Kujtimi Restaurant'], specialty: 'Qifqi, Pite', priceRange: '€5-10 p.p.' } },
+        { time: '13:00', activity: 'Cold War Tunnel', type: 'activity', location: 'gjirokaster', duration: 60, details: 'Geheime bunker', fullInfo: { description: 'Koude Oorlog bunker onder het kasteel', tips: ['200 Lek entree', 'Koel binnen - jasje mee'] } },
+        { time: '14:30', activity: 'Terug via kust', type: 'transport', location: 'saranda', duration: 90, details: 'Scenic route', fullInfo: { tips: ['Eventueel stop bij Porto Palermo kasteel'] } },
+        { time: '16:00', activity: 'Porto Palermo (optie)', type: 'activity', location: 'porto_palermo', duration: 60, details: 'Ali Pasha kasteel', fullInfo: { description: 'Kasteel op schiereiland', tips: ['Mooie foto spot', '200 Lek entree'] } },
+        { time: '17:30', activity: 'Laatste strand Saranda', type: 'beach', location: 'saranda', duration: 120, details: 'Zonsondergang', fullInfo: { tips: ['Geniet van laatste avond Albanië!'] } },
+        { time: '20:00', activity: 'Afscheidsdiner Albanië', type: 'food', location: 'saranda', duration: 120, details: 'Beste restaurant!', fullInfo: { tips: ['Reserveer vooraf', 'Raki proberen!'], priceRange: '€15-25 p.p.' } }
+      ],
+      5: [
+        { time: '08:00', activity: 'Check-out Saranda', type: 'accommodation', location: 'saranda', duration: 30, details: 'Auto parkeren bij haven', fullInfo: { tips: ['Parkeren ~€5/dag', 'Als je auto in Albanië achterlaat'] } },
+        { time: '09:00', activity: '⛴️ Ferry Saranda → Corfu', type: 'highlight', location: 'saranda', duration: 45, details: 'Fast ferry 30-45 min', fullInfo: { description: 'Snelle overtocht naar Griekenland!', tips: ['Paspoort klaar (grensovergang!)', 'Online boeken vooraf', 'Mooi uitzicht op beide kusten'], price: '€20-35 p.p.', duration: '30-45 min', mustSee: true } },
+        { time: '10:00', activity: 'Aankomst Corfu', type: 'transport', location: 'corfu_port', duration: 30, details: 'Welkom in Griekenland!', fullInfo: { tips: ['Oude haven = centrum Old Town', 'Alles op loopafstand'] } },
+        { time: '10:30', activity: 'Check-in Hotel', type: 'accommodation', location: 'corfu_town', duration: 30, details: 'Old Town Hotel', fullInfo: { price: '€280 totaal (3 nachten)', tips: ['Centraal gelegen'] } },
+        { time: '11:00', activity: '⭐ Corfu Old Town', type: 'highlight', location: 'corfu_town', duration: 180, details: 'UNESCO Werelderfgoed!', fullInfo: { description: 'Prachtige Venetiaanse oude stad!', highlights: ['Liston promenade', 'Spianada plein', 'St. Spyridon kerk', 'Venetiaanse steegjes'], tips: ['Verdwaal in de steegjes', 'Kumquat likeur kopen'], duration: '2-3 uur', mustSee: true } },
+        { time: '14:00', activity: 'Lunch Old Town', type: 'food', location: 'corfu_town', duration: 60, details: 'Griekse taverna', fullInfo: { specialty: 'Sofrito, Pastitsada', priceRange: '€12-18 p.p.' } },
+        { time: '15:00', activity: 'Old Fortress', type: 'activity', location: 'corfu_town', duration: 90, details: 'Venetiaans fort', fullInfo: { description: 'Imposant fort met panoramisch uitzicht', tips: ['€6 entree', 'Beste uitzicht over stad'], duration: '1-1.5 uur' } },
+        { time: '17:00', activity: 'Mon Repos strand', type: 'beach', location: 'corfu_town', duration: 120, details: 'Dichtbij centrum', fullInfo: { tips: ['Klein maar mooi', '15 min lopen van centrum'] } },
+        { time: '20:00', activity: 'Diner', type: 'food', location: 'corfu_town', duration: 90, details: 'Griekse avond', fullInfo: { recommendations: ['The Venetian Well', 'Rouvas'], priceRange: '€15-25 p.p.' } }
+      ],
+      6: [
+        { time: '09:00', activity: 'Auto huren', type: 'transport', location: 'corfu_town', duration: 30, details: 'Dagje eiland verkennen', fullInfo: { tips: ['€30-40/dag', 'Scooter ook optie'], price: '€30-40/dag' } },
+        { time: '10:00', activity: '⭐ Paleokastritsa', type: 'highlight', location: 'paleokastritsa', duration: 180, details: 'Mooiste plek van Corfu!', fullInfo: { description: 'Spectaculaire baaien met turquoise water!', highlights: ['6 kleine baaien', 'Theotokos klooster', 'Grotten (boottrip)', 'Helder water'], tips: ['Vroeg komen = parkeren', 'Boot naar grotten €8-15', 'La Grotta bar (cliff jumping!)'], duration: '3-4 uur', mustSee: true } },
+        { time: '13:00', activity: 'Lunch Paleokastritsa', type: 'food', location: 'paleokastritsa', duration: 60, details: 'Taverna met uitzicht', fullInfo: { specialty: 'Verse vis', priceRange: '€12-20 p.p.' } },
+        { time: '14:30', activity: 'Boottrip Grotten', type: 'activity', location: 'paleokastritsa', duration: 60, details: 'Blue caves', fullInfo: { description: 'Kleine boot naar zeegrotten', tips: ['€8-15 p.p.', 'Zwemmen in grotten'], duration: '30-45 min' } },
+        { time: '16:00', activity: 'Sidari & Canal d\'Amour', type: 'highlight', location: 'canal_damour', duration: 120, details: 'Liefdeskanaal!', fullInfo: { description: 'Unieke rotsformaties met "liefdestunnel"', highlights: ['Zwemmen door tunnel = eeuwige liefde', 'Gele kliffen', 'Zonsondergang spot'], tips: ['Legende: zwem erdoor samen!'], mustSee: true } },
+        { time: '18:30', activity: 'Terug naar Corfu Town', type: 'transport', location: 'corfu_town', duration: 45, details: '40 min', fullInfo: {} },
+        { time: '19:30', activity: 'Auto inleveren', type: 'transport', location: 'corfu_town', duration: 15, details: 'Bij hotel', fullInfo: {} },
+        { time: '20:00', activity: 'Diner Liston', type: 'food', location: 'corfu_town', duration: 120, details: 'Franse promenade', fullInfo: { description: 'Iconische arcade met cafés', tips: ['Duurder maar sfeervol', 'People watching'], priceRange: '€18-30 p.p.' } }
+      ],
+      7: [
+        { time: '09:30', activity: 'Ontbijt', type: 'food', location: 'corfu_town', duration: 45, details: 'Laatste ontbijt', fullInfo: { specialty: 'Griekse yoghurt, vers fruit' } },
+        { time: '10:30', activity: 'Achilleion Palace', type: 'activity', location: 'achilleion', duration: 90, details: 'Sissi\'s paleis', fullInfo: { description: 'Paleis van Keizerin Elisabeth (Sissi)', highlights: ['Prachtige tuinen', 'Uitzicht', 'Achilles standbeeld'], tips: ['€10 entree', '15 min van centrum'], duration: '1-1.5 uur' } },
+        { time: '12:30', activity: 'Mouse Island', type: 'activity', location: 'mouse_island', duration: 60, details: 'Pontikonisi', fullInfo: { description: 'Iconisch eilandje met klooster', tips: ['Bootje €3', 'Beste foto vanaf land'], duration: '30-45 min' } },
+        { time: '14:00', activity: 'Lunch', type: 'food', location: 'corfu_town', duration: 60, details: 'Laatste Griekse meal', fullInfo: { priceRange: '€12-18 p.p.' } },
+        { time: '15:00', activity: 'Laatste wandeling Old Town', type: 'activity', location: 'corfu_town', duration: 90, details: 'Souvenirs kopen', fullInfo: { tips: ['Kumquat producten', 'Olijfolie', 'Griekse kruiden'] } },
+        { time: '16:30', activity: 'Check-out', type: 'accommodation', location: 'corfu_town', duration: 30, details: 'Naar luchthaven', fullInfo: {} },
+        { time: '17:00', activity: 'Naar Luchthaven', type: 'transport', location: 'corfu_port', duration: 15, details: '10 min', fullInfo: { tips: ['Corfu Airport is klein en dichtbij'] } },
+        { time: '19:00', activity: '✈️ Vlucht naar huis', type: 'highlight', location: 'corfu_port', duration: 180, details: 'Corfu → Amsterdam', fullInfo: { tips: ['Via overstap meestal'] } },
+        { time: '23:00', activity: '🏠 Thuis!', type: 'transport', location: 'corfu_port', duration: 0, details: 'Welkom terug', fullInfo: {} }
+      ]
+    };
+
+    // Budget
+    const budget = [
+      { item: '✈️ Vluchten (2 pers)', budget: 400, comfort: 550 },
+      { item: '🏠 Saranda (4 nachten)', budget: 180, comfort: 250 },
+      { item: '🏠 Corfu (3 nachten)', budget: 280, comfort: 400 },
+      { item: '🚗 Huurauto Albanië (4 dagen)', budget: 100, comfort: 140 },
+      { item: '🚗 Huurauto Corfu (1 dag)', budget: 40, comfort: 50 },
+      { item: '⛽ Benzine', budget: 50, comfort: 70 },
+      { item: '⛴️ Ferry Saranda-Corfu (2p)', budget: 50, comfort: 70 },
+      { item: '🎫 Entreegelden', budget: 40, comfort: 50 },
+      { item: '⛵ Boot Paleokastritsa (2p)', budget: 25, comfort: 30 },
+      { item: '🍽️ Eten (8 dagen)', budget: 320, comfort: 480 },
+      { item: '🏥 Reisverzekering', budget: 40, comfort: 60 },
+      { item: '💰 Buffer', budget: 75, comfort: 100 }
+    ];
+
+    // ============ DRAG & DROP FUNCTIONS ============
+    function handleDragStart(e, dayNum, index) {
+      draggedItem = { day: dayNum, index: index };
+      e.target.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      e.currentTarget.classList.add('drag-over');
+    }
+
+    function handleDragLeave(e) {
+      e.currentTarget.classList.remove('drag-over');
+    }
+
+    function handleDrop(e, dayNum, targetIdx) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('drag-over');
+      if (!draggedItem || draggedItem.day !== dayNum) return;
+      
+      const sourceIdx = draggedItem.index;
+      if (sourceIdx === targetIdx) return;
+      
+      // Create custom order if not exists
+      if (!customOrder[dayNum]) {
+        customOrder[dayNum] = dayDetails[dayNum].map((_, i) => i);
+      }
+      
+      const order = [...customOrder[dayNum]];
+      const [moved] = order.splice(sourceIdx, 1);
+      order.splice(targetIdx, 0, moved);
+      customOrder[dayNum] = order;
+      
+      localStorage.setItem('albaniaActivityOrder', JSON.stringify(customOrder));
+      draggedItem = null;
+      render();
+    }
+
+    function handleDragEnd(e) {
+      e.target.classList.remove('dragging');
+      draggedItem = null;
+    }
+
+    function resetDayOrder(dayNum) {
+      delete customOrder[dayNum];
+      localStorage.setItem('albaniaActivityOrder', JSON.stringify(customOrder));
+      render();
+    }
+
+    // Get ordered activities WITH recalculated times
+    function getOrderedActivities(dayNum) {
+      const original = dayDetails[dayNum] || [];
+      if (!customOrder[dayNum]) return original;
+      
+      const ordered = customOrder[dayNum].map(idx => ({...original[idx]})).filter(Boolean);
+      
+      // Recalculate times based on new order
+      if (ordered.length > 0) {
+        // Start with original first activity time
+        const firstOriginal = original[0];
+        let currentTime = parseTime(firstOriginal.time);
+        
+        ordered.forEach((activity, idx) => {
+          const originalActivity = original.find(a => a.activity === activity.activity);
+          const originalTime = originalActivity ? originalActivity.time : activity.time;
+          
+          // Calculate new time
+          const newTimeStr = formatTime(currentTime);
+          
+          // Store both original and new time
+          activity.originalTime = originalTime;
+          activity.newTime = newTimeStr;
+          activity.time = newTimeStr;
+          activity.timeChanged = originalTime !== newTimeStr;
+          
+          // Add duration for next activity (default 60 min + 15 min buffer)
+          const duration = activity.duration || getDefaultDuration(activity.type);
+          currentTime += duration + 15;
+        });
+      }
+      
+      return ordered;
+    }
+
+    function parseTime(timeStr) {
+      const [hours, mins] = timeStr.split(':').map(Number);
+      return hours * 60 + mins;
+    }
+
+    function formatTime(minutes) {
+      const h = Math.floor(minutes / 60) % 24;
+      const m = minutes % 60;
+      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    }
+
+    function getDefaultDuration(type) {
+      const durations = {
+        transport: 30,
+        food: 60,
+        accommodation: 15,
+        highlight: 120,
+        activity: 90,
+        beach: 150,
+        warning: 15
+      };
+      return durations[type] || 60;
+    }
+
+    // ============ HELPER FUNCTIONS ============
+    function getTypeColor(type) {
+      const colors = {
+        highlight: 'bg-gradient-to-r from-cyan-100 to-sky-100 border-sky-400',
+        warning: 'bg-gradient-to-r from-red-100 to-rose-100 border-red-400',
+        food: 'bg-gradient-to-r from-green-100 to-emerald-100 border-green-400',
+        beach: 'bg-gradient-to-r from-blue-100 to-cyan-100 border-blue-400',
+        transport: 'bg-gradient-to-r from-slate-100 to-gray-100 border-gray-400',
+        activity: 'bg-gradient-to-r from-violet-100 to-purple-100 border-purple-400',
+        accommodation: 'bg-gradient-to-r from-yellow-100 to-amber-100 border-yellow-500'
+      };
+      return colors[type] || 'bg-gray-100 border-gray-300';
+    }
+
+    function getTypeIcon(type) {
+      const icons = { highlight: '⭐', warning: '⚠️', food: '🍽️', beach: '🏖️', transport: '🚗', activity: '📍', accommodation: '🏠' };
+      return icons[type] || '📍';
+    }
+
+    function toggleCheck(key) {
+      checklist[key] = !checklist[key];
+      localStorage.setItem('albaniaChecklist', JSON.stringify(checklist));
+      render();
+    }
+
+    function setTab(tab) {
+      activeTab = tab;
+      render();
+    }
+
+    function setDay(day) {
+      activeDay = day;
+      render();
+    }
+
+    function openModal(activity, distInfo) {
+      selectedActivity = { ...activity, distInfo };
+      render();
+    }
+
+    function closeModal() {
+      selectedActivity = null;
+      render();
+    }
+
+    function getDistanceInfo(activity, index, dayActivities) {
+      const currentLoc = locations[activity.location];
+      if (!currentLoc) return null;
+      const dayInfo = days[activeDay - 1];
+      const accom = accommodations[dayInfo.accommodation];
+      if (!accom) return null;
+      const accomLoc = { lat: accom.lat, lng: accom.lng };
+      const distFromAccom = calculateDistance(accomLoc, currentLoc);
+      let distFromPrev = null;
+      if (index > 0) {
+        const prevLoc = locations[dayActivities[index - 1].location];
+        if (prevLoc) distFromPrev = calculateDistance(prevLoc, currentLoc);
+      }
+      return { distFromAccom, distFromPrev };
+    }
+
+    // ============ RENDER FUNCTION ============
+    function render() {
+      const totalBudget = budget.reduce((sum, item) => sum + item.budget, 0);
+      const totalComfort = budget.reduce((sum, item) => sum + item.comfort, 0);
+      const checkedCount = Object.values(checklist).filter(Boolean).length;
+      const totalChecks = Object.keys(checklist).length;
+
+      let html = `
+        <div class="max-w-6xl mx-auto">
+          <!-- Header -->
+          <div class="text-center mb-8">
+            <a href="index.html" class="inline-block mb-4 text-sky-600 hover:text-sky-800 transition">← Terug naar overzicht</a>
+            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent mb-2">
+              🏖️ Albania & Corfu Adventure
+            </h1>
+            <h2 class="text-2xl md:text-3xl text-sky-700 font-semibold">Albanese Riviera & Grieks Paradijs</h2>
+            <p class="text-gray-600 mt-3 text-lg">14-21 juni 2026 • 2 personen • 8 dagen</p>
+            <div class="mt-4 flex flex-wrap justify-center gap-2">
+              <span class="bg-cyan-100 text-cyan-800 px-4 py-2 rounded-full text-sm font-medium">🏝️ Ksamil Beach</span>
+              <span class="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium">💎 Blue Eye</span>
+              <span class="bg-sky-100 text-sky-800 px-4 py-2 rounded-full text-sm font-medium">🏛️ Corfu UNESCO</span>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div class="flex flex-wrap justify-center gap-2 mb-8">
+            <button onclick="setTab('overview')" class="px-5 py-3 rounded-xl font-medium transition-all ${activeTab === 'overview' ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg' : 'bg-white text-gray-700 hover:bg-sky-50 shadow-md'}">📅 Overzicht</button>
+            <button onclick="setTab('planning')" class="px-5 py-3 rounded-xl font-medium transition-all ${activeTab === 'planning' ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg' : 'bg-white text-gray-700 hover:bg-sky-50 shadow-md'}">🗓️ Dagplanning</button>
+            <button onclick="setTab('budget')" class="px-5 py-3 rounded-xl font-medium transition-all ${activeTab === 'budget' ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg' : 'bg-white text-gray-700 hover:bg-sky-50 shadow-md'}">💰 Budget</button>
+            <button onclick="setTab('checklist')" class="px-5 py-3 rounded-xl font-medium transition-all ${activeTab === 'checklist' ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg' : 'bg-white text-gray-700 hover:bg-sky-50 shadow-md'}">✅ Checklist (${checkedCount}/${totalChecks})</button>
+          </div>
+      `;
+
+      // Overview Tab
+      if (activeTab === 'overview') {
+        html += `<div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">`;
+        days.forEach(day => {
+          const locColor = day.location === 'Saranda' ? 'bg-cyan-100 text-cyan-800' :
+            day.location === 'Corfu' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800';
+          html += `
+            <div onclick="setDay(${day.day}); setTab('planning');" class="bg-white rounded-2xl p-5 shadow-lg cursor-pointer transition-all hover:shadow-xl hover:scale-[1.02] ${day.featured ? 'ring-2 ring-sky-400 ring-offset-2' : ''}">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-4xl">${day.icon}</span>
+                <span class="text-xs px-3 py-1 rounded-full font-medium ${locColor}">${day.location}</span>
+              </div>
+              <div class="text-sm text-gray-500 font-medium">${day.date}</div>
+              <div class="font-bold text-xl text-gray-800 mt-1">Dag ${day.day}: ${day.title}</div>
+              <div class="text-sm text-sky-600 mt-2 font-medium">${day.highlight}</div>
+              ${day.featured ? '<div class="mt-3 bg-sky-100 text-sky-800 text-xs px-2 py-1 rounded-full inline-block">⭐ Highlight!</div>' : ''}
+            </div>
+          `;
+        });
+        html += `</div>`;
+      }
+
+      // Planning Tab with Drag & Drop
+      if (activeTab === 'planning') {
+        const dayInfo = days[activeDay - 1];
+        const accom = accommodations[dayInfo.accommodation];
+        const activities = getOrderedActivities(activeDay);
+        const hasCustomOrder = customOrder[activeDay] && customOrder[activeDay].length > 0;
+
+        html += `
+          <div class="flex overflow-x-auto gap-2 mb-6 pb-2 hide-scrollbar">
+            ${days.map(day => `
+              <button onclick="setDay(${day.day})" class="flex-shrink-0 px-4 py-3 rounded-xl font-medium transition-all ${activeDay === day.day ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg' : 'bg-white text-gray-700 hover:bg-sky-50 shadow-md'}">
+                <span class="mr-2">${day.icon}</span>Dag ${day.day}
+              </button>
+            `).join('')}
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 shadow-lg mb-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div class="flex items-center gap-4">
+                <span class="text-5xl">${dayInfo.icon}</span>
+                <div>
+                  <h3 class="text-2xl font-bold text-gray-800">Dag ${activeDay}: ${dayInfo.title}</h3>
+                  <p class="text-gray-600">${dayInfo.date} • ${dayInfo.location}</p>
+                  <p class="text-sky-600 font-semibold mt-1">${dayInfo.highlight}</p>
+                </div>
+              </div>
+              ${accom ? `
+              <div class="bg-gradient-to-r from-sky-50 to-cyan-50 p-4 rounded-xl border border-sky-200">
+                <div class="text-xs text-sky-600 font-bold">🏠 ACCOMMODATIE</div>
+                <div class="font-bold text-sky-800">${accom.name}</div>
+              </div>
+              ` : ''}
+            </div>
+          </div>
+
+          <!-- Drag & Drop Instructions -->
+          <div class="bg-gradient-to-r from-sky-50 to-cyan-50 border border-sky-200 rounded-xl p-4 mb-4 text-sm flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">💡</span>
+              <span><strong>Sleep activiteiten</strong> via ⋮⋮ om de volgorde aan te passen. Tijden worden automatisch herberekend!</span>
+            </div>
+            ${hasCustomOrder ? `
+              <button onclick="resetDayOrder(${activeDay})" class="px-3 py-1 bg-sky-600 text-white rounded-lg text-sm hover:bg-sky-700 transition">
+                🔄 Reset volgorde
+              </button>
+            ` : ''}
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 shadow-lg">
+            <div class="space-y-3">
+        `;
+
+        activities.forEach((item, idx) => {
+          const distInfo = getDistanceInfo(item, idx, activities);
+          html += `
+            <div 
+              draggable="true"
+              ondragstart="handleDragStart(event, ${activeDay}, ${idx})"
+              ondragover="handleDragOver(event)"
+              ondragleave="handleDragLeave(event)"
+              ondrop="handleDrop(event, ${activeDay}, ${idx})"
+              ondragend="handleDragEnd(event)"
+              onclick='openModal(${JSON.stringify(item).replace(/'/g, "\\'")}, ${JSON.stringify(distInfo)})'
+              class="flex items-center gap-3 p-4 rounded-xl border-l-4 cursor-pointer hover:shadow-lg transition-all ${getTypeColor(item.type)}"
+            >
+              <div class="drag-handle text-gray-400 hover:text-gray-600 text-lg px-1" onclick="event.stopPropagation()">⋮⋮</div>
+              <div class="text-center w-16">
+                ${item.timeChanged ? `
+                  <div class="font-mono text-sm font-bold text-sky-600">${item.newTime}</div>
+                  <div class="font-mono text-xs text-gray-400 line-through">${item.originalTime}</div>
+                ` : `
+                  <div class="font-mono text-sm font-bold">${item.time}</div>
+                `}
+              </div>
+              <div class="text-2xl">${getTypeIcon(item.type)}</div>
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-lg truncate">${item.activity}</div>
+                <div class="text-sm opacity-80 truncate">${item.details}</div>
+              </div>
+              ${distInfo && distInfo.distFromPrev > 0 ? `<div class="text-xs bg-white/60 px-3 py-1 rounded-full hidden md:block font-medium">🚗 ${distInfo.distFromPrev}km</div>` : ''}
+              <div class="text-gray-400 text-xl">→</div>
+            </div>
+          `;
+        });
+
+        html += `</div></div>`;
+      }
+
+      // Budget Tab
+      if (activeTab === 'budget') {
+        html += `
+          <div class="space-y-6">
+            <div class="bg-gradient-to-r from-cyan-600 to-blue-600 rounded-2xl p-5 text-white shadow-lg">
+              <h3 class="text-xl font-bold mb-2">💡 Albanië = Super Budget-vriendelijk!</h3>
+              <p class="opacity-90">50-70% goedkoper dan West-Europa! Corfu is duurder maar nog steeds redelijk.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+              <div class="bg-white rounded-2xl p-6 shadow-lg">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">💰 Geschatte Kosten</h3>
+                <div class="space-y-2 max-h-96 overflow-y-auto">
+                  <div class="flex justify-between text-sm text-gray-500 pb-2 border-b-2">
+                    <span>Categorie</span><span>Budget | Comfort</span>
+                  </div>
+                  ${budget.map(item => `
+                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span class="text-gray-700 text-sm">${item.item}</span>
+                      <div class="text-right font-mono text-sm">
+                        <span class="text-gray-600">€${item.budget}</span>
+                        <span class="text-gray-300 mx-1">|</span>
+                        <span class="text-gray-800">€${item.comfort}</span>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+                <div class="flex justify-between items-center pt-4 border-t-2 border-sky-200 mt-4">
+                  <span class="font-bold text-gray-800 text-lg">TOTAAL</span>
+                  <div class="text-right font-mono">
+                    <span class="text-sky-600 font-bold text-xl">€${totalBudget}</span>
+                    <span class="text-gray-300 mx-2">|</span>
+                    <span class="text-sky-800 font-bold text-xl">€${totalComfort}</span>
+                  </div>
+                </div>
+                <div class="flex justify-between items-center text-sm text-gray-500 mt-2">
+                  <span>Per persoon</span>
+                  <span class="font-mono">€${Math.round(totalBudget/2)} | €${Math.round(totalComfort/2)}</span>
+                </div>
+              </div>
+
+              <div class="bg-white rounded-2xl p-6 shadow-lg">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">💶 Valuta Info</h3>
+                <div class="space-y-4">
+                  <div class="bg-cyan-50 p-4 rounded-xl">
+                    <h4 class="font-bold text-cyan-800">🇦🇱 Albanië</h4>
+                    <p class="text-cyan-700">Lek (ALL) - ~100 Lek = €0.90</p>
+                    <p class="text-sm text-cyan-600 mt-1">Euro's worden vaak geaccepteerd</p>
+                  </div>
+                  <div class="bg-blue-50 p-4 rounded-xl">
+                    <h4 class="font-bold text-blue-800">🇬🇷 Griekenland (Corfu)</h4>
+                    <p class="text-blue-700">Euro (€)</p>
+                    <p class="text-sm text-blue-600 mt-1">Pinnen overal mogelijk</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Checklist Tab
+      if (activeTab === 'checklist') {
+        const sections = [
+          { title: '🔴 NU BOEKEN', items: [
+            { key: 'flights', label: 'Vluchten Amsterdam → Tirana + Corfu → Amsterdam' },
+            { key: 'accommodationSaranda', label: 'Accommodatie Saranda (4n)' },
+            { key: 'accommodationCorfu', label: 'Accommodatie Corfu (3n)' },
+            { key: 'insurance', label: 'Reisverzekering' },
+            { key: 'ferryBooked', label: '⛴️ Ferry Saranda-Corfu' }
+          ]},
+          { title: '🟠 MAAND VOOR', items: [
+            { key: 'carRental', label: 'Huurauto Albanië' },
+            { key: 'boatTour', label: 'Boot Paleokastritsa (optioneel)' }
+          ]},
+          { title: '📦 WEEK VOOR', items: [
+            { key: 'mapsOffline', label: 'Google Maps offline (Albanië!)' },
+            { key: 'printConfirmations', label: 'Bevestigingen printen' },
+            { key: 'eurosCash', label: 'Euro\'s + Lek cash' }
+          ]},
+          { title: '🧳 DOCUMENTEN', items: [
+            { key: 'paspoort', label: 'Paspoort (grensovergang!)' },
+            { key: 'rijbewijs', label: 'Rijbewijs' },
+            { key: 'creditcard', label: 'Creditcard' },
+            { key: 'ehic', label: 'EHIC kaart' }
+          ]},
+          { title: '🎒 INPAKKEN', items: [
+            { key: 'wandelschoenen', label: 'Wandelschoenen (Butrint!)' },
+            { key: 'zwemkleding', label: 'Zwemkleding (3x)' },
+            { key: 'zonnebrand', label: 'Zonnebrand SPF50' },
+            { key: 'snorkelset', label: 'Snorkelset' },
+            { key: 'camera', label: 'Camera + waterproof hoes' }
+          ]}
+        ];
+
+        html += `<div class="space-y-4"><div class="grid md:grid-cols-2 gap-4">`;
+        sections.forEach(section => {
+          const sectionChecked = section.items.filter(i => checklist[i.key]).length;
+          html += `
+            <div class="bg-white rounded-2xl p-5 shadow-lg">
+              <h3 class="text-lg font-bold mb-3 flex items-center gap-2">
+                ${section.title}
+                <span class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">${sectionChecked}/${section.items.length}</span>
+              </h3>
+              <div class="space-y-2">
+                ${section.items.map(item => `
+                  <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                    <input type="checkbox" ${checklist[item.key] ? 'checked' : ''} onchange="toggleCheck('${item.key}')" class="w-5 h-5 rounded text-sky-600 cursor-pointer">
+                    <span class="${checklist[item.key] ? 'line-through text-gray-400' : 'text-gray-700'}">${item.label}</span>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        });
+        html += `</div>
+          <div class="bg-gradient-to-r from-cyan-600 to-blue-600 rounded-2xl p-6 shadow-lg text-white">
+            <h3 class="text-xl font-bold mb-4">📊 Voortgang</h3>
+            <div class="bg-white/20 rounded-full h-6 mb-3">
+              <div class="bg-white rounded-full h-6 transition-all duration-500 flex items-center justify-end pr-2" style="width: ${Math.max((checkedCount / totalChecks) * 100, 10)}%">
+                <span class="text-sky-600 font-bold text-sm">${Math.round((checkedCount / totalChecks) * 100)}%</span>
+              </div>
+            </div>
+            <div class="text-center text-lg"><span class="font-bold">${checkedCount}</span> van <span class="font-bold">${totalChecks}</span> items</div>
+          </div>
+        </div>`;
+      }
+
+      // Modal
+      if (selectedActivity) {
+        const info = selectedActivity.fullInfo || {};
+        const distInfo = selectedActivity.distInfo;
+        html += `
+          <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50" onclick="closeModal()">
+            <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl" onclick="event.stopPropagation()">
+              <div class="p-5 rounded-t-3xl ${getTypeColor(selectedActivity.type)}">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <span class="text-3xl mr-2">${getTypeIcon(selectedActivity.type)}</span>
+                    <span class="font-bold text-xl">${selectedActivity.activity}</span>
+                  </div>
+                  <button onclick="closeModal()" class="text-3xl hover:opacity-70">×</button>
+                </div>
+                <div class="text-sm mt-2 opacity-80 font-medium">
+                  ${selectedActivity.timeChanged ? `
+                    <span class="text-sky-700 font-bold">${selectedActivity.newTime}</span>
+                    <span class="line-through text-gray-500 ml-2">${selectedActivity.originalTime}</span>
+                  ` : selectedActivity.time}
+                  • ${selectedActivity.details}
+                </div>
+              </div>
+              
+              <div class="p-5 space-y-4">
+                ${distInfo ? `
+                  <div class="bg-gradient-to-r from-sky-50 to-cyan-50 rounded-2xl p-4">
+                    <h4 class="font-bold text-sky-800 mb-3">📍 Afstanden</h4>
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                      <div class="bg-white p-3 rounded-xl shadow-sm">
+                        <div class="text-gray-500 text-xs">Vanaf accommodatie</div>
+                        <div class="font-bold text-sky-700 text-lg">${distInfo.distFromAccom} km</div>
+                        <div class="text-xs text-gray-500">~${estimateDriveTime(distInfo.distFromAccom)}</div>
+                      </div>
+                      ${distInfo.distFromPrev > 0 ? `
+                        <div class="bg-white p-3 rounded-xl shadow-sm">
+                          <div class="text-gray-500 text-xs">Vanaf vorige</div>
+                          <div class="font-bold text-green-700 text-lg">${distInfo.distFromPrev} km</div>
+                          <div class="text-xs text-gray-500">~${estimateDriveTime(distInfo.distFromPrev)}</div>
+                        </div>
+                      ` : ''}
+                    </div>
+                  </div>
+                ` : ''}
+
+                ${info.description ? `<div><h4 class="font-bold text-gray-700 mb-2">📖 Beschrijving</h4><p class="text-gray-600 leading-relaxed">${info.description}</p></div>` : ''}
+
+                ${info.highlights ? `
+                  <div>
+                    <h4 class="font-bold text-gray-700 mb-2">✨ Highlights</h4>
+                    <div class="flex flex-wrap gap-2">${info.highlights.map(h => `<span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm">${h}</span>`).join('')}</div>
+                  </div>
+                ` : ''}
+
+                ${info.price || info.priceRange ? `
+                  <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl">
+                    <h4 class="font-bold text-green-800 mb-1">💰 Kosten</h4>
+                    <p class="text-green-700 font-semibold text-lg">${info.price || info.priceRange}</p>
+                  </div>
+                ` : ''}
+
+                ${info.duration ? `<div class="flex items-center gap-2 bg-gray-50 p-3 rounded-xl"><span class="text-xl">⏱️</span><span class="font-bold text-gray-700">Duur: </span><span class="text-gray-600">${info.duration}</span></div>` : ''}
+
+                ${info.tips ? `
+                  <div>
+                    <h4 class="font-bold text-gray-700 mb-3">💡 Tips</h4>
+                    <ul class="space-y-2">${info.tips.map(tip => `<li class="flex items-start gap-2 text-sm text-gray-600 bg-gray-50 p-2 rounded-lg"><span class="text-blue-500 mt-0.5">•</span><span>${tip}</span></li>`).join('')}</ul>
+                  </div>
+                ` : ''}
+
+                ${info.warning ? `
+                  <div class="bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 p-4 rounded-xl">
+                    <h4 class="font-bold text-red-800 mb-1">⚠️ Let op!</h4>
+                    <p class="text-red-700">${info.warning}</p>
+                  </div>
+                ` : ''}
+
+                ${info.mustTry ? `
+                  <div>
+                    <h4 class="font-bold text-gray-700 mb-2">🍴 Must Try</h4>
+                    <div class="flex flex-wrap gap-2">${info.mustTry.map(item => `<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm">${item}</span>`).join('')}</div>
+                  </div>
+                ` : ''}
+
+                ${info.specialty ? `
+                  <div>
+                    <h4 class="font-bold text-gray-700 mb-2">🍴 Specialiteiten</h4>
+                    <p class="text-gray-600">${info.specialty}</p>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      html += `
+          <div class="text-center mt-10 text-gray-500 text-sm">
+            <p>🏖️ Albania & Corfu Adventure • Albanese Riviera & Grieks Paradijs 2026 🏖️</p>
+            <p class="mt-1">14-21 juni • 2 personen • 8 onvergetelijke dagen</p>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('app').innerHTML = html;
+    }
+
+    render();
+  </script>
+</body>
+</html>
