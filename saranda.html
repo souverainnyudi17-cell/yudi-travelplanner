@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🏖️ Albanian Riviera & Corfu 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-cyan-50 via-teal-50 to-blue-100">
+  <div id="app" class="p-4"></div>
+
+  <script>
+    // State
+    let activeDay = 1;
+    let activeTab = 'overview';
+    let selectedActivity = null;
+    let checklist = {
+      flights: false, accommodationSaranda: false, accommodationKsamil: false,
+      insurance: false, carRental: false, ferryCorfu: false, boatTour: false,
+      blueEyeBooked: false, gjirokasterBooked: false,
+      mapsOffline: false, printConfirmations: false, lekCash: false, eurosCash: false,
+      paspoort: false, rijbewijs: false, creditcard: false, ehic: false,
+      zwemkleding: false, zonnebrand: false, snorkelset: false, waterproof: false,
+      wandelschoenen: false, camera: false, powerbank: false, adapter: false
+    };
+
+    // Load from localStorage
+    const saved = localStorage.getItem('sarandaChecklist');
+    if (saved) checklist = JSON.parse(saved);
+
+    // Flights
+    const flights = {
+      outbound: { route: 'Amsterdam → Corfu', date: '6 juni 2026', time: '~10:00 - 14:00', price: 180 },
+      return: { route: 'Corfu → Amsterdam', date: '13 juni 2026', time: '~15:00 - 19:00', price: 200 },
+      totalPrice: 380
+    };
+
+    // Accommodations
+    const accommodations = {
+      saranda: { name: 'Seaside Apartment Saranda', address: 'Saranda Waterfront', dates: '6-10 juni', nights: 4, totalPrice: 200, lat: 39.8661, lng: 20.0050 },
+      ksamil: { name: 'Beach Villa Ksamil', address: 'Ksamil Beach Area', dates: '10-13 juni', nights: 3, totalPrice: 180, lat: 39.7833, lng: 20.0000 }
+    };
+
+    // Locations
+    const locations = {
+      corfu_airport: { lat: 39.6019, lng: 19.9117 },
+      corfu_port: { lat: 39.6243, lng: 19.9217 },
+      corfu_town: { lat: 39.6243, lng: 19.9217 },
+      saranda: { lat: 39.8661, lng: 20.0050 },
+      saranda_port: { lat: 39.8700, lng: 20.0083 },
+      saranda_castle: { lat: 39.8650, lng: 20.0033 },
+      ksamil: { lat: 39.7833, lng: 20.0000 },
+      ksamil_islands: { lat: 39.7750, lng: 19.9917 },
+      mirror_beach: { lat: 39.7917, lng: 20.0000 },
+      butrint: { lat: 39.7444, lng: 20.0194 },
+      blue_eye: { lat: 39.9250, lng: 20.1917 },
+      lekuresi_castle: { lat: 39.8467, lng: 20.0050 },
+      gjirokaster: { lat: 40.0758, lng: 20.1389 },
+      porto_palermo: { lat: 40.0500, lng: 19.8000 },
+      himara: { lat: 40.1017, lng: 19.7500 },
+      dhermi: { lat: 40.1500, lng: 19.6000 },
+      monastery_beach: { lat: 39.7600, lng: 20.0100 },
+      pulebardha_beach: { lat: 39.7700, lng: 19.9800 }
+    };
+
+    // Calculate distance
+    function calculateDistance(loc1, loc2) {
+      const R = 6371;
+      const dLat = (loc2.lat - loc1.lat) * Math.PI / 180;
+      const dLon = (loc2.lng - loc1.lng) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(loc1.lat * Math.PI / 180) * Math.cos(loc2.lat * Math.PI / 180) *
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return Math.round(R * c);
+    }
+
+    function estimateDriveTime(km) {
+      const minutes = Math.round((km / 40) * 60); // Langzamer door bergwegen
+      if (minutes < 60) return `${minutes} min`;
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return mins > 0 ? `${hours}u ${mins}min` : `${hours}u`;
+    }
+
+    function estimateFerryTime(km) {
+      const minutes = Math.round((km / 25) * 60);
+      return `${minutes} min`;
+    }
+
+    // Days
+    const days = [
+      { day: 1, date: 'Za 6 juni', title: 'Aankomst Saranda', icon: '✈️', location: 'Saranda', highlight: 'Corfu → Ferry → Saranda', accommodation: 'saranda' },
+      { day: 2, date: 'Zo 7 juni', title: 'Blue Eye & Gjirokastër', icon: '💎', location: 'Binnenland', highlight: 'Magische bron + UNESCO stad', featured: true, accommodation: 'saranda' },
+      { day: 3, date: 'Ma 8 juni', title: 'Ksamil Paradise', icon: '🏝️', location: 'Ksamil', highlight: 'Caribisch strand + Butrint', featured: true, accommodation: 'saranda' },
+      { day: 4, date: 'Di 9 juni', title: 'Corfu Dagtrip', icon: '🇬🇷', location: 'Corfu', highlight: 'Grieks eiland verkennen', featured: true, accommodation: 'saranda' },
+      { day: 5, date: 'Wo 10 juni', title: 'Naar Ksamil', icon: '🏖️', location: 'Ksamil', highlight: 'Verhuizen + Stranden', accommodation: 'ksamil' },
+      { day: 6, date: 'Do 11 juni', title: 'Riviera Noord', icon: '🚗', location: 'Kust', highlight: 'Himara + Dhermi + Porto Palermo', accommodation: 'ksamil' },
+      { day: 7, date: 'Vr 12 juni', title: 'Laatste Stranddag', icon: '🌅', location: 'Ksamil', highlight: 'Relaxen + Zonsondergang', accommodation: 'ksamil' },
+      { day: 8, date: 'Za 13 juni', title: 'Vertrek', icon: '🏠', location: 'Terug', highlight: 'Ferry + Vlucht Amsterdam', accommodation: null }
+    ];
+
+    // Day details
+    const dayDetails = {
+      1: [
+        { time: '10:00', activity: 'Vertrek Amsterdam', type: 'transport', location: 'corfu_airport', details: 'Vlucht naar Corfu', fullInfo: { description: 'Vlucht Amsterdam → Corfu (Kerkyra)', tips: ['2 uur voor vertrek', 'Direct flight ~3 uur'], duration: '~3 uur' } },
+        { time: '14:00', activity: 'Landing Corfu', type: 'transport', location: 'corfu_airport', details: 'Griekenland', fullInfo: { description: 'Corfu International Airport', tips: ['Taxi naar haven ~€15', 'Bus ook mogelijk'] } },
+        { time: '15:00', activity: 'Ferry naar Saranda', type: 'transport', location: 'corfu_port', details: 'Finikas Ferries ~30 min', fullInfo: { description: 'Snelle ferry Corfu → Saranda', tips: ['Tickets vooraf boeken!', 'Paspoort nodig (grensovergang)', 'Mooi uitzicht vanaf dek'], price: '€20-25 p.p.', duration: '30-40 min' } },
+        { time: '16:00', activity: '🇦🇱 Welkom in Albanië!', type: 'highlight', location: 'saranda_port', details: 'Passport control', fullInfo: { description: 'Grenscontrole bij aankomst', tips: ['EU paspoort = geen visum', 'Snel proces'], warning: 'Paspoort verplicht!' } },
+        { time: '16:30', activity: 'Check-in Saranda', type: 'accommodation', location: 'saranda', details: 'Appartement waterkant', fullInfo: { price: '€200 totaal (4 nachten)', tips: ['Perfecte locatie aan boulevard', 'Loopafstand van alles'] } },
+        { time: '17:30', activity: '⭐ Saranda Boulevard', type: 'highlight', location: 'saranda', details: 'Eerste verkenning!', fullInfo: { description: 'Prachtige promenade langs de baai met palmbomen, cafés en uitzicht op Corfu!', highlights: ['Palm-lined boulevard', 'Beach bars', 'Uitzicht op Corfu'], tips: ['Perfect voor zonsondergang', 'Goedkope cocktails!'], duration: '1-2 uur', mustSee: true } },
+        { time: '18:30', activity: 'Lekuresi Castle', type: 'activity', location: 'lekuresi_castle', details: 'Sunset viewpoint', fullInfo: { description: 'Ottomaans fort met 360° uitzicht over Saranda en Corfu!', tips: ['Beste voor zonsondergang', 'Restaurant op top', 'Taxi ~€5-10'], price: 'Gratis entree', duration: '1 uur' } },
+        { time: '20:30', activity: 'Diner', type: 'food', location: 'saranda', details: 'Seafood aan zee', fullInfo: { recommendations: ['Mare Nostrum', 'Haxhi', 'Limani'], specialty: 'Gegrilde vis, calamari, meze', priceRange: '€8-15 p.p.', tips: ['Albanië = SUPER goedkoop!'] } }
+      ],
+      2: [
+        { time: '08:30', activity: 'Ontbijt', type: 'food', location: 'saranda', details: 'Lokaal café', fullInfo: { mustTry: ['Byrek (bladerdeeg)', 'Turkse koffie', 'Verse jus'], priceRange: '€3-5 p.p.' } },
+        { time: '09:30', activity: 'Auto ophalen', type: 'transport', location: 'saranda', details: 'Huurauto voor 2 dagen', fullInfo: { tips: ['Internationaal rijbewijs niet nodig', 'Check verzekering goed!', 'Benzine is goedkoop'], price: '~€25-35/dag' } },
+        { time: '10:30', activity: '⭐⭐ BLUE EYE (Syri i Kaltër)', type: 'highlight', location: 'blue_eye', details: 'Magische waterbron!', fullInfo: { description: 'Spectaculaire natuurlijke bron met hypnotiserend turquoise-blauw water! De bron is 50m diep en blijft constant 10°C!', highlights: ['Intense blauwe kleur', 'Kristalhelder water', 'Omringd door natuur', 'Zwemmen mogelijk (KOUD!)'], tips: ['Ga VROEG - druk!', 'Zwemmen mag maar is koud', 'Restaurant bij ingang', 'Korte wandeling naar bron'], price: '€1-2 entree', duration: '1-1.5 uur', mustSee: true, warning: 'Water is 10°C - KOUD!' } },
+        { time: '12:30', activity: 'Lunch onderweg', type: 'food', location: 'blue_eye', details: 'Bij Blue Eye restaurant', fullInfo: { specialty: 'Forellen uit de bron!', priceRange: '€6-12 p.p.', tips: ['Forel direct uit het water!'] } },
+        { time: '14:00', activity: '⭐⭐ GJIROKASTËR', type: 'highlight', location: 'gjirokaster', details: 'UNESCO Werelderfgoed!', fullInfo: { description: 'Spectaculaire "Stad van Steen" - UNESCO erfgoed met Ottomaanse architectuur en gigantisch kasteel!', highlights: ['Enorm kasteel op berg', 'Originele stenen daken', 'Oude bazaar', 'Ismail Kadare huis'], tips: ['Comfortabele schoenen!', 'Veel trappen klimmen', 'Kasteel = €2-3 entree', 'Uitkijkpunt bij kasteel'], price: '€2-3 kasteel', duration: '2-3 uur', mustSee: true } },
+        { time: '15:00', activity: 'Gjirokastër Kasteel', type: 'activity', location: 'gjirokaster', details: 'Grootste kasteel Albanië', fullInfo: { description: 'Gigantisch kasteel met museum, vliegtuig (!), en panorama uitzicht', highlights: ['Koude Oorlog vliegtuig', 'Wapen museum', 'Kerker', 'Panorama'], tips: ['US spy plane uit 1957!'], price: '€2-3', duration: '1-1.5 uur' } },
+        { time: '16:30', activity: 'Oude Bazaar', type: 'activity', location: 'gjirokaster', details: 'Authentieke sfeer', fullInfo: { description: 'Pittoreske winkelstraatjes met traditionele ambachten', tips: ['Souvenirs hier kopen!', 'Wol producten beroemd'] } },
+        { time: '18:00', activity: 'Terug naar Saranda', type: 'transport', location: 'saranda', details: '1.5 uur rijden', fullInfo: { tips: ['Mooie route door bergen', 'Tankstation onderweg'] } },
+        { time: '20:00', activity: 'Diner', type: 'food', location: 'saranda', details: 'Traditioneel Albanees', fullInfo: { mustTry: ['Tavë kosi (lam met yoghurt)', 'Fërgesë (paprika stoofpot)'], priceRange: '€8-15 p.p.' } }
+      ],
+      3: [
+        { time: '09:00', activity: 'Ontbijt', type: 'food', location: 'saranda', details: 'Bij appartement', fullInfo: { tips: ['Inkopen bij lokale bakker'] } },
+        { time: '10:00', activity: '⭐⭐ KSAMIL STRANDEN', type: 'highlight', location: 'ksamil', details: 'Caribisch in Europa!', fullInfo: { description: 'De beroemde "Albanese Malediven" - wit zand, turquoise water en kleine eilandjes voor de kust!', highlights: ['3 zwembare eilandjes', 'Kristalhelder water', 'Wit zand (zeldzaam!)', 'Goedkope strandclubs'], tips: ['Vroeg = beste plekjes', 'Ligbedden €5-10', 'Snorkelset meenemen!', 'Zwem naar de eilandjes!'], duration: '3-4 uur', mustSee: true } },
+        { time: '10:30', activity: '🏝️ Zwemmen naar eilandjes', type: 'beach', location: 'ksamil_islands', details: '100-200m zwemmen', fullInfo: { description: 'Zwem naar de kleine rotseilandjes voor de kust - helder water en rustige plekjes!', tips: ['Waterproof tas voor spullen', 'Waterschoenen handig', 'Beste snorkeling hier!'], warning: 'Let op stroming!' } },
+        { time: '13:00', activity: 'Lunch aan strand', type: 'food', location: 'ksamil', details: 'Strandtent', fullInfo: { specialty: 'Gegrilde vis, mosselen, Albanese salade', priceRange: '€6-12 p.p.', tips: ['Verse vis van die dag!'] } },
+        { time: '15:00', activity: '⭐ BUTRINT', type: 'highlight', location: 'butrint', details: 'UNESCO site - 2500 jaar!', fullInfo: { description: 'Indrukwekkende archeologische site met ruïnes van Grieken, Romeinen, Byzantijnen en Venetianen!', highlights: ['Grieks theater', 'Romeinse baden', 'Baptisterium mozaïeken', 'Venetiaans kasteel'], tips: ['Muggenspray mee!', 'Veel schaduw, maar warm', 'Goed bewegwijzerd'], price: '€8-10', duration: '2-2.5 uur', mustSee: true } },
+        { time: '18:00', activity: 'Mirror Beach', type: 'beach', location: 'mirror_beach', details: 'Rustig strand', fullInfo: { description: 'Rustiger alternatief voor Ksamil met prachtig helder water', tips: ['Minder druk dan Ksamil', 'Mooie zonsondergang'] } },
+        { time: '20:00', activity: 'Diner Ksamil', type: 'food', location: 'ksamil', details: 'Vis restaurant', fullInfo: { recommendations: ['Guvat', 'Mussel House'], specialty: 'Verse mosselen!', priceRange: '€10-18 p.p.' } }
+      ],
+      4: [
+        { time: '07:30', activity: '⚠️ Vroeg opstaan!', type: 'warning', location: 'saranda', details: 'Ferry om 09:00', fullInfo: { warning: 'Wees 30 min voor vertrek bij haven!' } },
+        { time: '08:30', activity: 'Naar Saranda haven', type: 'transport', location: 'saranda_port', details: 'Check-in ferry', fullInfo: { tips: ['Paspoort nodig!', 'Tickets vooraf boeken'] } },
+        { time: '09:00', activity: '⛴️ Ferry naar Corfu', type: 'transport', location: 'corfu_port', details: '30 min overtocht', fullInfo: { description: 'Snelle ferry naar Griekenland!', price: '€20-25 p.p. retour', tips: ['Grenscontrole aan boord', 'Mooie overtocht!'] } },
+        { time: '09:45', activity: '🇬🇷 Welkom in Griekenland!', type: 'highlight', location: 'corfu_town', details: 'Corfu Town (Kerkyra)', fullInfo: { description: 'Prachtige Venetiaanse stad - UNESCO Werelderfgoed!' } },
+        { time: '10:00', activity: '⭐⭐ CORFU OLD TOWN', type: 'highlight', location: 'corfu_town', details: 'UNESCO Werelderfgoed', fullInfo: { description: 'Betoverende Venetiaanse oude stad met smalle steegjes, imposante forten en Italiaanse sfeer!', highlights: ['Liston promenade', 'Spianada plein', 'Old Fortress', 'New Fortress', 'St. Spyridon kerk'], tips: ['Verdwaal in de steegjes!', 'Griekse koffie drinken', 'Ijs bij de Liston'], duration: '3-4 uur', mustSee: true } },
+        { time: '10:30', activity: 'Old Fortress', type: 'activity', location: 'corfu_town', details: 'Venetiaans fort', fullInfo: { description: 'Imposant 15e-eeuws Venetiaans fort met panorama uitzicht', price: '€6', tips: ['Klim naar de top!', 'Prachtig uitzicht'] } },
+        { time: '12:30', activity: 'Lunch Corfu', type: 'food', location: 'corfu_town', details: 'Griekse taverna', fullInfo: { mustTry: ['Sofrito (rundvlees)', 'Pastitsada (pasta)', 'Moussaka', 'Gyros'], priceRange: '€10-18 p.p.', tips: ['Duurder dan Albanië!'] } },
+        { time: '14:00', activity: 'Liston Promenade', type: 'activity', location: 'corfu_town', details: 'Koffie & wandelen', fullInfo: { description: 'Iconische boogpromenade in Franse stijl aan het Spianada plein', tips: ['Ijs eten!', 'People watching', 'Dure maar sfeervolle cafés'] } },
+        { time: '15:30', activity: 'Winkelen & Verkennen', type: 'activity', location: 'corfu_town', details: 'Souvenirs', fullInfo: { tips: ['Kumquat producten!', 'Olijfolie', 'Zeep'] } },
+        { time: '17:00', activity: 'Ferry terug', type: 'transport', location: 'saranda_port', details: 'Corfu → Saranda', fullInfo: { tips: ['Check ferry tijden!', 'Meestal elk uur in hoogseizoen'] } },
+        { time: '18:00', activity: 'Aankomst Saranda', type: 'transport', location: 'saranda', details: 'Terug in Albanië', fullInfo: {} },
+        { time: '20:00', activity: '⭐ Afscheidsdiner Saranda', type: 'highlight', location: 'saranda', details: 'Laatste avond!', fullInfo: { tips: ['Reserveer vooraf!', 'Tafel met zeezicht'], priceRange: '€15-25 p.p.' } }
+      ],
+      5: [
+        { time: '10:00', activity: 'Check-out Saranda', type: 'accommodation', location: 'saranda', details: 'Naar Ksamil!', fullInfo: { tips: ['Slechts 15 min rijden!'] } },
+        { time: '10:30', activity: 'Boodschappen', type: 'activity', location: 'saranda', details: 'Supermarkt', fullInfo: { tips: ['Ksamil heeft minder winkels', 'Water en snacks inslaan'] } },
+        { time: '11:30', activity: 'Check-in Ksamil', type: 'accommodation', location: 'ksamil', details: 'Beach Villa', fullInfo: { price: '€180 totaal (3 nachten)', tips: ['Loopafstand van strand'] } },
+        { time: '12:30', activity: 'Lunch', type: 'food', location: 'ksamil', details: 'Strandtent', fullInfo: { priceRange: '€8-12 p.p.' } },
+        { time: '14:00', activity: '🏖️ Pulebardha Beach', type: 'beach', location: 'pulebardha_beach', details: 'Minder bekend strand', fullInfo: { description: 'Rustig kiezelstrand omringd door kliffen - perfect voor snorkelen!', tips: ['Beste snorkeling hier!', 'Minder druk dan Ksamil', 'Waterproof schoenen handig'] } },
+        { time: '16:30', activity: 'Monastery Beach', type: 'beach', location: 'monastery_beach', details: 'Bij oud klooster', fullInfo: { description: 'Klein paradijselijk strandje naast een vervallen klooster', tips: ['Instagrammable!', 'Rustig en romantisch'] } },
+        { time: '19:00', activity: 'Zonsondergang', type: 'activity', location: 'ksamil', details: 'Cocktails aan zee', fullInfo: { tips: ['Beach bar met zitzakken', 'Cocktails ~€3-5'] } },
+        { time: '20:30', activity: 'Diner', type: 'food', location: 'ksamil', details: 'Vis restaurant', fullInfo: { specialty: 'Gegrilde dorade, calamari', priceRange: '€10-15 p.p.' } }
+      ],
+      6: [
+        { time: '08:00', activity: 'Vroeg vertrek', type: 'transport', location: 'ksamil', details: 'Coastal road trip!', fullInfo: { warning: 'Lange maar mooie dag!', tips: ['Vol tanken', 'Water & snacks mee', 'Zwemkleding aan!'] } },
+        { time: '09:30', activity: '⭐ Porto Palermo', type: 'highlight', location: 'porto_palermo', details: 'Ali Pasha Kasteel', fullInfo: { description: 'Spectaculair fort op schiereiland in een beschutte baai - gebouwd door Ali Pasha!', highlights: ['18e-eeuws fort op zee', 'Submarine base (Koude Oorlog)', 'Prachtige baai'], tips: ['Zwemmen in de baai mogelijk!', 'Onderzeeër bunker bezoeken'], price: '€2-3 kasteel', duration: '1 uur', mustSee: true } },
+        { time: '11:00', activity: '⭐⭐ HIMARA', type: 'highlight', location: 'himara', details: 'Authentiek kuststadje', fullInfo: { description: 'Charmant kustplaatsje met Grieks-Albanese sfeer, oud kasteel en mooie stranden!', highlights: ['Himara Castle (ruïnes)', 'Livadhi Beach', 'Authentieke sfeer', 'Mix van culturen'], tips: ['Lunch hier!', 'Beklim naar kasteel voor uitzicht'], duration: '2-3 uur', mustSee: true } },
+        { time: '11:30', activity: 'Livadhi Beach', type: 'beach', location: 'himara', details: 'Zwemstop!', fullInfo: { description: 'Lang kiezelstrand met helder water', tips: ['Ligbedden beschikbaar', 'Minder druk dan Ksamil'] } },
+        { time: '13:00', activity: 'Lunch Himara', type: 'food', location: 'himara', details: 'Taverna met uitzicht', fullInfo: { specialty: 'Verse vis, Griekse invloeden', priceRange: '€8-15 p.p.' } },
+        { time: '15:00', activity: '⭐⭐ DHERMI', type: 'highlight', location: 'dhermi', details: 'Mooiste strand Albanië!', fullInfo: { description: 'Vaak genoemd als het mooiste strand van Albanië - lang wit strand omringd door olijfbomen en bergen!', highlights: ['4km lang strand', 'Drëmades beach', 'Beach clubs', 'Olijfgaarden'], tips: ['Beach club = leuk!', 'Dhermi village = authentiek', 'Via Llogara pass terugrijden!'], duration: '2-3 uur', mustSee: true } },
+        { time: '17:30', activity: 'Llogara Pass', type: 'activity', location: 'dhermi', details: 'Spectaculaire bergweg!', fullInfo: { description: 'Adembenemende bergpas op 1027m hoogte met panoramisch uitzicht over de Riviera!', tips: ['Stop bij viewpoints!', 'Soms wolken', 'Mooiste weg van Albanië'], warning: 'Haarspeldbochten - rustig rijden!' } },
+        { time: '19:30', activity: 'Terug in Ksamil', type: 'transport', location: 'ksamil', details: 'Via Saranda', fullInfo: { tips: ['~2 uur rijden'] } },
+        { time: '20:30', activity: 'Diner', type: 'food', location: 'ksamil', details: 'Verdiend na lange dag!', fullInfo: { priceRange: '€12-18 p.p.' } }
+      ],
+      7: [
+        { time: '10:00', activity: 'Uitslapen!', type: 'accommodation', location: 'ksamil', details: 'Rustige ochtend', fullInfo: { tips: ['Laatste volledige dag - geniet!'] } },
+        { time: '11:00', activity: 'Ontbijt aan zee', type: 'food', location: 'ksamil', details: 'Beach café', fullInfo: { tips: ['Langzaam opstarten', 'Verse jus en koffie'] } },
+        { time: '12:00', activity: '🏝️ Laatste stranddag', type: 'beach', location: 'ksamil_islands', details: 'Ksamil eilandjes', fullInfo: { description: 'Geniet nog één keer van het paradijselijke water!', tips: ['Snorkelen bij eilandjes', 'Fotos maken!', 'Geniet van de rust'] } },
+        { time: '13:30', activity: 'Lunch', type: 'food', location: 'ksamil', details: 'Mosselen!', fullInfo: { mustTry: ['Mosselen in witte wijn', 'Gegrilde garnalen'], priceRange: '€10-15 p.p.' } },
+        { time: '15:30', activity: 'SUP / Pedalo', type: 'activity', location: 'ksamil', details: 'Watersport', fullInfo: { description: 'Huur een SUP board of waterfietsen voor de laatste middag', price: '€5-10/uur', tips: ['SUP naar de eilandjes!'] } },
+        { time: '17:30', activity: 'Auto inleveren', type: 'transport', location: 'saranda', details: 'Saranda', fullInfo: { tips: ['Volle tank!'] } },
+        { time: '18:30', activity: '⭐ Zonsondergang Lekuresi', type: 'highlight', location: 'lekuresi_castle', details: 'Laatste sunset!', fullInfo: { description: 'Beste plek voor afscheidszonsondergang met 360° uitzicht!', tips: ['Taxi of wandelen omhoog', 'Restaurant op top', 'Camera klaar!'], mustSee: true } },
+        { time: '20:30', activity: '⭐ Afscheidsdiner', type: 'highlight', location: 'ksamil', details: 'Beste restaurant!', fullInfo: { tips: ['Reserveer vooraf!', 'Rakija proberen!'], priceRange: '€15-25 p.p.' } }
+      ],
+      8: [
+        { time: '08:00', activity: 'Laatste ontbijt', type: 'food', location: 'ksamil', details: 'Aan zee', fullInfo: {} },
+        { time: '09:30', activity: 'Check-out', type: 'accommodation', location: 'ksamil', details: 'Beach Villa', fullInfo: {} },
+        { time: '10:00', activity: 'Taxi naar Saranda', type: 'transport', location: 'saranda_port', details: '15 min', fullInfo: { price: '~€10-15', tips: ['Bespreek prijs vooraf!'] } },
+        { time: '11:00', activity: 'Ferry naar Corfu', type: 'transport', location: 'corfu_port', details: '30 min overtocht', fullInfo: { tips: ['Laatste blik op Albanië!', 'Paspoort klaar'], price: '€20-25 p.p.' } },
+        { time: '12:00', activity: 'Lunch Corfu', type: 'food', location: 'corfu_town', details: 'Liston', fullInfo: { tips: ['Tijd over? Wandel door oude stad'], priceRange: '€12-18 p.p.' } },
+        { time: '13:30', activity: 'Naar vliegveld', type: 'transport', location: 'corfu_airport', details: 'Taxi ~€15', fullInfo: { tips: ['2 uur voor vlucht!'] } },
+        { time: '15:00', activity: '✈️ Vlucht naar Amsterdam', type: 'highlight', location: 'corfu_airport', details: 'Corfu → Amsterdam', fullInfo: { duration: '~3 uur' } },
+        { time: '19:00', activity: '🏠 Thuis!', type: 'transport', location: 'corfu_airport', details: 'Welkom terug', fullInfo: { tips: ['Wat een reis!'] } }
+      ]
+    };
+
+    // Budget
+    const budget = [
+      { item: '✈️ Vluchten (2 pers)', budget: 380, comfort: 500 },
+      { item: '🏠 Saranda (4 nachten)', budget: 200, comfort: 280 },
+      { item: '🏠 Ksamil (3 nachten)', budget: 180, comfort: 240 },
+      { item: '🚗 Huurauto (4 dagen)', budget: 100, comfort: 150 },
+      { item: '⛽ Benzine (~300km)', budget: 30, comfort: 40 },
+      { item: '⛴️ Ferry retour (2p)', budget: 100, comfort: 100 },
+      { item: '⛴️ Corfu dagtrip ferry (2p)', budget: 50, comfort: 50 },
+      { item: '🎫 Butrint + Gjirokastër', budget: 25, comfort: 25 },
+      { item: '🎫 Corfu Fort + Museum', budget: 20, comfort: 30 },
+      { item: '🏖️ Strandbedden (7 dagen)', budget: 50, comfort: 80 },
+      { item: '🍽️ Eten (8 dagen)', budget: 280, comfort: 400 },
+      { item: '🍹 Drinken & Uitgaan', budget: 60, comfort: 100 },
+      { item: '🚕 Taxi\'s', budget: 40, comfort: 60 },
+      { item: '🏥 Reisverzekering', budget: 40, comfort: 60 },
+      { item: '💰 Buffer', budget: 45, comfort: 85 }
+    ];
+
+    function getTypeColor(type) {
+      const colors = {
+        highlight: 'bg-gradient-to-r from-teal-100 to-cyan-100 border-teal-400',
+        warning: 'bg-gradient-to-r from-red-100 to-rose-100 border-red-400',
+        food: 'bg-gradient-to-r from-green-100 to-emerald-100 border-green-400',
+        beach: 'bg-gradient-to-r from-blue-100 to-sky-100 border-blue-400',
+        transport: 'bg-gradient-to-r from-slate-100 to-gray-100 border-gray-400',
+        activity: 'bg-gradient-to-r from-violet-100 to-purple-100 border-purple-400',
+        accommodation: 'bg-gradient-to-r from-yellow-100 to-amber-100 border-yellow-500'
+      };
+      return colors[type] || 'bg-gray-100 border-gray-300';
+    }
+
+    function getTypeIcon(type) {
+      const icons = { highlight: '⭐', warning: '⚠️', food: '🍽️', beach: '🏖️', transport: '🚗', activity: '📍', accommodation: '🏠' };
+      return icons[type] || '📍';
+    }
+
+    function toggleCheck(key) {
+      checklist[key] = !checklist[key];
+      localStorage.setItem('sarandaChecklist', JSON.stringify(checklist));
+      render();
+    }
+
+    function setTab(tab) {
+      activeTab = tab;
+      render();
+    }
+
+    function setDay(day) {
+      activeDay = day;
+      render();
+    }
+
+    function openModal(activity, distInfo) {
+      selectedActivity = { ...activity, distInfo };
+      render();
+    }
+
+    function closeModal() {
+      selectedActivity = null;
+      render();
+    }
+
+    function getDistanceInfo(activity, index, dayActivities) {
+      const currentLoc = locations[activity.location];
+      if (!currentLoc) return null;
+      const dayInfo = days[activeDay - 1];
+      if (!dayInfo || !dayInfo.accommodation) return null;
+      const accom = accommodations[dayInfo.accommodation];
+      if (!accom) return null;
+      const accomLoc = { lat: accom.lat, lng: accom.lng };
+      const distFromAccom = calculateDistance(accomLoc, currentLoc);
+      let distFromPrev = null;
+      if (index > 0) {
+        const prevLoc = locations[dayActivities[index - 1].location];
+        if (prevLoc) distFromPrev = calculateDistance(prevLoc, currentLoc);
+      }
+      return { distFromAccom, distFromPrev };
+    }
+
+    function render() {
+      const totalBudget = budget.reduce((sum, item) => sum + item.budget, 0);
+      const totalComfort = budget.reduce((sum, item) => sum + item.comfort, 0);
+      const checkedCount = Object.values(checklist).filter(Boolean).length;
+      const totalChecks = Object.keys(checklist).length;
+
+      let html = `
+        <div class="max-w-6xl mx-auto">
+          <!-- Header -->
+          <div class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-teal-600 to-cyan-500 bg-clip-text text-transparent mb-2">
+              🏖️ Albanian Riviera & Corfu
+            </h1>
+            <h2 class="text-2xl md:text-3xl text-cyan-700 font-semibold">Saranda • Ksamil • Corfu</h2>
+            <p class="text-gray-600 mt-3 text-lg">6-13 juni 2026 • 2 personen • 8 dagen</p>
+            <div class="mt-4 flex flex-wrap justify-center gap-2">
+              <span class="bg-cyan-100 text-cyan-800 px-4 py-2 rounded-full text-sm font-medium">🇦🇱 Albanië</span>
+              <span class="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium">🇬🇷 Corfu</span>
+              <span class="bg-teal-100 text-teal-800 px-4 py-2 rounded-full text-sm font-medium">🏝️ Caribisch in Europa</span>
+            </div>
+          </div>
+
+          <!-- Budget Banner -->
+          <div class="bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl p-4 text-white shadow-lg mb-6 text-center">
+            <span class="text-2xl">💰</span>
+            <span class="font-bold text-lg ml-2">Albanië = SUPER goedkoop!</span>
+            <span class="ml-2 opacity-90">Eten €5-15, Bier €1-2, Cocktails €3-5</span>
+          </div>
+
+          <!-- Tabs -->
+          <div class="flex flex-wrap justify-center gap-2 mb-8">
+            <button onclick="setTab('overview')" class="px-5 py-3 rounded-xl font-medium transition-all ${activeTab === 'overview' ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg' : 'bg-white text-gray-700 hover:bg-cyan-50 shadow-md'}">📅 Overzicht</button>
+            <button onclick="setTab('planning')" class="px-5 py-3 rounded-xl font-medium transition-all ${activeTab === 'planning' ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg' : 'bg-white text-gray-700 hover:bg-cyan-50 shadow-md'}">🗓️ Dagplanning</button>
+            <button onclick="setTab('budget')" class="px-5 py-3 rounded-xl font-medium transition-all ${activeTab === 'budget' ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg' : 'bg-white text-gray-700 hover:bg-cyan-50 shadow-md'}">💰 Budget</button>
+            <button onclick="setTab('checklist')" class="px-5 py-3 rounded-xl font-medium transition-all ${activeTab === 'checklist' ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg' : 'bg-white text-gray-700 hover:bg-cyan-50 shadow-md'}">✅ Checklist (${checkedCount}/${totalChecks})</button>
+          </div>
+      `;
+
+      // Overview Tab
+      if (activeTab === 'overview') {
+        html += `<div class="grid md:grid-cols-3 lg:grid-cols-4 gap-4">`;
+        days.forEach(day => {
+          const locColor = day.location === 'Saranda' ? 'bg-cyan-100 text-cyan-800' :
+            day.location === 'Ksamil' ? 'bg-blue-100 text-blue-800' :
+            day.location === 'Corfu' ? 'bg-indigo-100 text-indigo-800' :
+            day.location === 'Binnenland' ? 'bg-amber-100 text-amber-800' :
+            day.location === 'Kust' ? 'bg-teal-100 text-teal-800' : 'bg-gray-100 text-gray-800';
+          html += `
+            <div onclick="setDay(${day.day}); setTab('planning');" class="bg-white rounded-2xl p-5 shadow-lg cursor-pointer transition-all hover:shadow-xl hover:scale-[1.02] ${day.featured ? 'ring-2 ring-teal-400 ring-offset-2' : ''}">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-4xl">${day.icon}</span>
+                <span class="text-xs px-3 py-1 rounded-full font-medium ${locColor}">${day.location}</span>
+              </div>
+              <div class="text-sm text-gray-500 font-medium">${day.date}</div>
+              <div class="font-bold text-xl text-gray-800 mt-1">Dag ${day.day}: ${day.title}</div>
+              <div class="text-sm text-teal-600 mt-2 font-medium">${day.highlight}</div>
+              ${day.featured ? '<div class="mt-3 bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full inline-block">⭐ Highlight!</div>' : ''}
+            </div>
+          `;
+        });
+        html += `</div>`;
+      }
+
+      // Planning Tab
+      if (activeTab === 'planning') {
+        html += `
+          <div class="flex overflow-x-auto gap-2 mb-6 pb-2 hide-scrollbar">
+            ${days.map(day => `
+              <button onclick="setDay(${day.day})" class="flex-shrink-0 px-4 py-3 rounded-xl font-medium transition-all ${activeDay === day.day ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg' : 'bg-white text-gray-700 hover:bg-cyan-50 shadow-md'}">
+                <span class="mr-2">${day.icon}</span>Dag ${day.day}
+              </button>
+            `).join('')}
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 shadow-lg mb-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div class="flex items-center gap-4">
+                <span class="text-5xl">${days[activeDay - 1].icon}</span>
+                <div>
+                  <h3 class="text-2xl font-bold text-gray-800">Dag ${activeDay}: ${days[activeDay - 1].title}</h3>
+                  <p class="text-gray-600">${days[activeDay - 1].date} • ${days[activeDay - 1].location}</p>
+                  <p class="text-teal-600 font-semibold mt-1">${days[activeDay - 1].highlight}</p>
+                </div>
+              </div>
+              ${days[activeDay - 1].accommodation ? `
+              <div class="bg-gradient-to-r from-cyan-50 to-teal-50 p-4 rounded-xl border border-cyan-200">
+                <div class="text-xs text-cyan-600 font-bold">🏠 ACCOMMODATIE</div>
+                <div class="font-bold text-cyan-800">${accommodations[days[activeDay - 1].accommodation].name}</div>
+              </div>
+              ` : ''}
+            </div>
+          </div>
+
+          <div class="bg-gradient-to-r from-cyan-50 to-teal-50 border border-cyan-200 rounded-xl p-4 mb-4 text-sm flex items-center gap-2">
+            <span class="text-xl">💡</span>
+            <span><strong>Klik op een activiteit</strong> voor gedetailleerde info!</span>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 shadow-lg">
+            <div class="space-y-3">
+        `;
+
+        const activities = dayDetails[activeDay] || [];
+        activities.forEach((item, idx) => {
+          const distInfo = getDistanceInfo(item, idx, activities);
+          html += `
+            <div onclick='openModal(${JSON.stringify(item).replace(/'/g, "\\'")}, ${JSON.stringify(distInfo)})' class="flex items-center gap-4 p-4 rounded-xl border-l-4 cursor-pointer hover:shadow-lg transition-all ${getTypeColor(item.type)}">
+              <div class="font-mono text-sm font-bold w-14 text-center">${item.time}</div>
+              <div class="text-2xl">${getTypeIcon(item.type)}</div>
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-lg truncate">${item.activity}</div>
+                <div class="text-sm opacity-80 truncate">${item.details}</div>
+              </div>
+              ${distInfo && distInfo.distFromPrev > 0 ? `<div class="text-xs bg-white/60 px-3 py-1 rounded-full hidden md:block font-medium">🚗 ${distInfo.distFromPrev}km</div>` : ''}
+              <div class="text-gray-400 text-xl">→</div>
+            </div>
+          `;
+        });
+
+        html += `</div></div>`;
+
+        // Day-specific tips
+        if (activeDay === 2) {
+          html += `
+            <div class="mt-4 bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-2xl p-5">
+              <h4 class="font-bold text-cyan-800 mb-3 text-lg">💎 BLUE EYE + GJIROKASTËR TIPS</h4>
+              <div class="flex flex-wrap gap-2">
+                ${['🚗 Huurauto nodig', '⏰ Vroeg = minder druk', '🥾 Comfortabele schoenen', '💧 Water meenemen', '📸 Camera!', '🧥 Blue Eye = koud!'].map(item => `<span class="bg-cyan-100 text-cyan-800 px-3 py-2 rounded-full text-sm font-medium">${item}</span>`).join('')}
+              </div>
+            </div>
+          `;
+        }
+
+        if (activeDay === 3) {
+          html += `
+            <div class="mt-4 bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-2xl p-5">
+              <h4 class="font-bold text-blue-800 mb-3 text-lg">🏝️ KSAMIL STRAND TIPS</h4>
+              <div class="flex flex-wrap gap-2">
+                ${['🤿 Snorkelset mee!', '💦 Waterproof tas', '👟 Waterschoenen', '🧴 Zonnebrand SPF50', '🏊 Zwem naar eilandjes!', '💰 Cash voor ligbedden'].map(item => `<span class="bg-blue-100 text-blue-800 px-3 py-2 rounded-full text-sm font-medium">${item}</span>`).join('')}
+              </div>
+              <p class="mt-3 text-blue-700 text-sm">💡 Ligbedden €5-10, eilandjes zijn gratis!</p>
+            </div>
+          `;
+        }
+
+        if (activeDay === 4) {
+          html += `
+            <div class="mt-4 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-2xl p-5">
+              <h4 class="font-bold text-indigo-800 mb-3 text-lg">🇬🇷 CORFU DAGTRIP - BELANGRIJKE INFO</h4>
+              <div class="grid grid-cols-2 gap-3 text-sm">
+                <div class="bg-white p-3 rounded-xl"><span class="font-bold">🛂 Paspoort</span><br/>VERPLICHT (grens!)</div>
+                <div class="bg-white p-3 rounded-xl"><span class="font-bold">⛴️ Ferry</span><br/>€20-25 retour</div>
+                <div class="bg-white p-3 rounded-xl"><span class="font-bold">💶 Valuta</span><br/>Euro's (Griekenland)</div>
+                <div class="bg-white p-3 rounded-xl"><span class="font-bold">⏱️ Tijd</span><br/>Zelfde als Albanië</div>
+              </div>
+              <p class="mt-3 text-indigo-700 text-sm">⚠️ Corfu is DUURDER dan Albanië - lunch ~€12-18 p.p.</p>
+            </div>
+          `;
+        }
+
+        if (activeDay === 6) {
+          html += `
+            <div class="mt-4 bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-200 rounded-2xl p-5">
+              <h4 class="font-bold text-teal-800 mb-3 text-lg">🚗 COASTAL ROAD TRIP - ROUTE</h4>
+              <div class="flex flex-wrap gap-2 mb-3">
+                ${['Ksamil → Porto Palermo (45min)', '→ Himara (30min)', '→ Dhermi (30min)', '→ Llogara Pass (45min)', '→ Ksamil (1.5u)'].map(item => `<span class="bg-teal-100 text-teal-800 px-3 py-2 rounded-full text-sm font-medium">${item}</span>`).join('')}
+              </div>
+              <p class="text-teal-700 text-sm">⚠️ Llogara Pass = haarspeldbochten! Rustig rijden. Totaal ~180km.</p>
+            </div>
+          `;
+        }
+      }
+
+      // Budget Tab
+      if (activeTab === 'budget') {
+        html += `
+          <div class="space-y-6">
+            <div class="bg-gradient-to-r from-teal-500 to-cyan-500 rounded-2xl p-5 text-white shadow-lg">
+              <h3 class="text-xl font-bold mb-2">💰 Albanië = Europa's Best Kept Secret!</h3>
+              <p class="opacity-90">Prijzen 50-70% lager dan West-Europa. Dezelfde kwaliteit, fractie van de prijs!</p>
+              <div class="mt-3 grid grid-cols-3 gap-2 text-sm">
+                <div class="bg-white/20 rounded-lg p-2 text-center">🍺 Bier<br/><strong>€1-2</strong></div>
+                <div class="bg-white/20 rounded-lg p-2 text-center">🍹 Cocktail<br/><strong>€3-5</strong></div>
+                <div class="bg-white/20 rounded-lg p-2 text-center">🍽️ Diner<br/><strong>€8-15</strong></div>
+              </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+              <div class="bg-white rounded-2xl p-6 shadow-lg">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">💰 Geschatte Kosten</h3>
+                <div class="space-y-2 max-h-96 overflow-y-auto">
+                  <div class="flex justify-between text-sm text-gray-500 pb-2 border-b-2">
+                    <span>Categorie</span><span>Budget | Comfort</span>
+                  </div>
+                  ${budget.map(item => `
+                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span class="text-gray-700 text-sm">${item.item}</span>
+                      <div class="text-right font-mono text-sm">
+                        <span class="text-gray-600">€${item.budget}</span>
+                        <span class="text-gray-300 mx-1">|</span>
+                        <span class="text-gray-800">€${item.comfort}</span>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+                <div class="flex justify-between items-center pt-4 border-t-2 border-teal-200 mt-4">
+                  <span class="font-bold text-gray-800 text-lg">TOTAAL</span>
+                  <div class="text-right font-mono">
+                    <span class="text-teal-600 font-bold text-xl">€${totalBudget}</span>
+                    <span class="text-gray-300 mx-2">|</span>
+                    <span class="text-teal-800 font-bold text-xl">€${totalComfort}</span>
+                  </div>
+                </div>
+                <div class="flex justify-between items-center text-sm text-gray-500 mt-2">
+                  <span>Per persoon</span>
+                  <span class="font-mono">€${Math.round(totalBudget/2)} | €${Math.round(totalComfort/2)}</span>
+                </div>
+              </div>
+
+              <div class="bg-white rounded-2xl p-6 shadow-lg">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">🆚 Vergelijking Andere Reizen</h3>
+                <div class="space-y-4">
+                  <div class="bg-cyan-50 p-4 rounded-xl">
+                    <h4 class="font-bold text-cyan-800">🏖️ Albanian Riviera</h4>
+                    <p class="text-2xl font-bold text-cyan-600">€${totalBudget} - €${totalComfort}</p>
+                    <p class="text-sm text-cyan-600">8 dagen incl. Corfu</p>
+                  </div>
+                  <div class="bg-amber-50 p-4 rounded-xl">
+                    <h4 class="font-bold text-amber-800">🏔️ Montenegro</h4>
+                    <p class="text-2xl font-bold text-amber-600">€2.440 - €3.060</p>
+                    <p class="text-sm text-amber-600">9 dagen</p>
+                  </div>
+                  <div class="bg-blue-50 p-4 rounded-xl">
+                    <h4 class="font-bold text-blue-800">🌴 Canarische Eilanden</h4>
+                    <p class="text-2xl font-bold text-blue-600">€3.060 - €3.560</p>
+                    <p class="text-sm text-blue-600">9 dagen</p>
+                  </div>
+                </div>
+                <div class="mt-4 bg-green-50 p-4 rounded-xl">
+                  <h4 class="font-bold text-green-800">💰 Je bespaart</h4>
+                  <p class="text-2xl font-bold text-green-600">~€800 - €1.500</p>
+                  <p class="text-sm text-green-600">vs Montenegro/Canary Islands</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-2xl p-5">
+              <h4 class="font-bold text-amber-800 mb-3">💵 VALUTA TIP</h4>
+              <div class="grid md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p class="font-bold text-amber-700">🇦🇱 Albanië = Lek (ALL)</p>
+                  <p class="text-amber-600">€1 ≈ 100 Lek</p>
+                  <p class="text-amber-600 mt-1">✓ Euro's vaak geaccepteerd</p>
+                  <p class="text-amber-600">✓ Pinnen = beste wisselkoers</p>
+                </div>
+                <div>
+                  <p class="font-bold text-amber-700">🇬🇷 Corfu = Euro</p>
+                  <p class="text-amber-600">Normale EU prijzen</p>
+                  <p class="text-amber-600 mt-1">⚠️ Duurder dan Albanië!</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Checklist Tab
+      if (activeTab === 'checklist') {
+        const sections = [
+          { title: '🔴 NU BOEKEN', items: [
+            { key: 'flights', label: 'Vluchten Amsterdam ↔ Corfu' },
+            { key: 'accommodationSaranda', label: 'Accommodatie Saranda (4n)' },
+            { key: 'accommodationKsamil', label: 'Accommodatie Ksamil (3n)' },
+            { key: 'insurance', label: 'Reisverzekering' },
+            { key: 'ferryCorfu', label: 'Ferry Corfu ↔ Saranda (retour)' }
+          ]},
+          { title: '🟠 APRIL/MEI', items: [
+            { key: 'carRental', label: 'Huurauto (4 dagen)' },
+            { key: 'blueEyeBooked', label: 'Blue Eye route plannen' },
+            { key: 'gjirokasterBooked', label: 'Gjirokastër info checken' }
+          ]},
+          { title: '📦 WEEK VOOR', items: [
+            { key: 'mapsOffline', label: 'Google Maps offline Albanië' },
+            { key: 'printConfirmations', label: 'Bevestigingen printen' },
+            { key: 'lekCash', label: 'Check pinnen in Albanië' },
+            { key: 'eurosCash', label: 'Euro\'s cash (voor ferry)' }
+          ]},
+          { title: '🧳 DOCUMENTEN', items: [
+            { key: 'paspoort', label: 'Paspoort (VERPLICHT!)' },
+            { key: 'rijbewijs', label: 'Rijbewijs' },
+            { key: 'creditcard', label: 'Creditcard' },
+            { key: 'ehic', label: 'EHIC kaart' }
+          ]},
+          { title: '🎒 INPAKKEN', items: [
+            { key: 'zwemkleding', label: 'Zwemkleding (3x!)' },
+            { key: 'zonnebrand', label: 'Zonnebrand SPF50' },
+            { key: 'snorkelset', label: 'Snorkelset' },
+            { key: 'waterproof', label: 'Waterproof telefoonhoes' },
+            { key: 'wandelschoenen', label: 'Wandelschoenen (Gjirokastër!)' },
+            { key: 'camera', label: 'Camera + onderwaterhoes' }
+          ]}
+        ];
+
+        html += `<div class="space-y-4"><div class="grid md:grid-cols-2 gap-4">`;
+        sections.forEach(section => {
+          const sectionChecked = section.items.filter(i => checklist[i.key]).length;
+          html += `
+            <div class="bg-white rounded-2xl p-5 shadow-lg">
+              <h3 class="text-lg font-bold mb-3 flex items-center gap-2">
+                ${section.title}
+                <span class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">${sectionChecked}/${section.items.length}</span>
+              </h3>
+              <div class="space-y-2">
+                ${section.items.map(item => `
+                  <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                    <input type="checkbox" ${checklist[item.key] ? 'checked' : ''} onchange="toggleCheck('${item.key}')" class="w-5 h-5 rounded text-teal-600 cursor-pointer">
+                    <span class="${checklist[item.key] ? 'line-through text-gray-400' : 'text-gray-700'}">${item.label}</span>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        });
+        html += `</div>
+          <div class="bg-gradient-to-r from-teal-500 to-cyan-500 rounded-2xl p-6 shadow-lg text-white">
+            <h3 class="text-xl font-bold mb-4">📊 Voortgang</h3>
+            <div class="bg-white/20 rounded-full h-6 mb-3">
+              <div class="bg-white rounded-full h-6 transition-all duration-500 flex items-center justify-end pr-2" style="width: ${Math.max((checkedCount / totalChecks) * 100, 10)}%">
+                <span class="text-teal-600 font-bold text-sm">${Math.round((checkedCount / totalChecks) * 100)}%</span>
+              </div>
+            </div>
+            <div class="text-center text-lg"><span class="font-bold">${checkedCount}</span> van <span class="font-bold">${totalChecks}</span> items</div>
+          </div>
+
+          <div class="bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 rounded-2xl p-5">
+            <h4 class="font-bold text-red-800 mb-2">⚠️ BELANGRIJK: PASPOORT!</h4>
+            <p class="text-red-700">Albanië is GEEN EU-lid. Je hebt een <strong>geldig paspoort</strong> nodig voor de grensovergang per ferry!</p>
+            <p class="text-red-600 text-sm mt-2">ID-kaart alleen is NIET voldoende!</p>
+          </div>
+        </div>`;
+      }
+
+      // Modal
+      if (selectedActivity) {
+        const info = selectedActivity.fullInfo || {};
+        const distInfo = selectedActivity.distInfo;
+        html += `
+          <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50" onclick="closeModal()">
+            <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl" onclick="event.stopPropagation()">
+              <div class="p-5 rounded-t-3xl ${getTypeColor(selectedActivity.type)}">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <span class="text-3xl mr-2">${getTypeIcon(selectedActivity.type)}</span>
+                    <span class="font-bold text-xl">${selectedActivity.activity}</span>
+                  </div>
+                  <button onclick="closeModal()" class="text-3xl hover:opacity-70">×</button>
+                </div>
+                <div class="text-sm mt-2 opacity-80 font-medium">${selectedActivity.time} • ${selectedActivity.details}</div>
+              </div>
+              
+              <div class="p-5 space-y-4">
+                ${distInfo ? `
+                  <div class="bg-gradient-to-r from-cyan-50 to-teal-50 rounded-2xl p-4">
+                    <h4 class="font-bold text-cyan-800 mb-3">📍 Afstanden</h4>
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                      <div class="bg-white p-3 rounded-xl shadow-sm">
+                        <div class="text-gray-500 text-xs">Vanaf accommodatie</div>
+                        <div class="font-bold text-cyan-700 text-lg">${distInfo.distFromAccom} km</div>
+                        <div class="text-xs text-gray-500">~${estimateDriveTime(distInfo.distFromAccom)}</div>
+                      </div>
+                      ${distInfo.distFromPrev > 0 ? `
+                        <div class="bg-white p-3 rounded-xl shadow-sm">
+                          <div class="text-gray-500 text-xs">Vanaf vorige</div>
+                          <div class="font-bold text-green-700 text-lg">${distInfo.distFromPrev} km</div>
+                          <div class="text-xs text-gray-500">~${estimateDriveTime(distInfo.distFromPrev)}</div>
+                        </div>
+                      ` : ''}
+                    </div>
+                  </div>
+                ` : ''}
+
+                ${info.description ? `<div><h4 class="font-bold text-gray-700 mb-2">📖 Beschrijving</h4><p class="text-gray-600 leading-relaxed">${info.description}</p></div>` : ''}
+
+                ${info.highlights ? `
+                  <div>
+                    <h4 class="font-bold text-gray-700 mb-2">✨ Highlights</h4>
+                    <div class="flex flex-wrap gap-2">${info.highlights.map(h => `<span class="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-sm">${h}</span>`).join('')}</div>
+                  </div>
+                ` : ''}
+
+                ${info.price || info.priceRange ? `
+                  <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl">
+                    <h4 class="font-bold text-green-800 mb-1">💰 Kosten</h4>
+                    <p class="text-green-700 font-semibold text-lg">${info.price || info.priceRange}</p>
+                  </div>
+                ` : ''}
+
+                ${info.duration ? `<div class="flex items-center gap-2 bg-gray-50 p-3 rounded-xl"><span class="text-xl">⏱️</span><span class="font-bold text-gray-700">Duur: </span><span class="text-gray-600">${info.duration}</span></div>` : ''}
+
+                ${info.tips ? `
+                  <div>
+                    <h4 class="font-bold text-gray-700 mb-3">💡 Tips</h4>
+                    <ul class="space-y-2">${info.tips.map(tip => `<li class="flex items-start gap-2 text-sm text-gray-600 bg-gray-50 p-2 rounded-lg"><span class="text-teal-500 mt-0.5">•</span><span>${tip}</span></li>`).join('')}</ul>
+                  </div>
+                ` : ''}
+
+                ${info.warning ? `
+                  <div class="bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 p-4 rounded-xl">
+                    <h4 class="font-bold text-red-800 mb-1">⚠️ Let op!</h4>
+                    <p class="text-red-700">${info.warning}</p>
+                  </div>
+                ` : ''}
+
+                ${info.mustTry ? `
+                  <div>
+                    <h4 class="font-bold text-gray-700 mb-2">🍴 Must Try</h4>
+                    <div class="flex flex-wrap gap-2">${info.mustTry.map(item => `<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm">${item}</span>`).join('')}</div>
+                  </div>
+                ` : ''}
+
+                ${info.specialty ? `
+                  <div>
+                    <h4 class="font-bold text-gray-700 mb-2">🍴 Specialiteit</h4>
+                    <p class="text-gray-600">${info.specialty}</p>
+                  </div>
+                ` : ''}
+
+                ${info.recommendations ? `
+                  <div>
+                    <h4 class="font-bold text-gray-700 mb-2">📍 Aanbevolen</h4>
+                    <div class="flex flex-wrap gap-2">${info.recommendations.map(r => `<span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">${r}</span>`).join('')}</div>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      html += `
+          <div class="text-center mt-10 text-gray-500 text-sm">
+            <p>🏖️ Albanian Riviera & Corfu • Saranda • Ksamil 2026 🏖️</p>
+            <p class="mt-1">6-13 juni • 2 personen • 8 onvergetelijke dagen</p>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('app').innerHTML = html;
+    }
+
+    render();
+  </script>
+</body>
+</html>
